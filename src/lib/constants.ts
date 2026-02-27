@@ -43,4 +43,5 @@ export const STATUTS = {
   cloturee: { label: "Clôturée", color: "bg-slate-100 text-slate-800" },
   standby: { label: "Standby", color: "bg-blue-100 text-blue-800" },
   annulee: { label: "Annulée", color: "bg-red-100 text-red-800" },
+  nrp: { label: "NRP", color: "bg-orange-100 text-orange-800" },
 } as const;
