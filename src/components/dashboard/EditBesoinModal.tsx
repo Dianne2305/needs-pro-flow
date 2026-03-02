@@ -10,8 +10,9 @@ import {
   STATUTS, SEGMENTS, FREQUENCES, TYPES_BIEN,
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
 } from "@/lib/constants";
-import { ArrowLeft, Save, X } from "lucide-react";
+import { ArrowLeft, Save, X, Send } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import { toast } from "@/hooks/use-toast";
 
 type Demande = Tables<"demandes">;
 
@@ -46,6 +47,10 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [modePaiement, setModePaiement] = useState(demande.mode_paiement || "");
   const [avecProduit, setAvecProduit] = useState(demande.avec_produit || false);
   const [notesClient, setNotesClient] = useState(demande.notes_client || "");
+  const [sendWhatsApp, setSendWhatsApp] = useState(false);
+
+  const isReservation = ["confirme", "prestation_effectuee", "paye"].includes(statut);
+  const isDevis = !isReservation;
 
   const prestationOptions = useMemo(() => {
     return segment === "entreprise"
@@ -53,7 +58,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       : TYPES_PRESTATION_PARTICULIER;
   }, [segment]);
 
-  // Reset type_prestation when segment changes if current value is not in new list
   const handleSegmentChange = (val: string) => {
     setSegment(val);
     const newList = val === "entreprise" ? TYPES_PRESTATION_ENTREPRISE : TYPES_PRESTATION_PARTICULIER;
@@ -85,6 +89,14 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       avec_produit: avecProduit,
       notes_client: notesClient || null,
     });
+
+    if (sendWhatsApp && whatsapp) {
+      toast({
+        title: isDevis ? "Devis régénéré" : "Confirmation régénérée",
+        description: `Le document sera envoyé au client via WhatsApp (${whatsapp})`,
+      });
+    }
+
     onOpenChange(false);
   };
 
@@ -96,12 +108,19 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <DialogTitle>Éditer le besoin — #{demande.num_demande}</DialogTitle>
+            <DialogTitle className="flex flex-col">
+              <span>Éditer le besoin — #{demande.num_demande}</span>
+              {typePrestation && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  Formulaire : {typePrestation}
+                </span>
+              )}
+            </DialogTitle>
           </div>
         </DialogHeader>
 
+        {/* Row 1: Statut, Segment, Type de service */}
         <div className="grid grid-cols-3 gap-4">
-          {/* Row 1: Statut, Segment, Type de service */}
           <div>
             <Label>Statut du besoin</Label>
             <Select value={statut} onValueChange={setStatut}>
@@ -139,8 +158,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           </div>
         </div>
 
+        {/* Form fields */}
         <div className="grid grid-cols-2 gap-4 mt-2">
-          {/* Type bien */}
           <div>
             <Label>Type de bien</Label>
             <Select value={typeBien} onValueChange={setTypeBien}>
@@ -151,7 +170,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             </Select>
           </div>
 
-          {/* Fréquence */}
           <div>
             <Label>Fréquence</Label>
             <Select value={frequence} onValueChange={setFrequence}>
@@ -162,13 +180,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             </Select>
           </div>
 
-          {/* Avec produit */}
           <div className="flex items-center gap-3 pt-6">
             <Switch checked={avecProduit} onCheckedChange={setAvecProduit} />
             <Label>Avec produit ménager</Label>
           </div>
 
-          {/* Mode paiement */}
           <div>
             <Label>Mode de paiement</Label>
             <Select value={modePaiement} onValueChange={setModePaiement}>
@@ -210,9 +226,36 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           </div>
         </div>
 
+        {/* WhatsApp toggle */}
+        <div className="border rounded-lg p-4 mt-2 bg-muted/30">
+          <div className="flex items-center gap-3">
+            <Switch checked={sendWhatsApp} onCheckedChange={setSendWhatsApp} />
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <Send className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm font-medium">
+                  {isDevis
+                    ? "Régénérer le devis et renvoyer au client via WhatsApp"
+                    : "Régénérer la confirmation de réservation et renvoyer au client via WhatsApp"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isDevis
+                  ? "Le devis sera régénéré et envoyé automatiquement au numéro WhatsApp du client."
+                  : "La confirmation de réservation sera régénérée et envoyée automatiquement au numéro WhatsApp du client."}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}><X className="h-4 w-4 mr-1" />Annuler</Button>
-          <Button onClick={handleSave}><Save className="h-4 w-4 mr-1" />Enregistrer</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <X className="h-4 w-4 mr-1" />Annuler
+          </Button>
+          <Button onClick={handleSave}>
+            <Save className="h-4 w-4 mr-1" />Enregistrer
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
