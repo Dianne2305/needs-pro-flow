@@ -209,13 +209,14 @@ export default function Dashboard() {
             <TableHead>CAO</TableHead>
             <TableHead>Commercial</TableHead>
             <TableHead>Tarif</TableHead>
+            <TableHead>Mode paiement</TableHead>
             <TableHead>Statut</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow><TableCell colSpan={18} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+            <TableRow><TableCell colSpan={19} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => (
             <TableRow key={d.id}>
               <TableCell>{renderActionButtons(d)}</TableCell>
@@ -242,6 +243,7 @@ export default function Dashboard() {
               <TableCell className="text-xs">{d.confirmation_ope === "confirme" ? <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge> : <Badge variant="outline" className="text-[10px]">Pas encore</Badge>}</TableCell>
               <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
               <TableCell className="text-sm font-medium">{d.montant_total ? `${d.montant_total} MAD` : "—"}</TableCell>
+              <TableCell className="text-sm">{(d as any).mode_paiement || "—"}</TableCell>
               <TableCell>{d.confirmation_ope === "confirme" ? renderStatusBadge("confirme_intervention") : renderStatusBadge("en_attente_profil")}</TableCell>
               <TableCell>{renderQuickMenu(d)}</TableCell>
             </TableRow>
