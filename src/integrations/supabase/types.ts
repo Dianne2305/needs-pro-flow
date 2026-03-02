@@ -17,15 +17,22 @@ export type Database = {
       demandes: {
         Row: {
           adresse: string | null
+          avec_produit: boolean | null
+          candidat_nom: string | null
+          candidat_photo_url: string | null
+          candidat_telephone: string | null
+          confirmation_ope: string | null
           confirmed_at: string | null
           created_at: string
           date_prestation: string | null
+          date_report: string | null
           duree_heures: number | null
           frequence: string
           heure_prestation: string | null
           id: string
           montant_candidat: number | null
           montant_total: number | null
+          motif_annulation: string | null
           nom: string
           nombre_intervenants: number | null
           note_commercial: string | null
@@ -34,6 +41,7 @@ export type Database = {
           num_demande: number
           quartier: string | null
           statut: string
+          statut_candidature: string | null
           telephone_direct: string | null
           telephone_whatsapp: string | null
           type_bien: string | null
@@ -43,15 +51,22 @@ export type Database = {
         }
         Insert: {
           adresse?: string | null
+          avec_produit?: boolean | null
+          candidat_nom?: string | null
+          candidat_photo_url?: string | null
+          candidat_telephone?: string | null
+          confirmation_ope?: string | null
           confirmed_at?: string | null
           created_at?: string
           date_prestation?: string | null
+          date_report?: string | null
           duree_heures?: number | null
           frequence?: string
           heure_prestation?: string | null
           id?: string
           montant_candidat?: number | null
           montant_total?: number | null
+          motif_annulation?: string | null
           nom: string
           nombre_intervenants?: number | null
           note_commercial?: string | null
@@ -60,6 +75,7 @@ export type Database = {
           num_demande?: number
           quartier?: string | null
           statut?: string
+          statut_candidature?: string | null
           telephone_direct?: string | null
           telephone_whatsapp?: string | null
           type_bien?: string | null
@@ -69,15 +85,22 @@ export type Database = {
         }
         Update: {
           adresse?: string | null
+          avec_produit?: boolean | null
+          candidat_nom?: string | null
+          candidat_photo_url?: string | null
+          candidat_telephone?: string | null
+          confirmation_ope?: string | null
           confirmed_at?: string | null
           created_at?: string
           date_prestation?: string | null
+          date_report?: string | null
           duree_heures?: number | null
           frequence?: string
           heure_prestation?: string | null
           id?: string
           montant_candidat?: number | null
           montant_total?: number | null
+          motif_annulation?: string | null
           nom?: string
           nombre_intervenants?: number | null
           note_commercial?: string | null
@@ -86,6 +109,7 @@ export type Database = {
           num_demande?: number
           quartier?: string | null
           statut?: string
+          statut_candidature?: string | null
           telephone_direct?: string | null
           telephone_whatsapp?: string | null
           type_bien?: string | null
