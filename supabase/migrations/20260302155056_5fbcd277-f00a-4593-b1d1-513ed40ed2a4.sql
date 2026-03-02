@@ -1,0 +1,1 @@
+ALTER TABLE demandes ADD COLUMN mode_paiement text;

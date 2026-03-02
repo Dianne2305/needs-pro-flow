@@ -30,6 +30,7 @@ export type Database = {
           frequence: string
           heure_prestation: string | null
           id: string
+          mode_paiement: string | null
           montant_candidat: number | null
           montant_total: number | null
           motif_annulation: string | null
@@ -64,6 +65,7 @@ export type Database = {
           frequence?: string
           heure_prestation?: string | null
           id?: string
+          mode_paiement?: string | null
           montant_candidat?: number | null
           montant_total?: number | null
           motif_annulation?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           frequence?: string
           heure_prestation?: string | null
           id?: string
+          mode_paiement?: string | null
           montant_candidat?: number | null
           montant_total?: number | null
           motif_annulation?: string | null
