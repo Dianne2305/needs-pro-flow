@@ -23,10 +23,15 @@ export type Database = {
           candidat_telephone: string | null
           confirmation_ope: string | null
           confirmed_at: string | null
+          contact_entreprise: string | null
           created_at: string
           date_prestation: string | null
           date_report: string | null
+          description_intervention: string | null
           duree_heures: number | null
+          email: string | null
+          etat_logement: string | null
+          flexibilite_horaire: string | null
           frequence: string
           heure_prestation: string | null
           id: string
@@ -34,19 +39,25 @@ export type Database = {
           montant_candidat: number | null
           montant_total: number | null
           motif_annulation: string | null
+          nature_intervention: string | null
           nom: string
+          nom_entreprise: string | null
           nombre_intervenants: number | null
           note_commercial: string | null
           note_operationnel: string | null
           notes_client: string | null
           num_demande: number
+          preference_horaire: string | null
           quartier: string | null
+          services_optionnels: Json | null
           statut: string
           statut_candidature: string | null
+          superficie_m2: number | null
           telephone_direct: string | null
           telephone_whatsapp: string | null
           type_bien: string | null
           type_prestation: string
+          type_salissure: string | null
           type_service: string
           ville: string
         }
@@ -58,10 +69,15 @@ export type Database = {
           candidat_telephone?: string | null
           confirmation_ope?: string | null
           confirmed_at?: string | null
+          contact_entreprise?: string | null
           created_at?: string
           date_prestation?: string | null
           date_report?: string | null
+          description_intervention?: string | null
           duree_heures?: number | null
+          email?: string | null
+          etat_logement?: string | null
+          flexibilite_horaire?: string | null
           frequence?: string
           heure_prestation?: string | null
           id?: string
@@ -69,19 +85,25 @@ export type Database = {
           montant_candidat?: number | null
           montant_total?: number | null
           motif_annulation?: string | null
+          nature_intervention?: string | null
           nom: string
+          nom_entreprise?: string | null
           nombre_intervenants?: number | null
           note_commercial?: string | null
           note_operationnel?: string | null
           notes_client?: string | null
           num_demande?: number
+          preference_horaire?: string | null
           quartier?: string | null
+          services_optionnels?: Json | null
           statut?: string
           statut_candidature?: string | null
+          superficie_m2?: number | null
           telephone_direct?: string | null
           telephone_whatsapp?: string | null
           type_bien?: string | null
           type_prestation: string
+          type_salissure?: string | null
           type_service: string
           ville?: string
         }
@@ -93,10 +115,15 @@ export type Database = {
           candidat_telephone?: string | null
           confirmation_ope?: string | null
           confirmed_at?: string | null
+          contact_entreprise?: string | null
           created_at?: string
           date_prestation?: string | null
           date_report?: string | null
+          description_intervention?: string | null
           duree_heures?: number | null
+          email?: string | null
+          etat_logement?: string | null
+          flexibilite_horaire?: string | null
           frequence?: string
           heure_prestation?: string | null
           id?: string
@@ -104,19 +131,25 @@ export type Database = {
           montant_candidat?: number | null
           montant_total?: number | null
           motif_annulation?: string | null
+          nature_intervention?: string | null
           nom?: string
+          nom_entreprise?: string | null
           nombre_intervenants?: number | null
           note_commercial?: string | null
           note_operationnel?: string | null
           notes_client?: string | null
           num_demande?: number
+          preference_horaire?: string | null
           quartier?: string | null
+          services_optionnels?: Json | null
           statut?: string
           statut_candidature?: string | null
+          superficie_m2?: number | null
           telephone_direct?: string | null
           telephone_whatsapp?: string | null
           type_bien?: string | null
           type_prestation?: string
+          type_salissure?: string | null
           type_service?: string
           ville?: string
         }
