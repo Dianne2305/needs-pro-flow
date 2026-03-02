@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,11 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { TYPES_PRESTATION, STATUTS, FREQUENCES, TYPES_BIEN } from "@/lib/constants";
+import {
+  STATUTS, SEGMENTS, FREQUENCES, TYPES_BIEN,
+  TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
+} from "@/lib/constants";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Demande = Tables<"demandes">;
+
+const MODES_PAIEMENT = ["Par virement", "À l'agence", "Espèce", "Chèque"] as const;
 
 interface Props {
   demande: Demande;
@@ -21,7 +26,9 @@ interface Props {
 
 export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) {
   const [statut, setStatut] = useState(demande.statut);
-  const [typeService, setTypeService] = useState(demande.type_service);
+  const [segment, setSegment] = useState(
+    demande.type_service === "SPE" ? "entreprise" : "particulier"
+  );
   const [typePrestation, setTypePrestation] = useState(demande.type_prestation);
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
   const [frequence, setFrequence] = useState(demande.frequence);
@@ -36,13 +43,29 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [duree, setDuree] = useState(String(demande.duree_heures || ""));
   const [nbIntervenants, setNbIntervenants] = useState(String(demande.nombre_intervenants || 1));
   const [montant, setMontant] = useState(String(demande.montant_total || ""));
-  const [avecProduit, setAvecProduit] = useState((demande as any).avec_produit || false);
+  const [modePaiement, setModePaiement] = useState(demande.mode_paiement || "");
+  const [avecProduit, setAvecProduit] = useState(demande.avec_produit || false);
   const [notesClient, setNotesClient] = useState(demande.notes_client || "");
+
+  const prestationOptions = useMemo(() => {
+    return segment === "entreprise"
+      ? TYPES_PRESTATION_ENTREPRISE
+      : TYPES_PRESTATION_PARTICULIER;
+  }, [segment]);
+
+  // Reset type_prestation when segment changes if current value is not in new list
+  const handleSegmentChange = (val: string) => {
+    setSegment(val);
+    const newList = val === "entreprise" ? TYPES_PRESTATION_ENTREPRISE : TYPES_PRESTATION_PARTICULIER;
+    if (!newList.includes(typePrestation as any)) {
+      setTypePrestation("");
+    }
+  };
 
   const handleSave = () => {
     onSave({
       statut,
-      type_service: typeService,
+      type_service: segment === "entreprise" ? "SPE" : "SPP",
       type_prestation: typePrestation,
       type_bien: typeBien || null,
       frequence,
@@ -58,6 +81,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       nombre_intervenants: nbIntervenants ? Number(nbIntervenants) : 1,
       montant_total: montant ? Number(montant) : null,
       montant_candidat: montant ? Number(montant) / 2 : null,
+      mode_paiement: modePaiement || null,
       avec_produit: avecProduit,
       notes_client: notesClient || null,
     });
@@ -76,10 +100,10 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           </div>
         </DialogHeader>
 
-        <div className="grid grid-cols-2 gap-4">
-          {/* Statut */}
+        <div className="grid grid-cols-3 gap-4">
+          {/* Row 1: Statut, Segment, Type de service */}
           <div>
-            <Label>Statut</Label>
+            <Label>Statut du besoin</Label>
             <Select value={statut} onValueChange={setStatut}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -90,29 +114,32 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             </Select>
           </div>
 
-          {/* Segment */}
           <div>
             <Label>Segment</Label>
-            <Select value={typeService} onValueChange={setTypeService}>
+            <Select value={segment} onValueChange={handleSegmentChange}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="SPP">Service Particulier (SPP)</SelectItem>
-                <SelectItem value="SPE">Service Entreprise (SPE)</SelectItem>
+                {SEGMENTS.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Type prestation */}
           <div>
-            <Label>Type de prestation</Label>
+            <Label>Type de service</Label>
             <Select value={typePrestation} onValueChange={setTypePrestation}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
               <SelectContent>
-                {TYPES_PRESTATION.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {prestationOptions.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+        </div>
 
+        <div className="grid grid-cols-2 gap-4 mt-2">
           {/* Type bien */}
           <div>
             <Label>Type de bien</Label>
@@ -139,6 +166,17 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           <div className="flex items-center gap-3 pt-6">
             <Switch checked={avecProduit} onCheckedChange={setAvecProduit} />
             <Label>Avec produit ménager</Label>
+          </div>
+
+          {/* Mode paiement */}
+          <div>
+            <Label>Mode de paiement</Label>
+            <Select value={modePaiement} onValueChange={setModePaiement}>
+              <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+              <SelectContent>
+                {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="col-span-2 border-t pt-4 mt-2">

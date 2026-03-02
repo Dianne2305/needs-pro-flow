@@ -1,12 +1,23 @@
-export const TYPES_PRESTATION = [
+export const TYPES_PRESTATION_PARTICULIER = [
   "Ménage standard",
-  "Grand Ménage",
-  "Nettoyage Fin de chantier",
-  "Ménage post-déménagement",
-  "Ménage AirBNB",
-  "Garde malade",
+  "Grand ménage",
+  "Ménage Air BnB",
+  "Nettoyage post-déménagement",
+  "Ménage fin de chantier",
+  "Auxiliaire de vie",
+  "Ménage post-sinistre",
+] as const;
+
+export const TYPES_PRESTATION_ENTREPRISE = [
   "Ménage Bureaux",
-  "Placement",
+  "Placement & gestion",
+  "Ménage post-sinistre",
+  "Ménage fin de chantier",
+] as const;
+
+export const TYPES_PRESTATION = [
+  ...TYPES_PRESTATION_PARTICULIER,
+  ...new Set([...TYPES_PRESTATION_ENTREPRISE]),
 ] as const;
 
 export const TYPES_BIEN = [
@@ -37,19 +48,17 @@ export const QUARTIERS_CASABLANCA = [
 ] as const;
 
 export const STATUTS = {
-  en_attente: { label: "En attente", color: "bg-amber-100 text-amber-800" },
-  confirmee: { label: "Confirmée", color: "bg-emerald-100 text-emerald-800" },
   en_cours: { label: "En cours", color: "bg-sky-100 text-sky-800" },
-  en_attente_profil: { label: "Att. profil", color: "bg-violet-100 text-violet-800" },
-  confirme_intervention: { label: "Confirmé intervention", color: "bg-teal-100 text-teal-800" },
+  en_attente_confirmation: { label: "En attente de confirmation", color: "bg-amber-100 text-amber-800" },
+  confirme: { label: "Confirmé", color: "bg-emerald-100 text-emerald-800" },
   prestation_effectuee: { label: "Prestation effectuée", color: "bg-indigo-100 text-indigo-800" },
   paye: { label: "Payé", color: "bg-green-100 text-green-800" },
-  rejetee: { label: "Rejetée", color: "bg-red-100 text-red-800" },
-  cloturee: { label: "Clôturée", color: "bg-slate-100 text-slate-800" },
-  standby: { label: "Standby", color: "bg-blue-100 text-blue-800" },
-  annulee: { label: "Annulée", color: "bg-red-100 text-red-800" },
-  nrp: { label: "NRP", color: "bg-orange-100 text-orange-800" },
 } as const;
+
+export const SEGMENTS = [
+  { value: "particulier", label: "Particulier" },
+  { value: "entreprise", label: "Entreprise" },
+] as const;
 
 export const CONFIRMATION_OPE_OPTIONS = [
   { value: "confirme", label: "Confirmé", color: "bg-emerald-100 text-emerald-800" },
