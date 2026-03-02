@@ -307,7 +307,7 @@ export default function PendingRequests() {
                       {d.type_service}
                     </Badge>
                     {d.statut === "nrp" && (
-                      <Badge variant="outline" className={STATUTS.nrp.color}>NRP</Badge>
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800">NRP</Badge>
                     )}
                   </div>
                 </div>

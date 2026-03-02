@@ -243,8 +243,8 @@ export default function Dashboard() {
               <TableCell className="text-xs">{d.confirmation_ope === "confirme" ? <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge> : <Badge variant="outline" className="text-[10px]">Pas encore</Badge>}</TableCell>
               <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
               <TableCell className="text-sm font-medium">{d.montant_total ? `${d.montant_total} MAD` : "—"}</TableCell>
-              <TableCell className="text-sm">{(d as any).mode_paiement || "—"}</TableCell>
-              <TableCell>{d.confirmation_ope === "confirme" ? renderStatusBadge("confirme_intervention") : renderStatusBadge("en_attente_profil")}</TableCell>
+              <TableCell className="text-sm">{d.mode_paiement || "—"}</TableCell>
+              <TableCell>{renderStatusBadge(d.statut)}</TableCell>
               <TableCell>{renderQuickMenu(d)}</TableCell>
             </TableRow>
           ))}
