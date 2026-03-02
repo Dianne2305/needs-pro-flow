@@ -1,0 +1,1 @@
+ALTER TABLE demandes DROP CONSTRAINT IF EXISTS demandes_statut_check;
