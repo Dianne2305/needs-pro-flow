@@ -203,7 +203,8 @@ export default function Dashboard() {
             <TableHead>Volume</TableHead>
             <TableHead>Intervenants</TableHead>
             <TableHead>Profil</TableHead>
-            <TableHead>Ville</TableHead>
+            <TableHead>Quartier / Ville</TableHead>
+            <TableHead>Type habitation</TableHead>
             <TableHead>Fréquence</TableHead>
             <TableHead>CAO</TableHead>
             <TableHead>Commercial</TableHead>
@@ -214,7 +215,7 @@ export default function Dashboard() {
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow><TableCell colSpan={17} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+            <TableRow><TableCell colSpan={18} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => (
             <TableRow key={d.id}>
               <TableCell>{renderActionButtons(d)}</TableCell>
@@ -228,8 +229,12 @@ export default function Dashboard() {
               <TableCell className="text-sm">{d.type_prestation}</TableCell>
               <TableCell className="text-sm">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
               <TableCell className="text-sm text-center">{d.nombre_intervenants || 1}</TableCell>
-              <TableCell className="text-sm">{d.candidat_nom || "—"}</TableCell>
-              <TableCell className="text-sm">{d.ville}</TableCell>
+              <TableCell className="text-sm font-medium">{d.candidat_nom || "—"}</TableCell>
+              <TableCell className="text-sm">
+                <div>{d.quartier || "—"}</div>
+                <div className="text-xs text-muted-foreground">{d.ville}</div>
+              </TableCell>
+              <TableCell className="text-sm">{d.type_bien || "—"}</TableCell>
               <TableCell className="text-xs">
                 {d.frequence === "ponctuel" ? "Une fois" : "Abonnement"}
                 {d.avec_produit && <Badge variant="outline" className="text-[10px] mt-1">+ Produit</Badge>}
@@ -237,7 +242,7 @@ export default function Dashboard() {
               <TableCell className="text-xs">{d.confirmation_ope === "confirme" ? <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge> : <Badge variant="outline" className="text-[10px]">Pas encore</Badge>}</TableCell>
               <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
               <TableCell className="text-sm font-medium">{d.montant_total ? `${d.montant_total} MAD` : "—"}</TableCell>
-              <TableCell>{renderStatusBadge(d.statut)}</TableCell>
+              <TableCell>{d.confirmation_ope === "confirme" ? renderStatusBadge("confirme_intervention") : renderStatusBadge("en_attente_profil")}</TableCell>
               <TableCell>{renderQuickMenu(d)}</TableCell>
             </TableRow>
           ))}
