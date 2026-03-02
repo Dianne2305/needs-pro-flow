@@ -195,14 +195,18 @@ export default function Dashboard() {
           <TableRow>
             <TableHead className="whitespace-nowrap">Actions</TableHead>
             <TableHead>Réf</TableHead>
-            <TableHead>Dates</TableHead>
+            <TableHead>Date confirmation</TableHead>
+            <TableHead>Date intervention</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Segment</TableHead>
-            <TableHead>Prestation</TableHead>
+            <TableHead>Service</TableHead>
             <TableHead>Volume</TableHead>
             <TableHead>Intervenants</TableHead>
-            <TableHead>Lieu</TableHead>
-            <TableHead>Options</TableHead>
+            <TableHead>Profil</TableHead>
+            <TableHead>Ville</TableHead>
+            <TableHead>Fréquence</TableHead>
+            <TableHead>CAO</TableHead>
+            <TableHead>Commercial</TableHead>
             <TableHead>Tarif</TableHead>
             <TableHead>Statut</TableHead>
             <TableHead></TableHead>
@@ -210,28 +214,28 @@ export default function Dashboard() {
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow><TableCell colSpan={13} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+            <TableRow><TableCell colSpan={17} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => (
             <TableRow key={d.id}>
               <TableCell>{renderActionButtons(d)}</TableCell>
               <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
-              <TableCell className="text-xs space-y-1">
-                <div>{d.confirmed_at ? format(new Date(d.confirmed_at), "dd/MM/yy", { locale: fr }) : "—"}</div>
-                {d.date_prestation && <div className="text-muted-foreground">{d.date_prestation}</div>}
-              </TableCell>
+              <TableCell className="text-xs">{d.confirmed_at ? format(new Date(d.confirmed_at), "dd/MM/yy", { locale: fr }) : "—"}</TableCell>
+              <TableCell className="text-xs">{d.date_prestation ? format(new Date(d.date_prestation + "T00:00:00"), "dd/MM/yy", { locale: fr }) : "—"}{d.heure_prestation ? <span className="text-muted-foreground ml-1">{d.heure_prestation.slice(0,5)}</span> : ""}</TableCell>
               <TableCell>
                 <div className="font-medium text-sm">{d.nom}</div>
-                <div className="text-xs text-muted-foreground">{d.quartier || d.ville}</div>
               </TableCell>
               <TableCell>{renderServiceBadge(d.type_service)}</TableCell>
               <TableCell className="text-sm">{d.type_prestation}</TableCell>
               <TableCell className="text-sm">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
               <TableCell className="text-sm text-center">{d.nombre_intervenants || 1}</TableCell>
-              <TableCell className="text-sm">{d.quartier || d.ville}</TableCell>
+              <TableCell className="text-sm">{d.candidat_nom || "—"}</TableCell>
+              <TableCell className="text-sm">{d.ville}</TableCell>
               <TableCell className="text-xs">
-                <div>{FREQUENCES.find(f => f.value === d.frequence)?.label || d.frequence}</div>
-                {(d as any).avec_produit && <Badge variant="outline" className="text-[10px] mt-1">+ Produit</Badge>}
+                {d.frequence === "ponctuel" ? "Une fois" : "Abonnement"}
+                {d.avec_produit && <Badge variant="outline" className="text-[10px] mt-1">+ Produit</Badge>}
               </TableCell>
+              <TableCell className="text-xs">{d.confirmation_ope === "confirme" ? <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge> : <Badge variant="outline" className="text-[10px]">Pas encore</Badge>}</TableCell>
+              <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
               <TableCell className="text-sm font-medium">{d.montant_total ? `${d.montant_total} MAD` : "—"}</TableCell>
               <TableCell>{renderStatusBadge(d.statut)}</TableCell>
               <TableCell>{renderQuickMenu(d)}</TableCell>
