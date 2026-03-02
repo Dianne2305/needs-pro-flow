@@ -13,18 +13,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck } from "lucide-react";
+import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { TYPES_PRESTATION, FREQUENCES, STATUTS } from "@/lib/constants";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { EditBesoinModal } from "@/components/dashboard/EditBesoinModal";
 import { CandidatureModal } from "@/components/dashboard/CandidatureModal";
 import { ConfirmationOpeModal } from "@/components/dashboard/ConfirmationOpeModal";
-import { CompteClientModal } from "@/components/dashboard/CompteClientModal";
 
 type Demande = Tables<"demandes">;
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterService, setFilterService] = useState("all");
@@ -38,7 +39,7 @@ export default function Dashboard() {
   const [editBesoinOpen, setEditBesoinOpen] = useState(false);
   const [candidatureOpen, setCandidatureOpen] = useState(false);
   const [confirmOpeOpen, setConfirmOpeOpen] = useState(false);
-  const [compteClientOpen, setCompteClientOpen] = useState(false);
+  // compteClient now navigates to page
   const [noteType, setNoteType] = useState<"commercial" | "operationnel">("commercial");
   const [noteText, setNoteText] = useState("");
 
@@ -106,13 +107,16 @@ export default function Dashboard() {
     { label: "En attente", value: pendingCount, color: "text-amber-600" },
   ];
 
-  const openModal = (d: Demande, modal: "detail" | "editBesoin" | "candidature" | "confirmOpe" | "compteClient") => {
+  const openModal = (d: Demande, modal: "detail" | "editBesoin" | "candidature" | "confirmOpe") => {
     setSelectedDemande(d);
     if (modal === "detail") setDetailOpen(true);
     else if (modal === "editBesoin") setEditBesoinOpen(true);
     else if (modal === "candidature") setCandidatureOpen(true);
     else if (modal === "confirmOpe") setConfirmOpeOpen(true);
-    else if (modal === "compteClient") setCompteClientOpen(true);
+  };
+
+  const openCompteClient = (d: Demande) => {
+    navigate(`/compte-client?id=${d.id}&from=/`);
   };
 
   const openNote = (d: Demande, type: "commercial" | "operationnel") => {
@@ -144,20 +148,27 @@ export default function Dashboard() {
 
   // Action buttons for each row
   const renderActionButtons = (d: Demande) => (
-    <div className="flex items-center gap-1">
-      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => openModal(d, "editBesoin")} title="Éditer">
-        <Pencil className="h-3.5 w-3.5" />
-      </Button>
-      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => openModal(d, "candidature")} title="Candidature">
-        <Users className="h-3.5 w-3.5" />
-      </Button>
-      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => openModal(d, "confirmOpe")} title="Confirmation Opé">
-        <CheckCircle className="h-3.5 w-3.5" />
-      </Button>
-      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => openModal(d, "compteClient")} title="Compte Client">
-        <UserCheck className="h-3.5 w-3.5" />
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1">
+          <Settings className="h-3.5 w-3.5" />Actions
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem onClick={() => openModal(d, "editBesoin")}>
+          <Pencil className="h-4 w-4 mr-2" />Éditer le besoin
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openModal(d, "candidature")}>
+          <Users className="h-4 w-4 mr-2" />Candidature
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openModal(d, "confirmOpe")}>
+          <CheckCircle className="h-4 w-4 mr-2" />Confirmation Opé
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openCompteClient(d)}>
+          <UserCheck className="h-4 w-4 mr-2" />Compte Client
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   // Quick menu (3 dots)
@@ -238,7 +249,7 @@ export default function Dashboard() {
       ) : data.map((d) => (
         <Card key={d.id} className="hover:shadow-md transition-shadow">
           <CardHeader className="pb-2 flex flex-row items-start justify-between">
-            <div className="cursor-pointer" onClick={() => openModal(d, "compteClient")}>
+            <div className="cursor-pointer" onClick={() => openCompteClient(d)}>
               <CardTitle className="text-base">{d.nom}</CardTitle>
               <p className="text-xs text-muted-foreground">#{d.num_demande} · {d.type_prestation}</p>
             </div>
@@ -373,7 +384,6 @@ export default function Dashboard() {
           <EditBesoinModal demande={selectedDemande} open={editBesoinOpen} onOpenChange={setEditBesoinOpen} onSave={handleSave} />
           <CandidatureModal demande={selectedDemande} open={candidatureOpen} onOpenChange={setCandidatureOpen} onSave={handleSave} />
           <ConfirmationOpeModal demande={selectedDemande} open={confirmOpeOpen} onOpenChange={setConfirmOpeOpen} onSave={handleSave} />
-          <CompteClientModal demande={selectedDemande} open={compteClientOpen} onOpenChange={setCompteClientOpen} onSave={handleSave} />
         </>
       )}
     </div>

@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import PendingRequests from "./pages/PendingRequests";
 import ComingSoon from "./pages/ComingSoon";
+import CompteClient from "./pages/CompteClient";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/demandes" element={<PendingRequests />} />
+            <Route path="/compte-client" element={<CompteClient />} />
             <Route path="/profils" element={<ComingSoon />} />
             <Route path="/clients" element={<ComingSoon />} />
             <Route path="/facturation" element={<ComingSoon />} />
