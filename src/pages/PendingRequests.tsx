@@ -253,6 +253,12 @@ export default function PendingRequests() {
                   setDialogOpen(true);
                 }}>{t}</DropdownMenuItem>
               ))}
+              {["Ménage Bureaux", "Placement & gestion"].map((t) => (
+                <DropdownMenuItem key={t} onClick={() => {
+                  setForm({ ...emptyForm, type_prestation: t, type_service: "SPE" });
+                  setDialogOpen(true);
+                }}>{t}</DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
