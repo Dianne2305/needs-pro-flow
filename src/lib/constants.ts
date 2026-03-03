@@ -48,11 +48,11 @@ export const QUARTIERS_CASABLANCA = [
 ] as const;
 
 export const STATUTS = {
-  en_cours: { label: "En cours", color: "bg-sky-100 text-sky-800" },
-  en_attente_confirmation: { label: "En attente de confirmation", color: "bg-amber-100 text-amber-800" },
-  confirme: { label: "Confirmé", color: "bg-emerald-100 text-emerald-800" },
-  prestation_effectuee: { label: "Prestation effectuée", color: "bg-indigo-100 text-indigo-800" },
-  paye: { label: "Payé", color: "bg-green-100 text-green-800" },
+  en_cours: { label: "En cours", color: "bg-sky-100 text-sky-800", hex: "#ffffff" },
+  en_attente_confirmation: { label: "En attente de confirmation", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
+  confirme: { label: "Confirmé", color: "bg-emerald-100 text-emerald-800", hex: "#50bfcb" },
+  prestation_effectuee: { label: "Prestation effectuée", color: "bg-indigo-100 text-indigo-800", hex: "#faa31f" },
+  paye: { label: "Payé", color: "bg-green-100 text-green-800", hex: "#48bd00" },
 } as const;
 
 export const SEGMENTS = [
