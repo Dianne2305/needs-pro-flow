@@ -13,8 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Search, Check, X, PhoneOff, Pencil, CalendarIcon, Phone, MapPin, Clock, User, Banknote } from "lucide-react";
-import { TYPES_PRESTATION, TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA, STATUTS } from "@/lib/constants";
+import { Plus, Search, Check, X, PhoneOff, Pencil, CalendarIcon, Phone, MapPin, Clock, User, Banknote, ChevronDown } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { TYPES_PRESTATION, TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE, TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA, STATUTS } from "@/lib/constants";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -224,12 +225,42 @@ export default function PendingRequests() {
           <h1 className="text-2xl font-bold text-foreground">Les demandes en attente</h1>
           <p className="text-muted-foreground text-sm">{filtered.length} demande(s) en attente de traitement</p>
         </div>
+        <div className="flex items-center gap-2">
+          {/* Nouvelle réservation dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Nouvelle réservation</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {TYPES_PRESTATION_PARTICULIER.filter(t => !["Ménage post-sinistre", "Ménage fin de chantier"].includes(t)).map((t) => (
+                <DropdownMenuItem key={t} onClick={() => {
+                  setForm({ ...emptyForm, type_prestation: t, type_service: "SPP" });
+                  setDialogOpen(true);
+                }}>{t}</DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Nouveau devis dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Nouveau devis</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {["Ménage post-sinistre", "Ménage fin de chantier", "Nettoyage post-déménagement"].map((t) => (
+                <DropdownMenuItem key={t} onClick={() => {
+                  setForm({ ...emptyForm, type_prestation: t, type_service: "SPP" });
+                  setDialogOpen(true);
+                }}>{t}</DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Dialog for adding demande */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Nouvelle demande</Button>
-          </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>Ajouter une demande client</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Ajouter une demande — {form.type_prestation}</DialogTitle></DialogHeader>
             {renderFormFields(form, updateField)}
             <div className="flex justify-end mt-4">
               <Button onClick={() => addMutation.mutate()} disabled={!form.nom || !form.type_prestation || addMutation.isPending}>
