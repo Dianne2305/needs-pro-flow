@@ -170,10 +170,26 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           <div>
             <Label>Statut du besoin</Label>
             <Select value={statut} onValueChange={setStatut}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
+                    style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ffffff" }}
+                  />
+                  <SelectValue />
+                </div>
+              </SelectTrigger>
               <SelectContent>
                 {Object.entries(STATUTS).map(([key, s]) => (
-                  <SelectItem key={key} value={key}>{s.label}</SelectItem>
+                  <SelectItem key={key} value={key}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
+                        style={{ backgroundColor: s.hex }}
+                      />
+                      {s.label}
+                    </div>
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
