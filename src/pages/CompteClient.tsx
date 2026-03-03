@@ -153,7 +153,7 @@ export default function CompteClient() {
                 <Badge className={demande.type_service === "SPP" ? "bg-primary text-primary-foreground text-[10px]" : "bg-spe text-spe-foreground text-[10px]"}>
                   {demande.type_service}
                 </Badge>
-                {s && <Badge variant="outline" className={`text-[10px] ${s.color}`}>{s.label}</Badge>}
+                {s && <Badge variant="outline" className="border-0 text-[10px] font-medium" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>{s.label}</Badge>}
               </div>
             </div>
           </div>
