@@ -5,15 +5,16 @@ import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Search, Check, X, PhoneOff, Pencil, CalendarIcon, Phone, MapPin, Clock, User, Banknote, ChevronDown } from "lucide-react";
+import { Plus, Search, Check, X, PhoneOff, Pencil, CalendarIcon, ChevronDown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { TYPES_PRESTATION, TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE, TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA, STATUTS } from "@/lib/constants";
 import { format } from "date-fns";
@@ -327,59 +328,82 @@ export default function PendingRequests() {
       ) : filtered.length === 0 ? (
         <Card><CardContent className="p-12 text-center text-muted-foreground">Aucune demande en attente</CardContent></Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((d) => (
-            <Card key={d.id} className="relative overflow-hidden border-l-4" style={{ borderLeftColor: d.statut === "nrp" ? "hsl(var(--destructive))" : "hsl(var(--primary))" }}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      {d.nom}
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-1">Demande #{d.num_demande} • {format(new Date(d.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Badge className={d.type_service === "SPP" ? "bg-primary text-primary-foreground" : "bg-spe text-spe-foreground"}>
-                      {d.type_service}
-                    </Badge>
-                    {d.statut === "nrp" && (
-                      <Badge variant="outline" className="bg-orange-100 text-orange-800">NRP</Badge>
-                    )}
-                  </div>
+            <Card key={d.id} className="overflow-hidden">
+              <CardContent className="p-5 space-y-1">
+                {/* Header: Nom, Téléphone, Whatsapp */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <p><span className="font-semibold">Nom :</span> {d.nom}</p>
+                  <p><span className="font-semibold">Téléphone</span> {d.telephone_direct || "—"}</p>
+                  <p></p>
+                  <p><span className="font-semibold">Whatsapp</span> {d.telephone_whatsapp || "—"}</p>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm pb-3">
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                  <p className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" />{d.telephone_direct || "—"}</p>
-                  <p className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-muted-foreground" />{d.date_prestation ? format(new Date(d.date_prestation), "dd/MM/yyyy") : "—"} {d.heure_prestation || ""}</p>
-                  <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-muted-foreground" />{d.quartier || d.ville}</p>
-                  <p className="flex items-center gap-1.5"><Banknote className="h-3.5 w-3.5 text-muted-foreground" />{d.montant_total ? `${d.montant_total} MAD` : "—"}</p>
+
+                {/* Détails de la prestation */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded px-3 py-1.5 text-sm font-medium mt-2">
+                    Détails de la prestation
+                    <ChevronDown className="h-4 w-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-1 pt-2 pb-1">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                      <p><span className="font-semibold">Service</span> {d.type_prestation}</p>
+                      <p><span className="font-semibold">Type de bien</span> {d.type_bien || "—"}</p>
+                      <p><span className="font-semibold">Fréquence</span> {FREQUENCES.find(f => f.value === d.frequence)?.label || d.frequence}</p>
+                      <p><span className="font-semibold">Durée recommandée</span> —</p>
+                      <p><span className="font-semibold">Intervenants</span> {d.nombre_intervenants || 1}</p>
+                      <p><span className="font-semibold">Durée Optée</span> {d.duree_heures ? `${d.duree_heures}h` : "—"}</p>
+                      <p><span className="font-semibold">Pieces</span> —</p>
+                      <p></p>
+                      <p><span className="font-semibold">Service optionnels</span> {d.avec_produit ? "Produit" : "—"}</p>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Lieux */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded px-3 py-1.5 text-sm font-medium">
+                    Lieux
+                    <ChevronDown className="h-4 w-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-1 pt-2 pb-1">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                      <p><span className="font-semibold">Date</span> {d.date_prestation || "—"}</p>
+                      <p><span className="font-semibold">Heure</span> {d.heure_prestation || "—"}</p>
+                      <p><span className="font-semibold">Ville</span> {d.ville}</p>
+                      <p><span className="font-semibold">Adresse</span> {d.adresse || d.quartier || "—"}</p>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Notes et précision */}
+                <Collapsible defaultOpen>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full bg-primary text-primary-foreground rounded px-3 py-1.5 text-sm font-medium">
+                    Notes et précision
+                    <ChevronDown className="h-4 w-4" />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-1 pt-2 pb-1">
+                    <p className="text-sm text-muted-foreground">{d.notes_client || "Aucune note"}</p>
+                  </CollapsibleContent>
+                </Collapsible>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-2 pt-3">
+                  <Button size="sm" className="flex-1 bg-[#f87171] hover:bg-[#ef4444] text-white" onClick={() => statusMutation.mutate({ id: d.id, statut: "nrp" })} disabled={d.statut === "nrp"}>
+                    NRP
+                  </Button>
+                  <Button size="sm" className="flex-1 bg-[#fca5a5] hover:bg-[#f87171] text-white" onClick={() => statusMutation.mutate({ id: d.id, statut: "rejetee" })}>
+                    Rejeter
+                  </Button>
+                  <Button size="sm" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => statusMutation.mutate({ id: d.id, statut: "confirmee" })}>
+                    Confirmer
+                  </Button>
+                  <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(d)}>
+                    Modifier
+                  </Button>
                 </div>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <Badge variant="secondary">{d.type_prestation}</Badge>
-                  {d.type_bien && <Badge variant="outline">{d.type_bien}</Badge>}
-                  {d.frequence !== "ponctuel" && <Badge variant="outline">{FREQUENCES.find(f => f.value === d.frequence)?.label}</Badge>}
-                </div>
-                {d.notes_client && (
-                  <p className="text-xs text-muted-foreground bg-muted rounded p-2 mt-2 line-clamp-2">💬 {d.notes_client}</p>
-                )}
               </CardContent>
-              {/* Action buttons */}
-              <div className="border-t px-4 py-3 flex items-center gap-2">
-                <Button size="sm" variant="outline" className="flex-1 text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700" onClick={() => statusMutation.mutate({ id: d.id, statut: "nrp" })} disabled={d.statut === "nrp"}>
-                  <PhoneOff className="h-3.5 w-3.5 mr-1" />NRP
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1 text-destructive border-destructive/30 hover:bg-destructive/5" onClick={() => statusMutation.mutate({ id: d.id, statut: "rejetee" })}>
-                  <X className="h-3.5 w-3.5 mr-1" />Rejeter
-                </Button>
-                <Button size="sm" className="flex-1" onClick={() => statusMutation.mutate({ id: d.id, statut: "confirmee" })}>
-                  <Check className="h-3.5 w-3.5 mr-1" />Confirmer
-                </Button>
-                <Button size="sm" variant="secondary" className="flex-1" onClick={() => openEdit(d)}>
-                  <Pencil className="h-3.5 w-3.5 mr-1" />Modifier
-                </Button>
-              </div>
             </Card>
           ))}
         </div>
