@@ -16,8 +16,7 @@ export const TYPES_PRESTATION_ENTREPRISE = [
 ] as const;
 
 export const TYPES_PRESTATION = [
-  ...TYPES_PRESTATION_PARTICULIER,
-  ...new Set([...TYPES_PRESTATION_ENTREPRISE]),
+  ...new Set([...TYPES_PRESTATION_PARTICULIER, ...TYPES_PRESTATION_ENTREPRISE]),
 ] as const;
 
 export const TYPES_BIEN = [
