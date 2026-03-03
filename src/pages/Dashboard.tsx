@@ -143,7 +143,11 @@ export default function Dashboard() {
 
   const renderStatusBadge = (statut: string) => {
     const s = STATUTS[statut as keyof typeof STATUTS];
-    return s ? <Badge variant="outline" className={s.color}>{s.label}</Badge> : <Badge variant="outline">{statut}</Badge>;
+    return s ? (
+      <Badge variant="outline" className="border-0 text-white font-medium" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>
+        {s.label}
+      </Badge>
+    ) : <Badge variant="outline">{statut}</Badge>;
   };
 
   // Action buttons for each row
