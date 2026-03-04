@@ -256,9 +256,6 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => openModal(d, "editBesoin")}>
           <Pencil className="h-4 w-4 mr-2" />Éditer le besoin
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openModal(d, "candidature")}>
-          <Users className="h-4 w-4 mr-2" />Candidature
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => {
           setSelectedDemande(d);
           setConfirmOpeOpen(true);
