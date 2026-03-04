@@ -71,7 +71,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_profil", "confirme_intervention", "prestation_effectuee", "paye"])
+        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee"])
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
