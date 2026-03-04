@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CONFIRMATION_OPE_OPTIONS } from "@/lib/constants";
-import { CheckCircle, AlertTriangle, XCircle } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Send } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Demande = Tables<"demandes">;
@@ -23,22 +23,33 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
   const [confirmation, setConfirmation] = useState(d.confirmation_ope || "");
   const [motif, setMotif] = useState(d.motif_annulation || "");
   const [dateReport, setDateReport] = useState(d.date_report || "");
+  const [noteOpe, setNoteOpe] = useState(demande.note_operationnel || "");
 
   const handleSave = () => {
     const updates: Record<string, unknown> = {
       confirmation_ope: confirmation,
+      note_operationnel: noteOpe || null,
     };
 
     if (confirmation === "confirme") {
       updates.statut = "confirme_intervention";
     } else if (confirmation === "report") {
       updates.date_report = dateReport || null;
-      // Alert commercial about date change
     } else if (confirmation === "annule") {
       updates.motif_annulation = motif;
       updates.statut = "annulee";
     }
 
+    onSave(updates);
+    onOpenChange(false);
+  };
+
+  const handleSendCandidature = () => {
+    const updates: Record<string, unknown> = {
+      confirmation_ope: "confirme",
+      statut: "confirme_intervention",
+      note_operationnel: noteOpe || null,
+    };
     onSave(updates);
     onOpenChange(false);
   };
@@ -81,6 +92,20 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
               </SelectContent>
             </Select>
           </div>
+
+          {/* Confirmé → Note + Envoyer candidature */}
+          {confirmation === "confirme" && (
+            <div className="space-y-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <p className="text-sm font-medium text-emerald-800">Opération confirmée</p>
+              <div>
+                <Label>Note opérationnelle</Label>
+                <Textarea value={noteOpe} onChange={(e) => setNoteOpe(e.target.value)} rows={3} placeholder="Ajouter une note..." />
+              </div>
+              <Button onClick={handleSendCandidature} className="w-full">
+                <Send className="h-4 w-4 mr-2" />Envoyer candidature
+              </Button>
+            </div>
+          )}
 
           {confirmation === "report" && (
             <div>
