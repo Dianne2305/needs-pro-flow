@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
@@ -88,6 +88,27 @@ export default function Dashboard() {
       return count || 0;
     },
   });
+
+  // Count all demandes per client name (across all statuses) for recurrence badge
+  const { data: allDemandesForCount = [] } = useQuery({
+    queryKey: ["demandes", "all_for_count"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("demandes")
+        .select("nom");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const clientCountMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    allDemandesForCount.forEach((d) => {
+      const name = d.nom?.trim().toLowerCase();
+      if (name) map[name] = (map[name] || 0) + 1;
+    });
+    return map;
+  }, [allDemandesForCount]);
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Record<string, unknown> }) => {
@@ -343,7 +364,18 @@ export default function Dashboard() {
                 <TableCell className="text-sm text-center">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
                 <TableCell>{renderStatusBadge(d.statut)}</TableCell>
                 <TableCell>
-                  <div className="font-medium text-sm">{d.nom}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm">{d.nom}</span>
+                    {(() => {
+                      const count = clientCountMap[d.nom?.trim().toLowerCase()] || 0;
+                      if (count <= 1) return null;
+                      return (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 shrink-0 border-primary/30 text-primary">
+                          x{count}
+                        </Badge>
+                      );
+                    })()}
+                  </div>
                 </TableCell>
                 <TableCell className="text-sm">
                   <div>{d.quartier || "—"}</div>
