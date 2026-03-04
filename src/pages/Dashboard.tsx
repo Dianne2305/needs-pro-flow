@@ -5,15 +5,16 @@ import { Tables } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck, Settings } from "lucide-react";
+import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck, Settings, Archive, Pause, Trash2, XCircle, Send } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TYPES_PRESTATION, FREQUENCES, STATUTS } from "@/lib/constants";
 import { format } from "date-fns";
@@ -23,6 +24,19 @@ import { CandidatureModal } from "@/components/dashboard/CandidatureModal";
 import { ConfirmationOpeModal } from "@/components/dashboard/ConfirmationOpeModal";
 
 type Demande = Tables<"demandes">;
+
+// Status color mapping for row backgrounds
+const STATUS_ROW_COLORS: Record<string, string> = {
+  en_cours: "bg-white",
+  en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
+  en_attente_profil: "bg-[hsl(50,80%,93%)]",
+  confirme: "bg-[hsl(185,50%,93%)]",
+  confirme_intervention: "bg-[hsl(185,50%,90%)]",
+  prestation_effectuee: "bg-[hsl(35,90%,93%)]",
+  paye: "bg-[hsl(100,60%,93%)]",
+  standby: "bg-[hsl(220,15%,93%)]",
+  cloturee: "bg-[hsl(220,10%,95%)]",
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -39,9 +53,17 @@ export default function Dashboard() {
   const [editBesoinOpen, setEditBesoinOpen] = useState(false);
   const [candidatureOpen, setCandidatureOpen] = useState(false);
   const [confirmOpeOpen, setConfirmOpeOpen] = useState(false);
-  // compteClient now navigates to page
   const [noteType, setNoteType] = useState<"commercial" | "operationnel">("commercial");
   const [noteText, setNoteText] = useState("");
+
+  // Post-confirmation note + send candidature state
+  const [confirmNoteOpen, setConfirmNoteOpen] = useState(false);
+  const [confirmNoteText, setConfirmNoteText] = useState("");
+
+  // Report modal state (edit date/time)
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportDate, setReportDate] = useState("");
+  const [reportHeure, setReportHeure] = useState("");
 
   const { data: allDemandes = [], isLoading, refetch } = useQuery({
     queryKey: ["demandes", "confirmed"],
@@ -76,6 +98,8 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ["demandes"] });
       toast({ title: "Mis à jour" });
       setNoteOpen(false);
+      setConfirmNoteOpen(false);
+      setReportOpen(false);
     },
   });
 
@@ -137,6 +161,76 @@ export default function Dashboard() {
     updateMutation.mutate({ id: selectedDemande.id, updates });
   };
 
+  // Handle confirmation opé result
+  const handleConfirmOpeResult = (updates: Record<string, unknown>) => {
+    if (!selectedDemande) return;
+    
+    // If confirmed → show note + send candidature panel
+    if (updates.confirmation_ope === "confirme") {
+      updateMutation.mutate({ id: selectedDemande.id, updates }, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["demandes"] });
+          setConfirmNoteText("");
+          setConfirmNoteOpen(true);
+        }
+      });
+      return;
+    }
+
+    // If report → open date/time edit
+    if (updates.confirmation_ope === "report") {
+      updateMutation.mutate({ id: selectedDemande.id, updates: { ...updates } });
+      setReportDate(selectedDemande.date_prestation || "");
+      setReportHeure(selectedDemande.heure_prestation || "");
+      setReportOpen(true);
+      return;
+    }
+
+    // If annulé → archive (disappears from dashboard, goes to historique + listing client)
+    if (updates.confirmation_ope === "annule") {
+      updateMutation.mutate({ id: selectedDemande.id, updates: { ...updates, statut: "annulee" } });
+      toast({ title: "Demande annulée", description: "Archivée dans l'historique et le listing client." });
+      return;
+    }
+
+    updateMutation.mutate({ id: selectedDemande.id, updates });
+  };
+
+  const saveReport = () => {
+    if (!selectedDemande) return;
+    updateMutation.mutate({ 
+      id: selectedDemande.id, 
+      updates: { 
+        date_prestation: reportDate || null, 
+        heure_prestation: reportHeure || null,
+        date_report: reportDate || null,
+      } 
+    });
+  };
+
+  const saveConfirmNote = () => {
+    if (!selectedDemande) return;
+    updateMutation.mutate({ 
+      id: selectedDemande.id, 
+      updates: { note_operationnel: confirmNoteText || null } 
+    });
+  };
+
+  const sendCandidature = () => {
+    if (!selectedDemande) return;
+    // Save note first, then toast about candidature
+    updateMutation.mutate({ 
+      id: selectedDemande.id, 
+      updates: { note_operationnel: confirmNoteText || null } 
+    }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["demandes"] });
+        toast({ title: "Candidature envoyée", description: "La candidature a été envoyée au client." });
+        setConfirmNoteOpen(false);
+      }
+    });
+  };
+
   const renderServiceBadge = (type: string) => (
     <Badge className={type === "SPP" ? "bg-primary text-primary-foreground" : "bg-spe text-spe-foreground"}>{type}</Badge>
   );
@@ -144,13 +238,13 @@ export default function Dashboard() {
   const renderStatusBadge = (statut: string) => {
     const s = STATUTS[statut as keyof typeof STATUTS];
     return s ? (
-      <Badge variant="outline" className="border-0 text-white font-medium" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>
+      <Badge variant="outline" className="border-0 font-medium text-xs" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>
         {s.label}
       </Badge>
-    ) : <Badge variant="outline">{statut}</Badge>;
+    ) : <Badge variant="outline" className="text-xs">{statut}</Badge>;
   };
 
-  // Action buttons for each row
+  // Main Action dropdown
   const renderActionButtons = (d: Demande) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -165,7 +259,10 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => openModal(d, "candidature")}>
           <Users className="h-4 w-4 mr-2" />Candidature
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openModal(d, "confirmOpe")}>
+        <DropdownMenuItem onClick={() => {
+          setSelectedDemande(d);
+          setConfirmOpeOpen(true);
+        }}>
           <CheckCircle className="h-4 w-4 mr-2" />Confirmation Opé
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openCompteClient(d)}>
@@ -175,19 +272,36 @@ export default function Dashboard() {
     </DropdownMenu>
   );
 
-  // Quick menu (3 dots)
+  // Context menu (3 dots or pencil icon)
   const renderQuickMenu = (d: Demande) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical className="h-4 w-4" /></Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => openModal(d, "detail")}><Eye className="h-4 w-4 mr-2" />Voir détails</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openNote(d, "commercial")}><MessageSquare className="h-4 w-4 mr-2" />Note commerciale</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => openNote(d, "operationnel")}><MessageSquare className="h-4 w-4 mr-2" />Note opérationnelle</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "cloturee" } })}>Clôturer</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "standby" } })}>Standby</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">Supprimer</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openModal(d, "editBesoin")}>
+          <Pencil className="h-4 w-4 mr-2" />Éditer le besoin
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => openNote(d, "commercial")}>
+          <MessageSquare className="h-4 w-4 mr-2" />Note commerciale
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => openNote(d, "operationnel")}>
+          <MessageSquare className="h-4 w-4 mr-2" />Note opérationnelle
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "cloturee" } })}>
+          <Archive className="h-4 w-4 mr-2" />Clôturer
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "standby" } })}>
+          <Pause className="h-4 w-4 mr-2" />Standby
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
+          <XCircle className="h-4 w-4 mr-2" />Rejeté / Annulé
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
+          <Trash2 className="h-4 w-4 mr-2" />Supprimer
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -198,60 +312,90 @@ export default function Dashboard() {
         <TableHeader>
           <TableRow>
             <TableHead className="whitespace-nowrap">Actions</TableHead>
-            <TableHead>Réf</TableHead>
-            <TableHead>Date confirmation</TableHead>
-            <TableHead>Date intervention</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Segment</TableHead>
-            <TableHead>Service</TableHead>
-            <TableHead>Volume</TableHead>
-            <TableHead>Intervenants</TableHead>
-            <TableHead>Profil</TableHead>
-            <TableHead>Quartier / Ville</TableHead>
-            <TableHead>Type habitation</TableHead>
-            <TableHead>Fréquence</TableHead>
-            <TableHead>CAO</TableHead>
             <TableHead>Commercial</TableHead>
-            <TableHead>Tarif</TableHead>
-            <TableHead>Mode paiement</TableHead>
-            <TableHead>Statut</TableHead>
+            <TableHead>Date intervention</TableHead>
+            <TableHead>Nb heures</TableHead>
+            <TableHead>Statut besoin</TableHead>
+            <TableHead>Nom client</TableHead>
+            <TableHead>Quartier / Ville</TableHead>
+            <TableHead>Fréquence</TableHead>
+            <TableHead>Segment</TableHead>
+            <TableHead>Type de service</TableHead>
+            <TableHead>Avec produit</TableHead>
+            <TableHead>Tarif total</TableHead>
+            <TableHead>Profils envoyés</TableHead>
+            <TableHead>CAO</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow><TableCell colSpan={19} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
-          ) : data.map((d) => (
-            <TableRow key={d.id}>
-              <TableCell>{renderActionButtons(d)}</TableCell>
-              <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
-              <TableCell className="text-xs">{d.confirmed_at ? format(new Date(d.confirmed_at), "dd/MM/yy", { locale: fr }) : "—"}</TableCell>
-              <TableCell className="text-xs">{d.date_prestation ? format(new Date(d.date_prestation + "T00:00:00"), "dd/MM/yy", { locale: fr }) : "—"}{d.heure_prestation ? <span className="text-muted-foreground ml-1">{d.heure_prestation.slice(0,5)}</span> : ""}</TableCell>
-              <TableCell>
-                <div className="font-medium text-sm">{d.nom}</div>
-              </TableCell>
-              <TableCell>{renderServiceBadge(d.type_service)}</TableCell>
-              <TableCell className="text-sm">{d.type_prestation}</TableCell>
-              <TableCell className="text-sm">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
-              <TableCell className="text-sm text-center">{d.nombre_intervenants || 1}</TableCell>
-              <TableCell className="text-sm font-medium">{d.candidat_nom || "—"}</TableCell>
-              <TableCell className="text-sm">
-                <div>{d.quartier || "—"}</div>
-                <div className="text-xs text-muted-foreground">{d.ville}</div>
-              </TableCell>
-              <TableCell className="text-sm">{d.type_bien || "—"}</TableCell>
-              <TableCell className="text-xs">
-                {d.frequence === "ponctuel" ? "Une fois" : "Abonnement"}
-                {d.avec_produit && <Badge variant="outline" className="text-[10px] mt-1">+ Produit</Badge>}
-              </TableCell>
-              <TableCell className="text-xs">{d.confirmation_ope === "confirme" ? <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge> : <Badge variant="outline" className="text-[10px]">Pas encore</Badge>}</TableCell>
-              <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
-              <TableCell className="text-sm font-medium">{d.montant_total ? `${d.montant_total} MAD` : "—"}</TableCell>
-              <TableCell className="text-sm">{d.mode_paiement || "—"}</TableCell>
-              <TableCell>{renderStatusBadge(d.statut)}</TableCell>
-              <TableCell>{renderQuickMenu(d)}</TableCell>
-            </TableRow>
-          ))}
+            <TableRow><TableCell colSpan={15} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+          ) : data.map((d) => {
+            const rowColor = STATUS_ROW_COLORS[d.statut] || "";
+            const isReservation = ["confirme", "confirme_intervention", "prestation_effectuee", "paye"].includes(d.statut);
+            return (
+              <TableRow key={d.id} className={rowColor}>
+                <TableCell>{renderActionButtons(d)}</TableCell>
+                <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
+                <TableCell className="text-xs whitespace-nowrap">
+                  {d.date_prestation ? format(new Date(d.date_prestation + "T00:00:00"), "dd/MM/yy", { locale: fr }) : "—"}
+                  {d.heure_prestation && <span className="text-muted-foreground ml-1">{d.heure_prestation.slice(0,5)}</span>}
+                </TableCell>
+                <TableCell className="text-sm text-center">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
+                <TableCell>{renderStatusBadge(d.statut)}</TableCell>
+                <TableCell>
+                  <div className="font-medium text-sm">{d.nom}</div>
+                </TableCell>
+                <TableCell className="text-sm">
+                  <div>{d.quartier || "—"}</div>
+                  <div className="text-xs text-muted-foreground">{d.ville}</div>
+                </TableCell>
+                <TableCell className="text-xs">
+                  {d.frequence === "ponctuel" ? "Une fois" : "Abonnement"}
+                </TableCell>
+                <TableCell>{renderServiceBadge(d.type_service)}</TableCell>
+                <TableCell className="text-sm">{d.type_prestation}</TableCell>
+                <TableCell className="text-sm text-center">
+                  {d.avec_produit ? (
+                    <Badge className="bg-primary/10 text-primary text-[10px]">Oui</Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">Non</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-sm font-medium">
+                  {d.montant_total ? (
+                    <div>
+                      <span>{d.montant_total} MAD</span>
+                      <div className="text-[10px] text-muted-foreground">
+                        {isReservation ? "Prix/réservation" : "Prix/devis"}
+                      </div>
+                    </div>
+                  ) : "—"}
+                </TableCell>
+                <TableCell className="text-sm">
+                  {d.candidat_nom ? (
+                    <button 
+                      className="text-primary underline hover:text-primary/80 font-medium cursor-pointer"
+                      onClick={() => openModal(d, "candidature")}
+                    >
+                      {d.candidat_nom}
+                    </button>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-xs">
+                  {d.confirmation_ope === "confirme" ? (
+                    <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px]">Non</Badge>
+                  )}
+                </TableCell>
+                <TableCell>{renderQuickMenu(d)}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
@@ -261,34 +405,38 @@ export default function Dashboard() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {data.length === 0 ? (
         <p className="text-muted-foreground col-span-full text-center py-8">Aucune demande</p>
-      ) : data.map((d) => (
-        <Card key={d.id} className="hover:shadow-md transition-shadow">
-          <CardHeader className="pb-2 flex flex-row items-start justify-between">
-            <div className="cursor-pointer" onClick={() => openCompteClient(d)}>
-              <CardTitle className="text-base">{d.nom}</CardTitle>
-              <p className="text-xs text-muted-foreground">#{d.num_demande} · {d.type_prestation}</p>
-            </div>
-            <div className="flex items-center gap-1">
-              {renderServiceBadge(d.type_service)}
-              {renderQuickMenu(d)}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-1 text-sm">
-              <p><span className="text-muted-foreground">Date :</span> {d.date_prestation || "—"}</p>
-              <p><span className="text-muted-foreground">Volume :</span> {d.duree_heures ? `${d.duree_heures}h` : "—"}</p>
-              <p><span className="text-muted-foreground">Lieu :</span> {d.quartier || d.ville}</p>
-              <p><span className="text-muted-foreground">Tarif :</span> {d.montant_total ? `${d.montant_total} MAD` : "—"}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {renderStatusBadge(d.statut)}
-            </div>
-            <div className="flex gap-1 pt-1 border-t">
-              {renderActionButtons(d)}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+      ) : data.map((d) => {
+        const rowColor = STATUS_ROW_COLORS[d.statut] || "";
+        return (
+          <Card key={d.id} className={`hover:shadow-md transition-shadow ${rowColor}`}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="cursor-pointer" onClick={() => openCompteClient(d)}>
+                  <p className="font-semibold">{d.nom}</p>
+                  <p className="text-xs text-muted-foreground">#{d.num_demande} · {d.type_prestation}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {renderServiceBadge(d.type_service)}
+                  {renderQuickMenu(d)}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-sm">
+                <p><span className="text-muted-foreground">Date :</span> {d.date_prestation || "—"}</p>
+                <p><span className="text-muted-foreground">Heures :</span> {d.duree_heures ? `${d.duree_heures}h` : "—"}</p>
+                <p><span className="text-muted-foreground">Lieu :</span> {d.quartier || d.ville}</p>
+                <p><span className="text-muted-foreground">Tarif :</span> {d.montant_total ? `${d.montant_total} MAD` : "—"}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                {renderStatusBadge(d.statut)}
+                {d.avec_produit && <Badge variant="outline" className="text-[10px]">+ Produit</Badge>}
+              </div>
+              <div className="flex gap-1 pt-1 border-t">
+                {renderActionButtons(d)}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 
@@ -324,7 +472,7 @@ export default function Dashboard() {
         <Select value={filterService} onValueChange={setFilterService}>
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous services</SelectItem>
+            <SelectItem value="all">Tous segments</SelectItem>
             <SelectItem value="SPP">SPP</SelectItem>
             <SelectItem value="SPE">SPE</SelectItem>
           </SelectContent>
@@ -364,21 +512,13 @@ export default function Dashboard() {
                 <div><span className="text-muted-foreground">WhatsApp :</span> {selectedDemande.telephone_whatsapp}</div>
                 <div><span className="text-muted-foreground">Service :</span> {renderServiceBadge(selectedDemande.type_service)}</div>
                 <div><span className="text-muted-foreground">Prestation :</span> {selectedDemande.type_prestation}</div>
-                <div><span className="text-muted-foreground">Type de bien :</span> {selectedDemande.type_bien || "—"}</div>
                 <div><span className="text-muted-foreground">Fréquence :</span> {FREQUENCES.find(f => f.value === selectedDemande.frequence)?.label || selectedDemande.frequence}</div>
                 <div><span className="text-muted-foreground">Durée :</span> {selectedDemande.duree_heures ? `${selectedDemande.duree_heures}h` : "—"}</div>
-                <div><span className="text-muted-foreground">Intervenants :</span> {selectedDemande.nombre_intervenants}</div>
-                <div><span className="text-muted-foreground">Date :</span> {selectedDemande.date_prestation || "—"}</div>
-                <div><span className="text-muted-foreground">Heure :</span> {selectedDemande.heure_prestation || "—"}</div>
                 <div><span className="text-muted-foreground">Ville :</span> {selectedDemande.ville}</div>
                 <div><span className="text-muted-foreground">Quartier :</span> {selectedDemande.quartier || "—"}</div>
-                <div className="col-span-2"><span className="text-muted-foreground">Adresse :</span> {selectedDemande.adresse || "—"}</div>
-                <div><span className="text-muted-foreground">Montant total :</span> {selectedDemande.montant_total ? `${selectedDemande.montant_total} MAD` : "—"}</div>
-                <div><span className="text-muted-foreground">Montant candidat :</span> {selectedDemande.montant_candidat ? `${selectedDemande.montant_candidat} MAD` : "—"}</div>
+                <div><span className="text-muted-foreground">Montant :</span> {selectedDemande.montant_total ? `${selectedDemande.montant_total} MAD` : "—"}</div>
               </div>
               {selectedDemande.notes_client && <div><span className="text-muted-foreground font-medium">Notes client :</span><p className="mt-1 p-2 bg-muted rounded">{selectedDemande.notes_client}</p></div>}
-              {selectedDemande.note_commercial && <div><span className="text-muted-foreground font-medium">Note commerciale :</span><p className="mt-1 p-2 bg-muted rounded">{selectedDemande.note_commercial}</p></div>}
-              {selectedDemande.note_operationnel && <div><span className="text-muted-foreground font-medium">Note opérationnelle :</span><p className="mt-1 p-2 bg-muted rounded">{selectedDemande.note_operationnel}</p></div>}
             </div>
           )}
         </DialogContent>
@@ -393,12 +533,69 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Post-Confirmation Note + Send Candidature Dialog */}
+      <Dialog open={confirmNoteOpen} onOpenChange={setConfirmNoteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-emerald-600" />
+              Opération confirmée — #{selectedDemande?.num_demande}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-3 bg-emerald-50 rounded-lg text-sm text-emerald-800">
+              L'opération a été confirmée avec succès. Vous pouvez ajouter une note et envoyer la candidature au client.
+            </div>
+            <div>
+              <Label>Note opérationnelle</Label>
+              <Textarea 
+                value={confirmNoteText} 
+                onChange={(e) => setConfirmNoteText(e.target.value)} 
+                rows={3} 
+                placeholder="Ajouter une note..." 
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={saveConfirmNote} disabled={updateMutation.isPending}>
+              Enregistrer la note
+            </Button>
+            <Button onClick={sendCandidature} disabled={updateMutation.isPending}>
+              <Send className="h-4 w-4 mr-1" />Envoyer candidature
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Report Dialog — edit date/time */}
+      <Dialog open={reportOpen} onOpenChange={setReportOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Report — #{selectedDemande?.num_demande}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nouvelle date d'intervention</Label>
+              <Input type="date" value={reportDate} onChange={(e) => setReportDate(e.target.value)} />
+            </div>
+            <div>
+              <Label>Nouvelle heure</Label>
+              <Input type="time" value={reportHeure} onChange={(e) => setReportHeure(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
+            <Button onClick={saveReport} disabled={updateMutation.isPending}>Enregistrer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Besoin Modal */}
       {selectedDemande && (
         <>
           <EditBesoinModal demande={selectedDemande} open={editBesoinOpen} onOpenChange={setEditBesoinOpen} onSave={handleSave} />
           <CandidatureModal demande={selectedDemande} open={candidatureOpen} onOpenChange={setCandidatureOpen} onSave={handleSave} />
-          <ConfirmationOpeModal demande={selectedDemande} open={confirmOpeOpen} onOpenChange={setConfirmOpeOpen} onSave={handleSave} />
+          <ConfirmationOpeModal demande={selectedDemande} open={confirmOpeOpen} onOpenChange={setConfirmOpeOpen} onSave={handleConfirmOpeResult} />
         </>
       )}
     </div>
