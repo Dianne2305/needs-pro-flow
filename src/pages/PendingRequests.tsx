@@ -132,7 +132,7 @@ export default function PendingRequests() {
         adresse: form.adresse || null,
         ville: form.ville || "Casablanca",
         montant_total: form.montant_total ? Number(form.montant_total) : null,
-        montant_candidat: form.montant_total ? Number(form.montant_total) / 2 : null,
+        
         notes_client: form.notes_client || null,
         superficie_m2: form.superficie_m2 ? Number(form.superficie_m2) : null,
         etat_logement: form.etat_logement || null,
@@ -197,7 +197,7 @@ export default function PendingRequests() {
         adresse: editForm.adresse || null,
         ville: editForm.ville || "Casablanca",
         montant_total: editForm.montant_total ? Number(editForm.montant_total) : null,
-        montant_candidat: editForm.montant_total ? Number(editForm.montant_total) / 2 : null,
+        
         notes_client: editForm.notes_client || null,
         superficie_m2: editForm.superficie_m2 ? Number(editForm.superficie_m2) : null,
         etat_logement: editForm.etat_logement || null,
