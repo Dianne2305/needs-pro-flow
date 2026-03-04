@@ -98,7 +98,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       duree_heures: duree ? Number(duree) : null,
       nombre_intervenants: nbIntervenants ? Number(nbIntervenants) : 1,
       montant_total: montant ? Number(montant) : null,
-      montant_candidat: montant ? Number(montant) / 2 : null,
+      
       mode_paiement: modePaiement || null,
       avec_produit: avecProduit,
       notes_client: notesClient || null,
