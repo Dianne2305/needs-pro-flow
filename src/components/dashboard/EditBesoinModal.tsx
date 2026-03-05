@@ -165,8 +165,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           </div>
         </DialogHeader>
 
-        {/* Row 1: Statut, Segment, Type de service */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Row 1: Statut, Segment, Type de service, Mode paiement */}
+        <div className="grid grid-cols-4 gap-4">
           <div>
             <Label>Statut du besoin</Label>
             <Select value={statut} onValueChange={setStatut}>
@@ -216,6 +216,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <Label>Mode de paiement</Label>
+            <Select value={modePaiement} onValueChange={setModePaiement}>
+              <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+              <SelectContent>
+                {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Dynamic form based on service type */}
@@ -247,15 +256,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             <Label>Montant total (MAD)</Label>
             <Input type="number" value={montant} onChange={(e) => setMontant(e.target.value)} />
             {montant && <p className="text-xs text-muted-foreground mt-1">Candidat : {(Number(montant) / 2).toFixed(0)} MAD</p>}
-          </div>
-          <div>
-            <Label>Mode de paiement</Label>
-            <Select value={modePaiement} onValueChange={setModePaiement}>
-              <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
-              <SelectContent>
-                {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
           </div>
           <div className="col-span-2">
             <Label>Notes client</Label>
