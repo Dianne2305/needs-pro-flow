@@ -193,6 +193,155 @@ export type Database = {
           },
         ]
       }
+      profil_historique: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          note: string | null
+          profil_id: string
+          utilisateur: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          profil_id: string
+          utilisateur?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          profil_id?: string
+          utilisateur?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profil_historique_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "profils"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profils: {
+        Row: {
+          a_des_enfants: boolean | null
+          attestation_url: string | null
+          cin_url: string | null
+          corpulence: string | null
+          created_at: string
+          date_naissance: string | null
+          dispo_7j7: boolean | null
+          dispo_journee: boolean | null
+          dispo_jours_feries: boolean | null
+          dispo_soiree: boolean | null
+          dispo_urgences: boolean | null
+          experience_annees: number | null
+          experience_mois: number | null
+          experiences: Json | null
+          formation_requise: boolean | null
+          id: string
+          langue: Json | null
+          maladie_handicap: string | null
+          nationalite: string | null
+          niveau_etude: string | null
+          nom: string
+          note_operateur: string | null
+          numero_cin: string | null
+          photo_url: string | null
+          prenom: string
+          presentation_physique: string | null
+          quartier: string | null
+          sait_lire_ecrire: boolean | null
+          sexe: string | null
+          situation_matrimoniale: string | null
+          statut_profil: string | null
+          telephone: string | null
+          type_profil: string | null
+          ville: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          a_des_enfants?: boolean | null
+          attestation_url?: string | null
+          cin_url?: string | null
+          corpulence?: string | null
+          created_at?: string
+          date_naissance?: string | null
+          dispo_7j7?: boolean | null
+          dispo_journee?: boolean | null
+          dispo_jours_feries?: boolean | null
+          dispo_soiree?: boolean | null
+          dispo_urgences?: boolean | null
+          experience_annees?: number | null
+          experience_mois?: number | null
+          experiences?: Json | null
+          formation_requise?: boolean | null
+          id?: string
+          langue?: Json | null
+          maladie_handicap?: string | null
+          nationalite?: string | null
+          niveau_etude?: string | null
+          nom: string
+          note_operateur?: string | null
+          numero_cin?: string | null
+          photo_url?: string | null
+          prenom: string
+          presentation_physique?: string | null
+          quartier?: string | null
+          sait_lire_ecrire?: boolean | null
+          sexe?: string | null
+          situation_matrimoniale?: string | null
+          statut_profil?: string | null
+          telephone?: string | null
+          type_profil?: string | null
+          ville?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          a_des_enfants?: boolean | null
+          attestation_url?: string | null
+          cin_url?: string | null
+          corpulence?: string | null
+          created_at?: string
+          date_naissance?: string | null
+          dispo_7j7?: boolean | null
+          dispo_journee?: boolean | null
+          dispo_jours_feries?: boolean | null
+          dispo_soiree?: boolean | null
+          dispo_urgences?: boolean | null
+          experience_annees?: number | null
+          experience_mois?: number | null
+          experiences?: Json | null
+          formation_requise?: boolean | null
+          id?: string
+          langue?: Json | null
+          maladie_handicap?: string | null
+          nationalite?: string | null
+          niveau_etude?: string | null
+          nom?: string
+          note_operateur?: string | null
+          numero_cin?: string | null
+          photo_url?: string | null
+          prenom?: string
+          presentation_physique?: string | null
+          quartier?: string | null
+          sait_lire_ecrire?: boolean | null
+          sexe?: string | null
+          situation_matrimoniale?: string | null
+          statut_profil?: string | null
+          telephone?: string | null
+          type_profil?: string | null
+          ville?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
