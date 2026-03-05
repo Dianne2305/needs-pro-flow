@@ -20,7 +20,7 @@ export default function Historique() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["annulee", "rejetee", "nrp"])
+        .in("statut", ["annulee", "rejetee", "nrp", "facturation_annulee"])
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
