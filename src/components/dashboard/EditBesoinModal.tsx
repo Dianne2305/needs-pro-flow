@@ -257,15 +257,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             <Input type="number" value={montant} onChange={(e) => setMontant(e.target.value)} />
             {montant && <p className="text-xs text-muted-foreground mt-1">Candidat : {(Number(montant) / 2).toFixed(0)} MAD</p>}
           </div>
-          <div>
-            <Label>Mode de paiement</Label>
-            <Select value={modePaiement} onValueChange={setModePaiement}>
-              <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
-              <SelectContent>
-                {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
           <div className="col-span-2">
             <Label>Notes client</Label>
             <Textarea value={notesClient} onChange={(e) => setNotesClient(e.target.value)} rows={3} />
