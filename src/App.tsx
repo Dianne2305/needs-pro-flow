@@ -28,7 +28,8 @@ const App = () => (
             <Route path="/demandes" element={<PendingRequests />} />
             <Route path="/compte-client" element={<CompteClient />} />
             <Route path="/historique" element={<Historique />} />
-            <Route path="/profils" element={<ComingSoon />} />
+            <Route path="/profils" element={<Profils />} />
+            <Route path="/compte-profil" element={<CompteProfil />} />
             <Route path="/clients" element={<ListingClients />} />
             <Route path="/facturation" element={<ComingSoon />} />
             <Route path="/parametres" element={<ComingSoon />} />
