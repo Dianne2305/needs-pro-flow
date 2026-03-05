@@ -1,0 +1,2 @@
+ALTER TABLE public.demandes DROP CONSTRAINT IF EXISTS demandes_statut_check;
+ALTER TABLE public.demandes ADD CONSTRAINT demandes_statut_check CHECK (statut IN ('en_cours', 'en_attente', 'en_attente_confirmation', 'confirme', 'confirmee', 'prestation_effectuee', 'paye', 'annulee', 'standby', 'nrp', 'en_attente_profil', 'confirme_intervention', 'rejetee', 'facturation_annulee'));

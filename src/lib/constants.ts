@@ -52,6 +52,7 @@ export const STATUTS = {
   confirme: { label: "Confirmé", color: "bg-emerald-100 text-emerald-800", hex: "#50bfcb" },
   prestation_effectuee: { label: "Prestation effectuée", color: "bg-indigo-100 text-indigo-800", hex: "#faa31f" },
   paye: { label: "Payé", color: "bg-green-100 text-green-800", hex: "#48bd00" },
+  facturation_annulee: { label: "Facturation annulée", color: "bg-rose-100 text-rose-800", hex: "#e11d48" },
 } as const;
 
 export const SEGMENTS = [
