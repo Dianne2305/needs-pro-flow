@@ -17,7 +17,7 @@ import { ServiceFormFields } from "./ServiceFormFields";
 
 type Demande = Tables<"demandes">;
 
-const MODES_PAIEMENT = ["Par virement", "À l'agence", "Espèce", "Chèque"] as const;
+const MODES_PAIEMENT = ["Virement", "Par chèque", "À l'agence", "Sur place"] as const;
 
 interface Props {
   demande: Demande;
