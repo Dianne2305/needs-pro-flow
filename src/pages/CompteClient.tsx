@@ -399,23 +399,47 @@ export default function CompteClient() {
             {/* Historique docs */}
             <div className="border-t pt-3">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Historique Documents</p>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between p-2.5 bg-background/60 rounded-lg text-xs border border-border">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{isReservation ? "Récapitulatif réservation" : "Devis"} — #{demande.num_demande}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <span>{format(new Date(demande.created_at), "dd/MM/yy")}</span>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" title="Voir">
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" title="Télécharger">
-                      <FileDown className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date d'émission</TableHead>
+                    <TableHead>Commercial</TableHead>
+                    <TableHead>Segment</TableHead>
+                    <TableHead>Type de service</TableHead>
+                    <TableHead>Statut demande</TableHead>
+                    <TableHead className="text-center">Fichier (PNG/PDF)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="text-xs">{format(new Date(demande.created_at), "dd/MM/yyyy")}</TableCell>
+                    <TableCell className="text-xs font-medium">—</TableCell>
+                    <TableCell>
+                      <Badge className={demande.type_service === "SPP" ? "bg-primary text-primary-foreground text-[10px]" : "bg-spe text-spe-foreground text-[10px]"}>
+                        {demande.type_service === "SPP" ? "Particulier" : "Entreprise"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs">{demande.type_prestation}</TableCell>
+                    <TableCell>
+                      {s ? (
+                        <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#fff" }}>
+                          {s.label}
+                        </Badge>
+                      ) : demande.statut}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir le formulaire">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Télécharger">
+                          <FileDown className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </Section>
