@@ -165,8 +165,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           </div>
         </DialogHeader>
 
-        {/* Row 1: Statut, Segment, Type de service */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Row 1: Statut, Segment, Type de service, Mode paiement */}
+        <div className="grid grid-cols-4 gap-4">
           <div>
             <Label>Statut du besoin</Label>
             <Select value={statut} onValueChange={setStatut}>
@@ -213,6 +213,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                 {prestationOptions.map((t) => (
                   <SelectItem key={t} value={t}>{t}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Mode de paiement</Label>
+            <Select value={modePaiement} onValueChange={setModePaiement}>
+              <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+              <SelectContent>
+                {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
