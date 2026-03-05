@@ -20,7 +20,7 @@ export default function Historique() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["annulee", "rejetee", "nrp"])
+        .in("statut", ["annulee", "rejetee", "nrp", "facturation_annulee"])
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -39,6 +39,7 @@ export default function Historique() {
       annulee: { label: "Annulé", color: "bg-red-100 text-red-800" },
       rejetee: { label: "Rejeté", color: "bg-orange-100 text-orange-800" },
       nrp: { label: "NRP", color: "bg-gray-100 text-gray-800" },
+      facturation_annulee: { label: "Facturation annulée", color: "bg-rose-100 text-rose-800" },
     };
     const m = map[s];
     return m ? <Badge className={`${m.color} text-xs`}>{m.label}</Badge> : <Badge variant="outline">{s}</Badge>;
