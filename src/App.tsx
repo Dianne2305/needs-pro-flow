@@ -10,6 +10,8 @@ import ComingSoon from "./pages/ComingSoon";
 import CompteClient from "./pages/CompteClient";
 import Historique from "./pages/Historique";
 import ListingClients from "./pages/ListingClients";
+import Profils from "./pages/Profils";
+import CompteProfil from "./pages/CompteProfil";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
