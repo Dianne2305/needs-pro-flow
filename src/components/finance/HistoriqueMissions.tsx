@@ -169,34 +169,68 @@ export default function HistoriqueMissions() {
       </div>
 
       {/* Search + Filters */}
-      <div className="flex flex-wrap gap-3 items-center justify-between px-1 py-5">
-        <div className="relative flex-1 max-w-lg">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Rechercher client, mission, ville..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-col gap-3 px-1 py-5">
+        <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="relative flex-1 max-w-lg">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Rechercher client, mission, ville..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          </div>
+          <div className="flex gap-2 items-center flex-wrap">
+            <Select value={filterStatut} onValueChange={setFilterStatut}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                {STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterPaiement} onValueChange={setFilterPaiement}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Tous les paiements" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les paiements</SelectItem>
+                {STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterSegment} onValueChange={setFilterSegment}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Tous les segments" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les segments</SelectItem>
+                <SelectItem value="particulier">Particulier</SelectItem>
+                <SelectItem value="entreprise">Entreprise</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+        {/* Date range */}
         <div className="flex gap-2 items-center flex-wrap">
-          <Select value={filterStatut} onValueChange={setFilterStatut}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les statuts</SelectItem>
-              {STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filterPaiement} onValueChange={setFilterPaiement}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Tous les paiements" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les paiements</SelectItem>
-              {STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={filterSegment} onValueChange={setFilterSegment}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Tous les segments" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tous les segments</SelectItem>
-              <SelectItem value="particulier">Particulier</SelectItem>
-              <SelectItem value="entreprise">Entreprise</SelectItem>
-            </SelectContent>
-          </Select>
+          <span className="text-sm text-muted-foreground font-medium">Période :</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Du"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} locale={fr} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          <span className="text-muted-foreground">→</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-[160px] justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateTo ? format(dateTo, "dd/MM/yyyy") : "Au"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={dateTo} onSelect={setDateTo} locale={fr} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          {(dateFrom || dateTo) && (
+            <Button variant="ghost" size="sm" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }} className="text-muted-foreground">
+              <X className="h-4 w-4 mr-1" /> Réinitialiser
+            </Button>
+          )}
         </div>
       </div>
 
