@@ -257,6 +257,93 @@ export type Database = {
           },
         ]
       }
+      feedbacks: {
+        Row: {
+          commentaire: string | null
+          created_at: string
+          date_prestation: string | null
+          demande_id: string
+          id: string
+          lien_envoye_at: string | null
+          nom_client: string
+          note_agence: number | null
+          professionnel: string | null
+          profil_id: string | null
+          profil_nom: string | null
+          qualite_menage: string | null
+          recommande_agence: boolean | null
+          recommande_profil: boolean | null
+          satisfaction: string | null
+          statut: string
+          submitted_at: string | null
+          telephone_client: string | null
+          token: string
+          type_service: string | null
+          ville: string | null
+        }
+        Insert: {
+          commentaire?: string | null
+          created_at?: string
+          date_prestation?: string | null
+          demande_id: string
+          id?: string
+          lien_envoye_at?: string | null
+          nom_client: string
+          note_agence?: number | null
+          professionnel?: string | null
+          profil_id?: string | null
+          profil_nom?: string | null
+          qualite_menage?: string | null
+          recommande_agence?: boolean | null
+          recommande_profil?: boolean | null
+          satisfaction?: string | null
+          statut?: string
+          submitted_at?: string | null
+          telephone_client?: string | null
+          token?: string
+          type_service?: string | null
+          ville?: string | null
+        }
+        Update: {
+          commentaire?: string | null
+          created_at?: string
+          date_prestation?: string | null
+          demande_id?: string
+          id?: string
+          lien_envoye_at?: string | null
+          nom_client?: string
+          note_agence?: number | null
+          professionnel?: string | null
+          profil_id?: string | null
+          profil_nom?: string | null
+          qualite_menage?: string | null
+          recommande_agence?: boolean | null
+          recommande_profil?: boolean | null
+          satisfaction?: string | null
+          statut?: string
+          submitted_at?: string | null
+          telephone_client?: string | null
+          token?: string
+          type_service?: string | null
+          ville?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedbacks_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedbacks_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "profils"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
