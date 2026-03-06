@@ -343,7 +343,7 @@ export type Database = {
           experience_annees: number | null
           experience_mois: number | null
           experiences: Json | null
-          formation_requise: boolean | null
+          formation_requise: string | null
           id: string
           langue: Json | null
           maladie_handicap: string | null
@@ -380,7 +380,7 @@ export type Database = {
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
-          formation_requise?: boolean | null
+          formation_requise?: string | null
           id?: string
           langue?: Json | null
           maladie_handicap?: string | null
@@ -417,7 +417,7 @@ export type Database = {
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
-          formation_requise?: boolean | null
+          formation_requise?: string | null
           id?: string
           langue?: Json | null
           maladie_handicap?: string | null
