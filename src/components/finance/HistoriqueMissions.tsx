@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Edit, Upload } from "lucide-react";
+import { Search, Plus, Edit, FileText, TrendingUp, Clock, Users } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
 
@@ -18,6 +19,8 @@ export default function HistoriqueMissions() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
+  const [filterPaiement, setFilterPaiement] = useState("all");
+  const [filterProfil, setFilterProfil] = useState("all");
   const [editMission, setEditMission] = useState<Facturation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -47,14 +50,26 @@ export default function HistoriqueMissions() {
     },
   });
 
-  const filtered = missions.filter((m) => {
-    if (filterStatut !== "all" && m.statut_mission !== filterStatut) return false;
-    if (search) {
-      const s = search.toLowerCase();
-      return (m.nom_client?.toLowerCase().includes(s) || m.profil_nom?.toLowerCase().includes(s) || String(m.num_mission).includes(s));
-    }
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return missions.filter((m) => {
+      if (filterStatut !== "all" && m.statut_mission !== filterStatut) return false;
+      if (filterPaiement !== "all" && m.statut_paiement !== filterPaiement) return false;
+      if (filterProfil !== "all" && m.profil_id !== filterProfil) return false;
+      if (search) {
+        const s = search.toLowerCase();
+        return (m.nom_client?.toLowerCase().includes(s) || m.profil_nom?.toLowerCase().includes(s) || String(m.num_mission).includes(s) || m.ville?.toLowerCase().includes(s));
+      }
+      return true;
+    });
+  }, [missions, filterStatut, filterPaiement, filterProfil, search]);
+
+  // KPIs
+  const totalMissions = filtered.length;
+  const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
+  const enCours = filtered.filter((m) => m.statut_mission === "confirmee").length;
+  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paye").length;
+  const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+  const totalFiltre = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<Facturation> & { id: string }) => {
@@ -92,58 +107,133 @@ export default function HistoriqueMissions() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-muted-foreground">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-3xl font-bold">{totalMissions}</p>
+                <p className="text-xs text-muted-foreground mt-1">Total missions</p>
+              </div>
+              <FileText className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-primary bg-primary/5">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-3xl font-bold">{fmt(totalCA)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Chiffre d'affaires</p>
+              </div>
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-amber-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-3xl font-bold">{enCours}</p>
+                <p className="text-xs text-muted-foreground mt-1">En cours</p>
+              </div>
+              <Clock className="h-5 w-5 text-amber-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-red-400">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-3xl font-bold">{paiementsEnAttente}</p>
+                <p className="text-xs text-muted-foreground mt-1">Paiements en attente</p>
+              </div>
+              <Users className="h-5 w-5 text-red-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search + Filters */}
       <div className="flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex gap-3 items-center flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Rechercher client, profil, n° mission..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-          </div>
+        <div className="relative flex-1 max-w-lg">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Rechercher client, mission, ville..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <div className="flex gap-2 items-center flex-wrap">
           <Select value={filterStatut} onValueChange={setFilterStatut}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="all">Tous les statuts</SelectItem>
               {STATUT_MISSION_OPTIONS.map((s) => (
                 <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <Select value={filterPaiement} onValueChange={setFilterPaiement}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Tous les paiements" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les paiements</SelectItem>
+              {STATUT_PAIEMENT_OPTIONS.map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={filterProfil} onValueChange={setFilterProfil}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Tous les profils" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les profils</SelectItem>
+              {profils.map((p) => (
+                <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={() => setShowCreate(true)} className="gap-1">
+            <Plus className="h-4 w-4" /> Nouvelle mission
+          </Button>
         </div>
-        <Button onClick={() => setShowCreate(true)}><Plus className="h-4 w-4 mr-1" /> Nouvelle mission</Button>
       </div>
 
-      <div className="rounded-md border">
+      {/* Table */}
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N°</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Ville</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Montant</TableHead>
-              <TableHead>Part agence</TableHead>
-              <TableHead>Part profil</TableHead>
-              <TableHead>Statut mission</TableHead>
-              <TableHead>Paiement</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">N° Mission</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Date</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Client / Ville</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Profil</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Service</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Montant</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Part agence</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Part profil</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Encaissé par</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Paiement</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider">Statut</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
+              <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
             ) : filtered.map((m) => (
               <TableRow key={m.id}>
-                <TableCell className="font-mono text-xs">M-{m.num_mission}</TableCell>
+                <TableCell className="font-mono text-xs font-semibold">MSN-{String(m.num_mission).padStart(6, "0")}</TableCell>
                 <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
-                <TableCell className="font-medium">{m.nom_client}</TableCell>
-                <TableCell>{m.ville}</TableCell>
+                <TableCell>
+                  <div className="font-semibold text-sm">{m.nom_client}</div>
+                  <div className="text-xs text-muted-foreground">{m.ville || ""}</div>
+                </TableCell>
+                <TableCell className="text-sm">{m.profil_nom || "—"}</TableCell>
                 <TableCell className="text-sm">{m.type_service || "—"}</TableCell>
-                <TableCell className="font-semibold">{m.montant_total?.toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell className="text-emerald-700">{partAgence(m).toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell className="text-sky-700">{partProfil(m).toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell>{getStatutBadge(m.statut_mission)}</TableCell>
+                <TableCell className="font-semibold">{fmt(m.montant_total)}</TableCell>
+                <TableCell className="text-emerald-700 font-medium">{fmt(partAgence(m))}</TableCell>
+                <TableCell className="text-sky-700 font-medium">{fmt(partProfil(m))}</TableCell>
+                <TableCell className="text-sm">{m.encaisse_par === "profil" ? "Profil" : "Agence"}</TableCell>
                 <TableCell>{getPaiementBadge(m.statut_paiement)}</TableCell>
+                <TableCell>{getStatutBadge(m.statut_mission)}</TableCell>
                 <TableCell>
                   <Button variant="ghost" size="icon" onClick={() => setEditMission(m)}><Edit className="h-4 w-4" /></Button>
                 </TableCell>
@@ -151,6 +241,12 @@ export default function HistoriqueMissions() {
             ))}
           </TableBody>
         </Table>
+        {filtered.length > 0 && (
+          <div className="flex justify-between items-center px-4 py-3 border-t text-sm text-muted-foreground">
+            <span>{filtered.length} mission(s) affichée(s)</span>
+            <span>Total affiché : <strong className="text-foreground">{fmt(totalFiltre)}</strong></span>
+          </div>
+        )}
       </div>
 
       {/* Edit Modal */}
@@ -210,10 +306,9 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Mission M-{mission.num_mission} — {mission.nom_client}</DialogTitle>
+          <DialogTitle>Mission MSN-{String(mission.num_mission).padStart(6, "0")} — {mission.nom_client}</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          {/* Infos */}
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div><span className="text-muted-foreground">Montant total :</span> <strong>{mission.montant_total} DH</strong></div>
             <div><span className="text-muted-foreground">Commission :</span> <strong>{form.commission_pourcentage}%</strong></div>
@@ -221,15 +316,12 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
             <div><span className="text-muted-foreground">Part profil :</span> <strong className="text-sky-700">{pp.toLocaleString("fr-MA")} DH</strong></div>
           </div>
 
-          {/* Statut mission */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <Label>Statut mission</Label>
               <Select value={form.statut_mission} onValueChange={(v) => setForm({ ...form, statut_mission: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
@@ -238,7 +330,6 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
             </div>
           </div>
 
-          {/* Paiement client */}
           <div className="border-t pt-4">
             <h4 className="font-semibold mb-3">💳 Paiement client</h4>
             <div className="grid grid-cols-2 gap-4">
@@ -251,9 +342,7 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
                 <Label>Mode de paiement réel</Label>
                 <Select value={form.mode_paiement_reel} onValueChange={(v) => setForm({ ...form, mode_paiement_reel: v })}>
                   <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-                  <SelectContent>
-                    {MODE_PAIEMENT_OPTIONS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                  </SelectContent>
+                  <SelectContent>{MODE_PAIEMENT_OPTIONS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
@@ -264,24 +353,19 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
                 <Label>Statut paiement</Label>
                 <Select value={form.statut_paiement} onValueChange={(v) => setForm({ ...form, statut_paiement: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                  </SelectContent>
+                  <SelectContent>{STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1 col-span-2">
                 <Label>Justificatif</Label>
                 <div className="flex gap-2 items-center">
                   <Input type="file" onChange={handleFileUpload} />
-                  {mission.justificatif_url && (
-                    <a href={mission.justificatif_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Voir</a>
-                  )}
+                  {mission.justificatif_url && <a href={mission.justificatif_url} target="_blank" rel="noopener" className="text-xs text-primary underline">Voir</a>}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Répartition */}
           <div className="border-t pt-4">
             <h4 className="font-semibold mb-3">🔁 Répartition interne</h4>
             <div className="grid grid-cols-2 gap-4">
@@ -305,10 +389,7 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
                     <Label>Part agence reversée ?</Label>
                     <Select value={form.part_agence_reversee ? "oui" : "non"} onValueChange={(v) => setForm({ ...form, part_agence_reversee: v === "oui" })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="oui">Oui</SelectItem>
-                        <SelectItem value="non">Non</SelectItem>
-                      </SelectContent>
+                      <SelectContent><SelectItem value="oui">Oui</SelectItem><SelectItem value="non">Non</SelectItem></SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1">
@@ -322,10 +403,7 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
                     <Label>Part profil versée ?</Label>
                     <Select value={form.part_profil_versee ? "oui" : "non"} onValueChange={(v) => setForm({ ...form, part_profil_versee: v === "oui" })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="oui">Oui</SelectItem>
-                        <SelectItem value="non">Non</SelectItem>
-                      </SelectContent>
+                      <SelectContent><SelectItem value="oui">Oui</SelectItem><SelectItem value="non">Non</SelectItem></SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1">
@@ -382,25 +460,25 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
           <div className="space-y-1">
             <Label>Demande source</Label>
             <Select value={demandeId} onValueChange={setDemandeId}>
-              <SelectTrigger><SelectValue placeholder="Sélectionner une demande" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choisir une demande" /></SelectTrigger>
               <SelectContent>
                 {demandes.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.nom} — {d.type_prestation}</SelectItem>
+                  <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.nom} ({d.ville})</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           {selectedDemande && (
-            <div className="text-sm bg-muted p-3 rounded space-y-1">
+            <div className="text-sm p-3 bg-muted rounded-md space-y-1">
               <p><strong>Client :</strong> {selectedDemande.nom}</p>
               <p><strong>Montant :</strong> {selectedDemande.montant_total || 0} DH</p>
-              <p><strong>Date :</strong> {selectedDemande.date_prestation || "—"}</p>
+              <p><strong>Date :</strong> {selectedDemande.date_prestation || "Non définie"}</p>
             </div>
           )}
           <div className="space-y-1">
             <Label>Profil assigné</Label>
             <Select value={profilId} onValueChange={setProfilId}>
-              <SelectTrigger><SelectValue placeholder="Optionnel" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choisir un profil" /></SelectTrigger>
               <SelectContent>
                 {profils.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom}</SelectItem>
@@ -410,16 +488,14 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Commission %</Label>
+              <Label>Commission agence %</Label>
               <Input type="number" value={commission} onChange={(e) => setCommission(Number(e.target.value))} />
             </div>
             <div className="space-y-1">
               <Label>Mode paiement prévu</Label>
               <Select value={modePaiement} onValueChange={setModePaiement}>
                 <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
-                <SelectContent>
-                  {MODE_PAIEMENT_OPTIONS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{MODE_PAIEMENT_OPTIONS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
             </div>
           </div>
@@ -427,14 +503,12 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
             <Label>Statut mission</Label>
             <Select value={statutMission} onValueChange={setStatutMission}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-              </SelectContent>
+              <SelectContent>{STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>Annuler</Button>
-            <Button onClick={handleCreate} disabled={!demandeId}>Créer</Button>
+            <Button onClick={handleCreate} disabled={!demandeId}>Créer la mission</Button>
           </div>
         </div>
       </DialogContent>
