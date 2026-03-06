@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History,
+  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -19,6 +19,7 @@ const items = [
   { title: "Listing clients", url: "/clients", icon: Building2 },
   { title: "Historique", url: "/historique", icon: History },
   { title: "Gestion Financière", url: "/gestion-financiere", icon: Wallet },
+  { title: "Qualité & Feedback", url: "/qualite", icon: Star },
   { title: "Paramètres", url: "/parametres", icon: Settings },
 ];
 

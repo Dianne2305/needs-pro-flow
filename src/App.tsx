@@ -13,6 +13,8 @@ import Historique from "./pages/Historique";
 import ListingClients from "./pages/ListingClients";
 import Profils from "./pages/Profils";
 import CompteProfil from "./pages/CompteProfil";
+import QualiteFeedback from "./pages/QualiteFeedback";
+import FeedbackForm from "./pages/FeedbackForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,20 +25,26 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/demandes" element={<PendingRequests />} />
-            <Route path="/compte-client" element={<CompteClient />} />
-            <Route path="/historique" element={<Historique />} />
-            <Route path="/profils" element={<Profils />} />
-            <Route path="/compte-profil" element={<CompteProfil />} />
-            <Route path="/clients" element={<ListingClients />} />
-            <Route path="/gestion-financiere" element={<GestionFinanciere />} />
-            <Route path="/parametres" element={<ComingSoon />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <Routes>
+          <Route path="/feedback/:token" element={<FeedbackForm />} />
+          <Route path="/*" element={
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/demandes" element={<PendingRequests />} />
+                <Route path="/compte-client" element={<CompteClient />} />
+                <Route path="/historique" element={<Historique />} />
+                <Route path="/profils" element={<Profils />} />
+                <Route path="/compte-profil" element={<CompteProfil />} />
+                <Route path="/clients" element={<ListingClients />} />
+                <Route path="/gestion-financiere" element={<GestionFinanciere />} />
+                <Route path="/qualite" element={<QualiteFeedback />} />
+                <Route path="/parametres" element={<ComingSoon />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+          } />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
