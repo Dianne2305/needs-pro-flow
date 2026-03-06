@@ -195,6 +195,34 @@ export default function VueGlobale() {
         </Card>
       </div>
 
+      {/* Règlements internes non soldés */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-l-4 border-l-red-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-red-600">Agence non payée</p>
+                <p className="text-3xl font-bold mt-1">{fmt(montantAgenceNonPayee)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{agenceNonPayee.length} mission(s) — encaissé par profil, part agence non reversée</p>
+              </div>
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Profil non payé</p>
+                <p className="text-3xl font-bold mt-1">{fmt(montantProfilNonPaye)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{profilNonPaye.length} mission(s) — encaissé par agence, part profil non versée</p>
+              </div>
+              <AlertTriangle className="h-5 w-5 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Soldes profils - débiteurs / créditeurs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="border-red-200">
