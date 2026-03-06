@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,11 +16,11 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   ArrowLeft, User, ChevronDown, MessageSquare, Image, History, Briefcase,
-  Save, Search, Phone, MapPin, CreditCard, Calendar, IdCard,
+  Save, Search, Phone, MapPin, CreditCard, Calendar, IdCard, Edit, UserPlus, Upload, Download, ExternalLink,
 } from "lucide-react";
-import {
-  PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS,
-} from "@/lib/profil-constants";
+import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
+import { PostulerModal } from "@/components/profils/PostulerModal";
+import { EditProfilModal } from "@/components/profils/EditProfilModal";
 
 function Section({ title, icon: Icon, children, defaultOpen = false, colorClass = "bg-card" }: {
   title: string; icon: any; defaultOpen?: boolean; children: React.ReactNode; colorClass?: string;
@@ -64,6 +64,13 @@ export default function CompteProfil() {
   const [noteOperateur, setNoteOperateur] = useState("");
   const [histSearch, setHistSearch] = useState("");
   const [notesInitialized, setNotesInitialized] = useState(false);
+  const [showPostuler, setShowPostuler] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const photoRef = useRef<HTMLInputElement>(null);
+  const cinRef = useRef<HTMLInputElement>(null);
+  const attestationRef = useRef<HTMLInputElement>(null);
 
   const { data: profil, isLoading } = useQuery({
     queryKey: ["profil", profilId],
@@ -81,12 +88,20 @@ export default function CompteProfil() {
     queryFn: async () => {
       if (!profilId) return [];
       const { data, error } = await supabase
-        .from("profil_historique")
-        .select("*")
-        .eq("profil_id", profilId)
+        .from("profil_historique").select("*").eq("profil_id", profilId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
+    },
+    enabled: !!profilId,
+  });
+
+  const { data: missions = [] } = useQuery({
+    queryKey: ["facturation_profil", profilId],
+    queryFn: async () => {
+      if (!profilId) return [];
+      const { data } = await supabase.from("facturation").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
+      return data || [];
     },
     enabled: !!profilId,
   });
@@ -102,6 +117,35 @@ export default function CompteProfil() {
       toast({ title: "Mis à jour avec succès" });
     },
   });
+
+  const handleUpload = async (file: File, type: "photo" | "cin" | "attestation") => {
+    if (!profilId) return;
+    setUploading(type);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${profilId}/${type}_${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("profil-media").upload(path, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("profil-media").getPublicUrl(path);
+      const columnMap = { photo: "photo_url", cin: "cin_url", attestation: "attestation_url" };
+      const { error } = await supabase.from("profils").update({ [columnMap[type]]: urlData.publicUrl } as any).eq("id", profilId);
+      if (error) throw error;
+
+      await supabase.from("profil_historique").insert({
+        profil_id: profilId,
+        action: `Upload ${type === "photo" ? "photo de profil" : type === "cin" ? "CIN" : "attestation"}`,
+        utilisateur: "Opérateur",
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["profil", profilId] });
+      toast({ title: `${type === "photo" ? "Photo" : type === "cin" ? "CIN" : "Attestation"} uploadé(e) avec succès` });
+    } catch (err: any) {
+      toast({ title: "Erreur upload", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(null);
+    }
+  };
 
   if (profil && !notesInitialized) {
     setNoteOperateur(profil.note_operateur || "");
@@ -124,9 +168,7 @@ export default function CompteProfil() {
           <User className="h-8 w-8 text-muted-foreground" />
         </div>
         <p className="text-muted-foreground font-medium">Profil introuvable</p>
-        <Button variant="outline" size="sm" onClick={() => navigate("/profils")}>
-          <ArrowLeft className="h-4 w-4 mr-1" />Retour
-        </Button>
+        <Button variant="outline" size="sm" onClick={() => navigate("/profils")}><ArrowLeft className="h-4 w-4 mr-1" />Retour</Button>
       </div>
     );
   }
@@ -137,31 +179,21 @@ export default function CompteProfil() {
   const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === p.statut_profil);
   const presOpt = PRESENTATIONS_PHYSIQUES.find(pr => pr.value === p.presentation_physique);
   const corpOpt = CORPULENCES.find(c => c.value === p.corpulence);
-
-  const age = p.date_naissance
-    ? Math.floor((Date.now() - new Date(p.date_naissance).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-    : null;
+  const age = p.date_naissance ? Math.floor((Date.now() - new Date(p.date_naissance).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null;
 
   const filteredHist = histSearch
     ? historique.filter((h: any) => h.action?.toLowerCase().includes(histSearch.toLowerCase()) || h.note?.toLowerCase().includes(histSearch.toLowerCase()))
     : historique;
 
-  // Auto-generated history entries
-  const autoHistory = [
-    { date: p.created_at, action: "Profil créé", note: "", utilisateur: "Système" },
-  ];
-
+  const autoHistory = [{ date: p.created_at, action: "Profil créé", note: "", utilisateur: "Système" }];
   const allHistory = [...autoHistory, ...filteredHist.map((h: any) => ({
-    date: h.created_at,
-    action: h.action,
-    note: h.note || "",
-    utilisateur: h.utilisateur || "—",
+    date: h.created_at, action: h.action, note: h.note || "", utilisateur: h.utilisateur || "—",
   }))].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => navigate("/profils")} className="gap-1.5">
             <ArrowLeft className="h-4 w-4" />Retour
@@ -178,9 +210,7 @@ export default function CompteProfil() {
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold text-foreground leading-tight">{p.prenom} {p.nom}</h1>
                 {statutOpt && (
-                  <Badge variant="outline" className={cn("border-0 text-xs", statutOpt.color)}>
-                    {statutOpt.label}
-                  </Badge>
+                  <Badge variant="outline" className={cn("border-0 text-xs", statutOpt.color)}>{statutOpt.label}</Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
@@ -189,6 +219,14 @@ export default function CompteProfil() {
               </div>
             </div>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowEdit(true)} className="gap-1.5">
+            <Edit className="h-4 w-4" /> Éditer
+          </Button>
+          <Button size="sm" onClick={() => setShowPostuler(true)} className="gap-1.5">
+            <UserPlus className="h-4 w-4" /> Postuler
+          </Button>
         </div>
       </div>
 
@@ -213,7 +251,7 @@ export default function CompteProfil() {
             <InfoItem label="Niveau d'étude" value={p.niveau_etude} />
             <InfoItem label="Expérience totale" value={`${p.experience_annees || 0} an(s) ${p.experience_mois || 0} mois`} />
             <InfoItem label="Type de profil" value={p.type_profil} />
-            <InfoItem label="Formation requise" value={p.formation_requise ? "Oui" : "Non"} />
+            <InfoItem label="Formation requise" value={p.formation_requise || "—"} />
             <InfoItem label="Sait lire et écrire" value={p.sait_lire_ecrire ? "Oui" : "Non"} />
             <InfoItem label="Maladie / Handicap" value={p.maladie_handicap || "Aucun"} />
             <InfoItem label="Présentation physique" value={presOpt?.label} />
@@ -276,60 +314,114 @@ export default function CompteProfil() {
           </div>
         </Section>
 
-        {/* Média */}
+        {/* Média — Upload & Download */}
         <Section title="Média" icon={Image} defaultOpen colorClass="bg-[hsl(270,25%,96%)]">
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0], "photo"); }} />
+          <input ref={cinRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0], "cin"); }} />
+          <input ref={attestationRef} type="file" accept="image/*,.pdf" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleUpload(e.target.files[0], "attestation"); }} />
+
           <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Photo de profil</p>
-              <div className="h-24 w-24 mx-auto rounded-lg bg-muted flex items-center justify-center">
+            {/* Photo */}
+            <div className="text-center space-y-2">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Photo de profil</p>
+              <div
+                onClick={() => p.photo_url ? window.open(p.photo_url, "_blank") : photoRef.current?.click()}
+                className="h-28 w-28 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all relative group"
+              >
                 {p.photo_url ? (
-                  <img src={p.photo_url} alt="Photo" className="h-full w-full object-cover rounded-lg" />
+                  <>
+                    <img src={p.photo_url} alt="Photo" className="h-full w-full object-cover rounded-lg" />
+                    <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Download className="h-5 w-5 text-white" />
+                    </div>
+                  </>
                 ) : (
                   <User className="h-8 w-8 text-muted-foreground" />
                 )}
               </div>
+              <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => photoRef.current?.click()} disabled={uploading === "photo"}>
+                <Upload className="h-3 w-3" /> {uploading === "photo" ? "Upload..." : "Télécharger"}
+              </Button>
             </div>
-            <div className="text-center">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-2">CIN</p>
-              <div className="h-24 w-24 mx-auto rounded-lg bg-muted flex items-center justify-center">
+
+            {/* CIN */}
+            <div className="text-center space-y-2">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">CIN</p>
+              <div
+                onClick={() => p.cin_url ? window.open(p.cin_url, "_blank") : cinRef.current?.click()}
+                className="h-28 w-28 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all relative group"
+              >
                 {p.cin_url ? (
-                  <img src={p.cin_url} alt="CIN" className="h-full w-full object-cover rounded-lg" />
+                  <>
+                    <img src={p.cin_url} alt="CIN" className="h-full w-full object-cover rounded-lg" />
+                    <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Download className="h-5 w-5 text-white" />
+                    </div>
+                  </>
                 ) : (
                   <IdCard className="h-8 w-8 text-muted-foreground" />
                 )}
               </div>
+              <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => cinRef.current?.click()} disabled={uploading === "cin"}>
+                <Upload className="h-3 w-3" /> {uploading === "cin" ? "Upload..." : "Télécharger"}
+              </Button>
             </div>
-            <div className="text-center">
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-2">Attestation</p>
-              <div className="h-24 w-24 mx-auto rounded-lg bg-muted flex items-center justify-center">
+
+            {/* Attestation */}
+            <div className="text-center space-y-2">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Attestation</p>
+              <div
+                onClick={() => p.attestation_url ? window.open(p.attestation_url, "_blank") : attestationRef.current?.click()}
+                className="h-28 w-28 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all relative group"
+              >
                 {p.attestation_url ? (
-                  <img src={p.attestation_url} alt="Attestation" className="h-full w-full object-cover rounded-lg" />
+                  <>
+                    <img src={p.attestation_url} alt="Attestation" className="h-full w-full object-cover rounded-lg" />
+                    <div className="absolute inset-0 bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Download className="h-5 w-5 text-white" />
+                    </div>
+                  </>
                 ) : (
                   <CreditCard className="h-8 w-8 text-muted-foreground" />
                 )}
               </div>
+              <Button variant="outline" size="sm" className="text-xs gap-1" onClick={() => attestationRef.current?.click()} disabled={uploading === "attestation"}>
+                <Upload className="h-3 w-3" /> {uploading === "attestation" ? "Upload..." : "Télécharger"}
+              </Button>
             </div>
           </div>
         </Section>
 
         {/* Historique Mission */}
         <Section title="Historique Mission" icon={Briefcase} defaultOpen colorClass="bg-[hsl(160,30%,95%)]">
-          <p className="text-sm text-muted-foreground">Les missions assignées à ce profil apparaîtront ici automatiquement.</p>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Statut</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-6 text-muted-foreground text-sm">Aucune mission pour le moment</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+          {missions.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Aucune mission pour le moment</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>N°</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Montant</TableHead>
+                  <TableHead>Statut</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {missions.map((m: any) => (
+                  <TableRow key={m.id}>
+                    <TableCell className="font-mono text-xs">M-{m.num_mission}</TableCell>
+                    <TableCell className="text-xs">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
+                    <TableCell className="text-sm">{m.nom_client}</TableCell>
+                    <TableCell className="text-xs">{m.type_service || "—"}</TableCell>
+                    <TableCell className="font-semibold text-sm">{m.montant_total?.toLocaleString("fr-MA")} DH</TableCell>
+                    <TableCell><Badge variant="outline" className="text-xs">{m.statut_mission}</Badge></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </Section>
 
         {/* Historique actions */}
@@ -366,6 +458,15 @@ export default function CompteProfil() {
           </Table>
         </Section>
       </div>
+
+      {/* Modals */}
+      <PostulerModal open={showPostuler} onOpenChange={setShowPostuler} profil={p} />
+      <EditProfilModal
+        open={showEdit}
+        onOpenChange={setShowEdit}
+        profil={p}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["profil", profilId] })}
+      />
     </div>
   );
 }
