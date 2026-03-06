@@ -55,11 +55,11 @@ export function AppSidebar() {
                       to={item.url}
                       end={item.url === "/"}
                       className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-bold"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-2 h-5 w-5" />
                       {!collapsed && (
-                        <span className="flex items-center gap-2 flex-1">
+                        <span className="flex items-center gap-2 flex-1 text-[15px] font-semibold">
                           {item.title}
                           {item.showBadge && pendingCount > 0 && (
                             <Badge className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center">
