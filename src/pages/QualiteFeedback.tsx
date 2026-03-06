@@ -181,46 +181,46 @@ export default function QualiteFeedback() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card>
+        <Card className="bg-[#faa31f] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10"><BarChart3 className="h-5 w-5 text-primary" /></div>
+              <div className="p-2 rounded-lg bg-white/20"><BarChart3 className="h-5 w-5 text-white" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Prestations effectuées</p>
-                <p className="text-2xl font-bold">{total}</p>
+                <p className="text-xs text-white/80">Prestations effectuées</p>
+                <p className="text-2xl font-bold text-white">{total}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#50bfcb] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-green-100"><ThumbsUp className="h-5 w-5 text-green-600" /></div>
+              <div className="p-2 rounded-lg bg-white/20"><ThumbsUp className="h-5 w-5 text-white" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Feedback positif</p>
-                <p className="text-2xl font-bold text-green-600">{positifs}</p>
+                <p className="text-xs text-white/80">Feedback positif</p>
+                <p className="text-2xl font-bold text-white">{positifs}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#04969e] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-red-100"><ThumbsDown className="h-5 w-5 text-red-600" /></div>
+              <div className="p-2 rounded-lg bg-white/20"><ThumbsDown className="h-5 w-5 text-white" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">Feedback négatif</p>
-                <p className="text-2xl font-bold text-red-600">{negatifs}</p>
+                <p className="text-xs text-white/80">Feedback négatif</p>
+                <p className="text-2xl font-bold text-white">{negatifs}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-[#d9bf12] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-100"><Clock className="h-5 w-5 text-yellow-600" /></div>
+              <div className="p-2 rounded-lg bg-white/20"><Clock className="h-5 w-5 text-white" /></div>
               <div>
-                <p className="text-sm text-muted-foreground">En attente</p>
-                <p className="text-2xl font-bold text-yellow-600">{enAttente}</p>
+                <p className="text-xs text-white/80">En attente</p>
+                <p className="text-2xl font-bold text-white">{enAttente}</p>
               </div>
             </div>
           </CardContent>
