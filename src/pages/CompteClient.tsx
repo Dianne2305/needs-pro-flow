@@ -93,6 +93,24 @@ export default function CompteClient() {
     enabled: !!demandeId,
   });
 
+  // All feedbacks for this client (by name)
+  const { data: allClientFeedbacks = [] } = useQuery({
+    queryKey: ["feedbacks_client", demande?.nom],
+    queryFn: async () => {
+      if (!demande?.nom) return [];
+      const { data, error } = await supabase
+        .from("feedbacks")
+        .select("*")
+        .ilike("nom_client", demande.nom.trim())
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!demande?.nom,
+  });
+
+  const [detailFeedback, setDetailFeedback] = useState<any>(null);
+
   // Count all demandes for this client (fidélité)
   const { data: allClientDemandes = [] } = useQuery({
     queryKey: ["demandes", "client_fidelite", demande?.nom],
@@ -569,62 +587,109 @@ export default function CompteClient() {
         </Section>
 
         {/* Feedback Client */}
-        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,60%,95%)]">
-          {feedback && feedback.submitted_at ? (
+        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,60%,95%)]" count={allClientFeedbacks.length}>
+          {allClientFeedbacks.length > 0 ? (
             <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
-                <div className="py-1">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Satisfaction</p>
-                  <Badge className={
-                    feedback.satisfaction === "Très satisfait" || feedback.satisfaction === "Satisfait"
-                      ? "bg-green-100 text-green-800" : feedback.satisfaction === "Pas satisfait"
-                      ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
-                  }>{feedback.satisfaction}</Badge>
-                </div>
-                <div className="py-1">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Qualité ménage</p>
-                  <p className="text-sm font-medium">{feedback.qualite_menage || "—"}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Professionnel</p>
-                  <p className="text-sm font-medium">{feedback.professionnel || "—"}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Recommande profil</p>
-                  <p className="text-sm font-medium">{feedback.recommande_profil ? "Oui" : "Non"}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Recommande agence</p>
-                  <p className="text-sm font-medium">{feedback.recommande_agence ? "Oui" : "Non"}</p>
-                </div>
-                <div className="py-1">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Note agence</p>
-                  <span className="inline-flex items-center gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`h-3.5 w-3.5 ${i < (feedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
-                    ))}
-                  </span>
-                </div>
-              </div>
-              {feedback.commentaire && (
-                <div className="bg-muted p-3 rounded-lg">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-1">Commentaire</p>
-                  <p className="text-sm">{feedback.commentaire}</p>
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">Soumis le {format(new Date(feedback.submitted_at), "dd/MM/yyyy à HH:mm", { locale: fr })}</p>
-            </div>
-          ) : feedback ? (
-            <div className="flex flex-col items-center py-6 text-center">
-              <Badge className="bg-yellow-100 text-yellow-800">En attente de retour</Badge>
-              <p className="text-sm text-muted-foreground mt-2">Le lien de feedback a été créé mais le client n'a pas encore répondu.</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Profil</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Satisfaction</TableHead>
+                    <TableHead>Note agence</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {allClientFeedbacks.map((f: any) => {
+                    const stKey = f.statut as string;
+                    const stMap: Record<string, { label: string; color: string }> = {
+                      en_attente: { label: "En attente", color: "bg-yellow-100 text-yellow-800" },
+                      lien_envoye: { label: "Lien envoyé", color: "bg-blue-100 text-blue-800" },
+                      positif: { label: "Positif", color: "bg-green-100 text-green-800" },
+                      negatif: { label: "Négatif", color: "bg-red-100 text-red-800" },
+                    };
+                    const st = stMap[stKey] || stMap.en_attente;
+                    return (
+                      <TableRow key={f.id}>
+                        <TableCell className="text-sm">{f.type_service || "—"}</TableCell>
+                        <TableCell className="text-sm">{f.profil_nom || "—"}</TableCell>
+                        <TableCell className="text-xs">{f.date_prestation || "—"}</TableCell>
+                        <TableCell>
+                          {f.satisfaction ? (
+                            <Badge className={
+                              f.satisfaction === "Très satisfait" || f.satisfaction === "Satisfait"
+                                ? "bg-green-100 text-green-800" : f.satisfaction === "Pas satisfait"
+                                ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
+                            }>{f.satisfaction}</Badge>
+                          ) : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {f.note_agence ? (
+                            <span className="flex items-center gap-0.5">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star key={i} className={`h-3.5 w-3.5 ${i < f.note_agence ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                              ))}
+                            </span>
+                          ) : "—"}
+                        </TableCell>
+                        <TableCell><Badge className={st.color}>{st.label}</Badge></TableCell>
+                        <TableCell>
+                          {f.submitted_at && (
+                            <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
           ) : (
             <div className="flex flex-col items-center py-6 text-center">
-              <p className="text-sm text-muted-foreground">Aucun feedback associé à cette demande</p>
+              <p className="text-sm text-muted-foreground">Aucun feedback associé à ce client</p>
             </div>
           )}
         </Section>
+
+        {/* Detail feedback modal */}
+        <Dialog open={!!detailFeedback} onOpenChange={() => setDetailFeedback(null)}>
+          <DialogContent className="max-w-[95vw] sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Détail feedback — {detailFeedback?.nom_client}</DialogTitle>
+            </DialogHeader>
+            {detailFeedback && (
+              <div className="space-y-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div><span className="text-muted-foreground">Satisfaction :</span> <strong>{detailFeedback.satisfaction}</strong></div>
+                  <div><span className="text-muted-foreground">Qualité ménage :</span> <strong>{detailFeedback.qualite_menage}</strong></div>
+                  <div><span className="text-muted-foreground">Professionnel :</span> <strong>{detailFeedback.professionnel}</strong></div>
+                  <div><span className="text-muted-foreground">Recommande profil :</span> <strong>{detailFeedback.recommande_profil ? "Oui" : "Non"}</strong></div>
+                  <div><span className="text-muted-foreground">Recommande agence :</span> <strong>{detailFeedback.recommande_agence ? "Oui" : "Non"}</strong></div>
+                  <div>
+                    <span className="text-muted-foreground">Note agence :</span>{" "}
+                    <span className="inline-flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-3.5 w-3.5 ${i < (detailFeedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                      ))}
+                    </span>
+                  </div>
+                </div>
+                {detailFeedback.commentaire && (
+                  <div className="bg-muted p-3 rounded-lg">
+                    <p className="text-muted-foreground text-xs mb-1">Commentaire</p>
+                    <p>{detailFeedback.commentaire}</p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">Soumis le {new Date(detailFeedback.submitted_at!).toLocaleDateString("fr-FR")}</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Historique actions */}
         <Section title="Historique" icon={Clock} colorClass="bg-[hsl(0,0%,96%)]">
