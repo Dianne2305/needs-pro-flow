@@ -110,13 +110,64 @@ export default function Dashboard() {
     return map;
   }, [allDemandesForCount]);
 
+  // Auto-sync facturation when status changes
+  const syncFacturation = async (demandeId: string, newStatut: string) => {
+    // Find the demande data
+    const demande = allDemandes.find((d) => d.id === demandeId);
+    if (!demande) return;
+
+    const statusesToCreate = ["confirme_intervention", "prestation_effectuee", "paye"];
+    const statusesToUpdate = ["prestation_effectuee", "paye", "facturation_annulee"];
+
+    // Check if facturation already exists for this demande
+    const { data: existing } = await supabase
+      .from("facturation")
+      .select("id")
+      .eq("demande_id", demandeId)
+      .maybeSingle();
+
+    if (!existing && statusesToCreate.includes(newStatut)) {
+      // Create new facturation entry
+      const segment = demande.type_service === "SPE" ? "entreprise" : "particulier";
+      await supabase.from("facturation").insert({
+        demande_id: demandeId,
+        nom_client: demande.nom,
+        profil_nom: demande.candidat_nom || null,
+        ville: demande.ville,
+        type_service: demande.type_prestation,
+        date_intervention: demande.date_prestation || null,
+        montant_total: demande.montant_total || 0,
+        commission_pourcentage: 50,
+        mode_paiement_prevu: demande.mode_paiement || null,
+        segment,
+        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "confirmee",
+        statut_paiement: newStatut === "paye" ? "paye" : "non_paye",
+      });
+    } else if (existing && statusesToUpdate.includes(newStatut)) {
+      // Update existing facturation
+      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "facturation_annulee";
+      const updates: Record<string, unknown> = { statut_mission: missionStatus };
+      if (newStatut === "paye") {
+        updates.statut_paiement = "paye";
+        updates.montant_paye_client = demande.montant_total || 0;
+        updates.date_paiement_client = new Date().toISOString().split("T")[0];
+      }
+      await supabase.from("facturation").update(updates).eq("id", existing.id);
+    }
+  };
+
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Record<string, unknown> }) => {
       const { error } = await supabase.from("demandes").update(updates).eq("id", id);
       if (error) throw error;
+      // Auto-sync facturation if status changed
+      if (updates.statut && typeof updates.statut === "string") {
+        await syncFacturation(id, updates.statut);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      queryClient.invalidateQueries({ queryKey: ["facturation"] });
       toast({ title: "Mis à jour" });
       setNoteOpen(false);
       setConfirmNoteOpen(false);
