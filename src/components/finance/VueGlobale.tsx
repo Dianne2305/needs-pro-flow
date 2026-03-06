@@ -70,9 +70,21 @@ export default function VueGlobale() {
   const recapProfils = useMemo(() => {
     const map: Record<string, { nom: string; missions: Facturation[] }> = {};
     filtered.forEach((m) => {
-      if (!m.profil_id) return;
-      if (!map[m.profil_id]) map[m.profil_id] = { nom: m.profil_nom || "Inconnu", missions: [] };
-      map[m.profil_id].missions.push(m);
+      // Match by profil_id or fallback to profil_nom
+      let key = m.profil_id;
+      if (!key && m.profil_nom) {
+        // Use profil_nom as key when profil_id is null
+        const matchedProfil = profils.find((p) => {
+          const fullName = `${p.prenom} ${p.nom}`.toLowerCase();
+          const reverseName = `${p.nom} ${p.prenom}`.toLowerCase();
+          const nom = m.profil_nom?.toLowerCase() || "";
+          return nom === fullName || nom === reverseName || nom.includes(p.nom.toLowerCase());
+        });
+        key = matchedProfil?.id || `nom_${m.profil_nom}`;
+      }
+      if (!key) return;
+      if (!map[key]) map[key] = { nom: m.profil_nom || "Inconnu", missions: [] };
+      map[key].missions.push(m);
     });
     return Object.entries(map).map(([id, { nom, missions: ms }]) => {
       const ca = ms.reduce((s, m) => s + (m.montant_total || 0), 0);
