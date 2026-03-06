@@ -435,6 +435,8 @@ export default function CompteProfil() {
 
         {/* Solde financier */}
         {missions.length > 0 && (() => {
+          const totalCA = missions.reduce((s: number, m: any) => s + (Number(m.montant_total) || 0), 0);
+          const nbMissions = missions.length;
           const profilDoitAgence = missions
             .filter((m: any) => m.encaisse_par === "profil" && !m.part_agence_reversee)
             .reduce((s: number, m: any) => s + partAgence(m), 0);
@@ -444,16 +446,24 @@ export default function CompteProfil() {
           const fmt = (n: number) => n.toLocaleString("fr-MA") + " DH";
           return (
             <Section title="Solde financier" icon={CreditCard} defaultOpen colorClass="bg-[hsl(30,40%,95%)]">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Total CA généré</p>
+                  <p className="text-2xl font-bold text-primary">{fmt(totalCA)}</p>
+                </div>
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Nombre de missions</p>
+                  <p className="text-2xl font-bold text-primary">{nbMissions}</p>
+                </div>
                 <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Le profil doit à l'agence</p>
                   <p className="text-2xl font-bold text-destructive">{fmt(profilDoitAgence)}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Part agence non reversée (encaissé par le profil)</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Part agence non reversée</p>
                 </div>
                 <div className="rounded-lg border border-sky-300/50 bg-sky-50/50 p-4 text-center">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">L'agence doit au profil</p>
                   <p className="text-2xl font-bold text-sky-700">{fmt(agenceDoitProfil)}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">Part profil non versée (encaissé par l'agence)</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Part profil non versée</p>
                 </div>
               </div>
             </Section>
