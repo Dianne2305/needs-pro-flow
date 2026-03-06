@@ -156,6 +156,40 @@ export default function CompteClient() {
     setRenewInitialized(true);
   }
 
+  const createRenewalMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const { error } = await supabase.from("demandes").insert(data);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Demande renouvelée", description: "Une nouvelle demande a été créée avec succès." });
+      setRenewOpen(false);
+    },
+  });
+
+  const switchToAboMutation = useMutation({
+    mutationFn: async (frequence: string) => {
+      if (!demandeId) return;
+      const { error } = await supabase.from("demandes").update({ frequence }).eq("id", demandeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demande", demandeId] });
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Abonnement activé", description: "La demande a été convertie en abonnement." });
+      setSwitchAboOpen(false);
+    },
+  });
+
+  const handleRenew = () => {
+    createRenewalMutation.mutate({
+      ...renewForm,
+      services_optionnels: "[]",
+      statut: "en_attente",
+    });
+  };
+
   const fideliteCount = allClientDemandes.length;
 
   if (isLoading) {
