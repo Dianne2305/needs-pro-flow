@@ -58,6 +58,7 @@ export const STATUTS = {
   annulee: { label: "Annulée", color: "bg-red-100 text-red-800", hex: "#dc2626" },
   standby: { label: "Standby", color: "bg-gray-100 text-gray-800", hex: "#9ca3af" },
   cloturee: { label: "Clôturée", color: "bg-gray-100 text-gray-600", hex: "#6b7280" },
+  paiement_en_cours: { label: "Paiement en cours", color: "bg-blue-100 text-blue-800", hex: "#3b82f6" },
   nrp: { label: "NRP", color: "bg-zinc-100 text-zinc-800", hex: "#71717a" },
 } as const;
 
