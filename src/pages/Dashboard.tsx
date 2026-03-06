@@ -116,8 +116,8 @@ export default function Dashboard() {
     const demande = allDemandes.find((d) => d.id === demandeId);
     if (!demande) return;
 
-    const statusesToCreate = ["confirme_intervention", "prestation_effectuee", "paye"];
-    const statusesToUpdate = ["prestation_effectuee", "paye", "facturation_annulee"];
+    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye"];
+    const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee"];
 
     // Check if facturation already exists for this demande
     const { data: existing } = await supabase
@@ -357,6 +357,16 @@ export default function Dashboard() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openNote(d, "operationnel")}>
           <MessageSquare className="h-4 w-4 mr-2" />Note opérationnelle
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "confirme_intervention" } })} className="text-emerald-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Confirmé intervention
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-green-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Payé
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "cloturee" } })}>
