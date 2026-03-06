@@ -10,10 +10,10 @@ interface MarketingStatsProps {
 
 export function MarketingStats({ totalCodesUtilises, caGenere, clientsAcquis, tauxUtilisation }: MarketingStatsProps) {
   const stats = [
-    { label: "Codes promo utilisés", value: totalCodesUtilises, icon: Ticket, bg: "bg-[#faa31f]" },
-    { label: "CA généré par promos", value: `${caGenere.toLocaleString()} MAD`, icon: TrendingUp, bg: "bg-[#50bfcb]" },
-    { label: "Clients acquis via promo", value: clientsAcquis, icon: Users, bg: "bg-[#04969e]" },
-    { label: "Taux d'utilisation", value: `${tauxUtilisation}%`, icon: BarChart3, bg: "bg-[#d9bf12]" },
+    { label: "Codes promo utilisés", value: totalCodesUtilises, icon: Ticket, bg: "bg-gradient-to-br from-[#e8920a] to-[#fcc35c]" },
+    { label: "CA généré par promos", value: `${caGenere.toLocaleString()} MAD`, icon: TrendingUp, bg: "bg-gradient-to-br from-[#3da8b3] to-[#7dd4dc]" },
+    { label: "Clients acquis via promo", value: clientsAcquis, icon: Users, bg: "bg-gradient-to-br from-[#037a82] to-[#1ab5bf]" },
+    { label: "Taux d'utilisation", value: `${tauxUtilisation}%`, icon: BarChart3, bg: "bg-gradient-to-br from-[#b8a20e] to-[#e8d84a]" },
   ];
 
   return (

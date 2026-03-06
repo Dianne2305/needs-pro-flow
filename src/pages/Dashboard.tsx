@@ -221,10 +221,10 @@ export default function Dashboard() {
   const speCount = filtered.filter((d) => d.type_service === "SPE").length;
 
   const kpis = [
-    { label: "Demandes en cours", value: filtered.length, bg: "bg-[#faa31f]", text: "text-white" },
-    { label: "Services Particuliers", value: sppCount, bg: "bg-[#50bfcb]", text: "text-white" },
-    { label: "Services Entreprises", value: speCount, bg: "bg-[#04969e]", text: "text-white" },
-    { label: "En attente", value: pendingCount, bg: "bg-[#d9bf12]", text: "text-white" },
+    { label: "Demandes en cours", value: filtered.length, bg: "bg-gradient-to-br from-[#e8920a] to-[#fcc35c]", text: "text-white" },
+    { label: "Services Particuliers", value: sppCount, bg: "bg-gradient-to-br from-[#3da8b3] to-[#7dd4dc]", text: "text-white" },
+    { label: "Services Entreprises", value: speCount, bg: "bg-gradient-to-br from-[#037a82] to-[#1ab5bf]", text: "text-white" },
+    { label: "En attente", value: pendingCount, bg: "bg-gradient-to-br from-[#b8a20e] to-[#e8d84a]", text: "text-white" },
   ];
 
   const openModal = (d: Demande, modal: "detail" | "editBesoin" | "candidature" | "confirmOpe") => {
