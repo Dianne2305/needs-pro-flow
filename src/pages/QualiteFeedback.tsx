@@ -181,7 +181,7 @@ export default function QualiteFeedback() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <Card className="bg-[#faa31f] border-0">
+        <Card className="bg-gradient-to-br from-[#e8920a] to-[#fcc35c] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-white/20"><BarChart3 className="h-5 w-5 text-white" /></div>
@@ -192,7 +192,7 @@ export default function QualiteFeedback() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-[#50bfcb] border-0">
+        <Card className="bg-gradient-to-br from-[#3da8b3] to-[#7dd4dc] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-white/20"><ThumbsUp className="h-5 w-5 text-white" /></div>
@@ -203,7 +203,7 @@ export default function QualiteFeedback() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-[#04969e] border-0">
+        <Card className="bg-gradient-to-br from-[#037a82] to-[#1ab5bf] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-white/20"><ThumbsDown className="h-5 w-5 text-white" /></div>
@@ -214,7 +214,7 @@ export default function QualiteFeedback() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-[#d9bf12] border-0">
+        <Card className="bg-gradient-to-br from-[#b8a20e] to-[#e8d84a] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-white/20"><Clock className="h-5 w-5 text-white" /></div>
