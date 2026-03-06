@@ -14,7 +14,7 @@ import { STATUTS, FREQUENCES, STATUT_CANDIDATURE_OPTIONS } from "@/lib/constants
 import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
-  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat
+  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -79,6 +79,16 @@ export default function CompteClient() {
       const { data, error } = await supabase.from("demandes").select("*").eq("id", demandeId).single();
       if (error) throw error;
       return data as Demande;
+    },
+    enabled: !!demandeId,
+  });
+
+  const { data: feedback } = useQuery({
+    queryKey: ["feedback_demande", demandeId],
+    queryFn: async () => {
+      if (!demandeId) return null;
+      const { data } = await supabase.from("feedbacks").select("*").eq("demande_id", demandeId).maybeSingle();
+      return data;
     },
     enabled: !!demandeId,
   });
