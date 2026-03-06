@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer } from "lucide-react";
-import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS } from "@/lib/finance-types";
+import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS, PROFIL_TYPE_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
 
 export default function HistoriqueMissions() {
@@ -38,7 +38,7 @@ export default function HistoriqueMissions() {
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "for_facturation"],
     queryFn: async () => {
-      const { data } = await supabase.from("demandes").select("id, num_demande, nom, ville, type_prestation, montant_total, date_prestation, mode_paiement, candidat_nom, telephone_direct")
+      const { data } = await supabase.from("demandes").select("id, num_demande, nom, ville, type_prestation, type_service, montant_total, date_prestation, mode_paiement, candidat_nom, telephone_direct")
         .in("statut", ["prestation_effectuee", "paye", "facturation_annulee", "confirme"]);
       return data || [];
     },
@@ -192,7 +192,9 @@ export default function HistoriqueMissions() {
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Client / Ville</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Profil</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Service</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Segment</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Montant</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Mode paiement</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Part agence</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Part profil</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Encaissé par</TableHead>
@@ -203,7 +205,7 @@ export default function HistoriqueMissions() {
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
+              <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
             ) : filtered.map((m) => (
               <TableRow key={m.id} className="hover:bg-muted/30">
                 <TableCell className="font-mono text-xs font-semibold text-primary">MSN-{String(m.num_mission).padStart(6, "0")}</TableCell>
@@ -214,7 +216,13 @@ export default function HistoriqueMissions() {
                 </TableCell>
                 <TableCell className="text-sm">{m.profil_nom || "—"}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{m.type_service || "—"}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={(m as any).segment === "entreprise" ? "border-violet-300 text-violet-700 bg-violet-50" : "border-sky-300 text-sky-700 bg-sky-50"}>
+                    {(m as any).segment === "entreprise" ? "Entreprise" : "Particulier"}
+                  </Badge>
+                </TableCell>
                 <TableCell className="font-semibold">{fmt(m.montant_total)}</TableCell>
+                <TableCell className="text-sm">{m.mode_paiement_prevu || "—"}</TableCell>
                 <TableCell className="text-emerald-700 font-medium">{fmt(partAgence(m))}</TableCell>
                 <TableCell className="text-sky-700 font-medium">{fmt(partProfil(m))}</TableCell>
                 <TableCell className="text-sm">{m.encaisse_par === "profil" ? "Profil" : "Agence"}</TableCell>
@@ -277,7 +285,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
-        {/* Dark Header */}
         <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 relative">
           <div className="flex items-center gap-3 mb-1">
             <span className="font-mono text-sm text-white/70">MSN-{String(mission.num_mission).padStart(6, "0")}</span>
@@ -297,7 +304,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
           </button>
         </div>
 
-        {/* Montants Summary */}
         <div className="grid grid-cols-3 border-b">
           <div className="text-center py-4 border-r">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Montant Mission</p>
@@ -313,18 +319,11 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
           </div>
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="infos" className="px-6 pt-2 pb-4">
           <TabsList className="mb-4 bg-transparent border-b rounded-none w-full justify-start gap-0 h-auto p-0">
-            <TabsTrigger value="infos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">
-              Informations
-            </TabsTrigger>
-            <TabsTrigger value="paiement" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">
-              Paiement client
-            </TabsTrigger>
-            <TabsTrigger value="repartition" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">
-              Répartition interne
-            </TabsTrigger>
+            <TabsTrigger value="infos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Informations</TabsTrigger>
+            <TabsTrigger value="paiement" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Paiement client</TabsTrigger>
+            <TabsTrigger value="repartition" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Répartition interne</TabsTrigger>
           </TabsList>
 
           <TabsContent value="infos">
@@ -334,6 +333,13 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
                 <div>
                   <p className="text-xs text-muted-foreground">Type de service</p>
                   <p className="font-semibold text-sm">{mission.type_service || "—"}</p>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Segment</p>
+                  <p className="font-semibold text-sm">{(mission as any).segment === "entreprise" ? "Entreprise" : "Particulier"}</p>
                 </div>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
@@ -358,7 +364,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
                 </div>
               </div>
             </div>
-            {/* Statut Paiement */}
             <div className="mt-5 bg-muted/30 rounded-lg p-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">Statut Paiement</p>
               <div className="flex items-center gap-3">
@@ -468,7 +473,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
           </TabsContent>
         </Tabs>
 
-        {/* Footer */}
         <div className="flex justify-between items-center px-6 py-3 border-t bg-muted/20">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={onEdit}>
             <Printer className="h-4 w-4" /> Modifier
@@ -639,61 +643,162 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
 
 /* ===== CREATE MODAL ===== */
 function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes: any[]; profils: any[]; onClose: () => void; onCreate: (d: any) => void }) {
+  const [mode, setMode] = useState<"auto" | "manual">("auto");
   const [demandeId, setDemandeId] = useState("");
-  const [profilId, setProfilId] = useState("");
+  // Manual fields
+  const [dateIntervention, setDateIntervention] = useState("");
+  const [profilType, setProfilType] = useState("");
+  const [nomClient, setNomClient] = useState("");
+  const [ville, setVille] = useState("Casablanca");
+  const [typeService, setTypeService] = useState("");
+  const [segment, setSegment] = useState("particulier");
+  const [montantTotal, setMontantTotal] = useState(0);
   const [commission, setCommission] = useState(50);
   const [modePaiement, setModePaiement] = useState("");
   const [statutMission, setStatutMission] = useState("confirmee");
+  const [encaissePar, setEncaissePar] = useState("agence");
+  const [profilId, setProfilId] = useState("");
 
   const selectedDemande = demandes.find((d) => d.id === demandeId);
   const selectedProfil = profils.find((p) => p.id === profilId);
 
+  // Auto-fill from demande
+  const effectiveMontant = mode === "auto" && selectedDemande ? (selectedDemande.montant_total || 0) : montantTotal;
+  const effectiveSegment = mode === "auto" && selectedDemande ? (selectedDemande.type_service === "SPE" ? "entreprise" : "particulier") : segment;
+
+  const pa = effectiveMontant * commission / 100;
+  const pp = effectiveMontant * (100 - commission) / 100;
+  const fmtLocal = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+
   const handleCreate = () => {
-    if (!selectedDemande) return;
-    onCreate({
-      demande_id: demandeId,
-      profil_id: profilId || null,
-      profil_nom: selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : null,
-      nom_client: selectedDemande.nom,
-      ville: selectedDemande.ville || "Casablanca",
-      type_service: selectedDemande.type_prestation,
-      date_intervention: selectedDemande.date_prestation,
-      montant_total: selectedDemande.montant_total || 0,
-      commission_pourcentage: commission,
-      mode_paiement_prevu: modePaiement,
-      statut_mission: statutMission,
-    });
+    if (mode === "auto") {
+      if (!selectedDemande) return;
+      onCreate({
+        demande_id: demandeId,
+        profil_id: profilId || null,
+        profil_nom: selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : (selectedDemande.candidat_nom || null),
+        nom_client: selectedDemande.nom,
+        ville: selectedDemande.ville || "Casablanca",
+        type_service: selectedDemande.type_prestation,
+        segment: selectedDemande.type_service === "SPE" ? "entreprise" : "particulier",
+        date_intervention: selectedDemande.date_prestation,
+        montant_total: selectedDemande.montant_total || 0,
+        commission_pourcentage: commission,
+        mode_paiement_prevu: modePaiement || selectedDemande.mode_paiement,
+        statut_mission: statutMission,
+        encaisse_par: encaissePar,
+      });
+    } else {
+      if (!nomClient) return;
+      onCreate({
+        demande_id: demandeId || undefined,
+        profil_id: profilId || null,
+        profil_nom: selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : profilType || null,
+        nom_client: nomClient,
+        ville: ville,
+        type_service: typeService,
+        segment: segment,
+        date_intervention: dateIntervention || null,
+        montant_total: montantTotal,
+        commission_pourcentage: commission,
+        mode_paiement_prevu: modePaiement,
+        statut_mission: statutMission,
+        encaisse_par: encaissePar,
+      });
+    }
   };
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 -mx-6 -mt-6 rounded-t-lg mb-4">
           <h3 className="text-lg font-bold">Nouvelle mission</h3>
+          <p className="text-sm text-white/70">Remplissez les informations de la mission</p>
         </div>
+
+        {/* Mode toggle */}
+        <div className="flex gap-2 mb-4">
+          <Button variant={mode === "auto" ? "default" : "outline"} size="sm" onClick={() => setMode("auto")}>
+            Depuis une demande
+          </Button>
+          <Button variant={mode === "manual" ? "default" : "outline"} size="sm" onClick={() => setMode("manual")}>
+            Saisie manuelle
+          </Button>
+        </div>
+
         <div className="space-y-4">
-          <div className="space-y-1">
-            <Label>Demande source</Label>
-            <Select value={demandeId} onValueChange={setDemandeId}>
-              <SelectTrigger><SelectValue placeholder="Choisir une demande" /></SelectTrigger>
-              <SelectContent>
-                {demandes.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.nom} ({d.ville})</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {selectedDemande && (
-            <div className="text-sm p-3 bg-muted rounded-md space-y-1">
-              <p><strong>Client :</strong> {selectedDemande.nom}</p>
-              <p><strong>Montant :</strong> {selectedDemande.montant_total || 0} DH</p>
-              <p><strong>Date :</strong> {selectedDemande.date_prestation || "Non définie"}</p>
-            </div>
+          {mode === "auto" ? (
+            <>
+              <div className="space-y-1">
+                <Label>Demande source</Label>
+                <Select value={demandeId} onValueChange={setDemandeId}>
+                  <SelectTrigger><SelectValue placeholder="Choisir une demande" /></SelectTrigger>
+                  <SelectContent>
+                    {demandes.map((d) => (
+                      <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.nom} ({d.ville})</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedDemande && (
+                <div className="text-sm p-3 bg-muted rounded-md space-y-1">
+                  <p><strong>Client :</strong> {selectedDemande.nom}</p>
+                  <p><strong>Montant :</strong> {selectedDemande.montant_total || 0} DH</p>
+                  <p><strong>Date :</strong> {selectedDemande.date_prestation || "Non définie"}</p>
+                  <p><strong>Service :</strong> {selectedDemande.type_prestation}</p>
+                  <p><strong>Segment :</strong> {selectedDemande.type_service === "SPE" ? "Entreprise" : "Particulier"}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Date intervention</Label>
+                  <Input type="date" value={dateIntervention} onChange={(e) => setDateIntervention(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label>Profil</Label>
+                  <Select value={profilType} onValueChange={setProfilType}>
+                    <SelectTrigger><SelectValue placeholder="Type de profil" /></SelectTrigger>
+                    <SelectContent>
+                      {PROFIL_TYPE_OPTIONS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label>Nom du client</Label>
+                <Input value={nomClient} onChange={(e) => setNomClient(e.target.value)} placeholder="Nom complet du client" />
+              </div>
+              <div className="space-y-1">
+                <Label>Ville</Label>
+                <Input value={ville} onChange={(e) => setVille(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label>Type de service</Label>
+                  <Input value={typeService} onChange={(e) => setTypeService(e.target.value)} placeholder="Ex: Ménage standard" />
+                </div>
+                <div className="space-y-1">
+                  <Label>Segment</Label>
+                  <Select value={segment} onValueChange={setSegment}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="particulier">Particulier</SelectItem>
+                      <SelectItem value="entreprise">Entreprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </>
           )}
+
+          {/* Common fields */}
           <div className="space-y-1">
             <Label>Profil assigné</Label>
             <Select value={profilId} onValueChange={setProfilId}>
-              <SelectTrigger><SelectValue placeholder="Choisir un profil" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Choisir un profil (optionnel)" /></SelectTrigger>
               <SelectContent>
                 {profils.map((p) => (
                   <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom}</SelectItem>
@@ -701,29 +806,70 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
               </SelectContent>
             </Select>
           </div>
+
           <div className="grid grid-cols-2 gap-4">
+            {mode === "manual" && (
+              <div className="space-y-1">
+                <Label>Montant total (MAD)</Label>
+                <Input type="number" value={montantTotal} onChange={(e) => setMontantTotal(Number(e.target.value))} />
+              </div>
+            )}
             <div className="space-y-1">
-              <Label>Commission agence %</Label>
+              <Label>Commission agence (%)</Label>
               <Input type="number" value={commission} onChange={(e) => setCommission(Number(e.target.value))} />
             </div>
+          </div>
+
+          {/* Calculated parts */}
+          {effectiveMontant > 0 && (
+            <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-lg">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase">Part Agence</p>
+                <p className="text-lg font-bold text-emerald-700">{fmtLocal(pa)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase">Part Profil</p>
+                <p className="text-lg font-bold text-sky-700">{fmtLocal(pp)}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Mode paiement prévu</Label>
+              <Label>Mode de paiement prévu</Label>
               <Select value={modePaiement} onValueChange={setModePaiement}>
                 <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                 <SelectContent>{MODE_PAIEMENT_OPTIONS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
               </Select>
             </div>
+            <div className="space-y-1">
+              <Label>Statut mission</Label>
+              <Select value={statutMission} onValueChange={setStatutMission}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
           </div>
+
           <div className="space-y-1">
-            <Label>Statut mission</Label>
-            <Select value={statutMission} onValueChange={setStatutMission}>
+            <Label>Encaissement par</Label>
+            <Select value={encaissePar} onValueChange={setEncaissePar}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                <SelectItem value="agence">L'Agence</SelectItem>
+                <SelectItem value="profil">Le Profil</SelectItem>
+              </SelectContent>
             </Select>
+            {encaissePar === "profil" && (
+              <p className="text-xs text-amber-600 mt-1">⚠️ Le profil récupère le total chez le client, y compris la part de l'agence.</p>
+            )}
           </div>
-          <div className="flex justify-end gap-2">
+
+          <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onClose}>Annuler</Button>
-            <Button onClick={handleCreate} disabled={!demandeId}>Créer la mission</Button>
+            <Button onClick={handleCreate} disabled={mode === "auto" ? !demandeId : !nomClient}>
+              Créer la mission
+            </Button>
           </div>
         </div>
       </DialogContent>
