@@ -31,11 +31,12 @@ const STATUS_ROW_COLORS: Record<string, string> = {
   en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
-  confirme_intervention: "bg-[hsl(185,50%,90%)]",
+  confirme_intervention: "bg-[hsl(170,45%,91%)]",
   prestation_effectuee: "bg-[hsl(35,90%,93%)]",
   paye: "bg-[hsl(100,60%,93%)]",
   standby: "bg-[hsl(220,15%,93%)]",
   cloturee: "bg-[hsl(220,10%,95%)]",
+  facturation_annulee: "bg-[hsl(350,80%,95%)]",
 };
 
 export default function Dashboard() {

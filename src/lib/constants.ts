@@ -47,12 +47,18 @@ export const QUARTIERS_CASABLANCA = [
 ] as const;
 
 export const STATUTS = {
-  en_cours: { label: "En cours", color: "bg-sky-100 text-sky-800", hex: "#ffffff" },
+  en_cours: { label: "En cours", color: "bg-slate-100 text-slate-800", hex: "#ffffff" },
   en_attente_confirmation: { label: "En attente de confirmation", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
-  confirme: { label: "Confirmé", color: "bg-emerald-100 text-emerald-800", hex: "#50bfcb" },
-  prestation_effectuee: { label: "Prestation effectuée", color: "bg-indigo-100 text-indigo-800", hex: "#faa31f" },
+  en_attente_profil: { label: "En attente profil", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
+  confirme: { label: "Confirmé", color: "bg-cyan-100 text-cyan-800", hex: "#50bfcb" },
+  confirme_intervention: { label: "Confirmé intervention", color: "bg-teal-100 text-teal-800", hex: "#3da89e" },
+  prestation_effectuee: { label: "Prestation effectuée", color: "bg-orange-100 text-orange-800", hex: "#faa31f" },
   paye: { label: "Payé", color: "bg-green-100 text-green-800", hex: "#48bd00" },
   facturation_annulee: { label: "Facturation annulée", color: "bg-rose-100 text-rose-800", hex: "#e11d48" },
+  annulee: { label: "Annulée", color: "bg-red-100 text-red-800", hex: "#dc2626" },
+  standby: { label: "Standby", color: "bg-gray-100 text-gray-800", hex: "#9ca3af" },
+  cloturee: { label: "Clôturée", color: "bg-gray-100 text-gray-600", hex: "#6b7280" },
+  nrp: { label: "NRP", color: "bg-zinc-100 text-zinc-800", hex: "#71717a" },
 } as const;
 
 export const SEGMENTS = [

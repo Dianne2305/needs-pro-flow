@@ -14,8 +14,11 @@ import { STATUTS, FREQUENCES, STATUT_CANDIDATURE_OPTIONS } from "@/lib/constants
 import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
-  FileDown, Eye, Heart, FileText, Save
+  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -115,11 +118,77 @@ export default function CompteClient() {
   const [aboDate, setAboDate] = useState<Date | undefined>();
   const notesInitialized = useState(false);
 
+  // Renouveler & Switcher modals
+  const [renewOpen, setRenewOpen] = useState(false);
+  const [switchAboOpen, setSwitchAboOpen] = useState(false);
+  const [selectedFrequence, setSelectedFrequence] = useState("");
+
+  // Renew form state (pre-filled from current demande)
+  const [renewForm, setRenewForm] = useState<Record<string, unknown>>({});
+  const [renewInitialized, setRenewInitialized] = useState(false);
+
   if (demande && !notesInitialized[0]) {
     setNoteComm(demande.note_commercial || "");
     setNoteOpe(demande.note_operationnel || "");
     notesInitialized[1](true);
   }
+
+  if (demande && !renewInitialized) {
+    setRenewForm({
+      nom: demande.nom,
+      telephone_direct: demande.telephone_direct,
+      telephone_whatsapp: demande.telephone_whatsapp,
+      type_service: demande.type_service,
+      type_prestation: demande.type_prestation,
+      type_bien: demande.type_bien,
+      frequence: demande.frequence,
+      ville: demande.ville,
+      quartier: demande.quartier,
+      adresse: demande.adresse,
+      montant_total: demande.montant_total,
+      duree_heures: demande.duree_heures,
+      nombre_intervenants: demande.nombre_intervenants,
+      avec_produit: demande.avec_produit,
+      email: (demande as any).email,
+      nom_entreprise: (demande as any).nom_entreprise,
+      contact_entreprise: (demande as any).contact_entreprise,
+    });
+    setRenewInitialized(true);
+  }
+
+  const createRenewalMutation = useMutation({
+    mutationFn: async (data: Record<string, unknown>) => {
+      const { error } = await supabase.from("demandes").insert(data as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Demande renouvelée", description: "Une nouvelle demande a été créée avec succès." });
+      setRenewOpen(false);
+    },
+  });
+
+  const switchToAboMutation = useMutation({
+    mutationFn: async (frequence: string) => {
+      if (!demandeId) return;
+      const { error } = await supabase.from("demandes").update({ frequence }).eq("id", demandeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demande", demandeId] });
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Abonnement activé", description: "La demande a été convertie en abonnement." });
+      setSwitchAboOpen(false);
+    },
+  });
+
+  const handleRenew = () => {
+    createRenewalMutation.mutate({
+      ...renewForm,
+      services_optionnels: "[]",
+      statut: "en_attente",
+    });
+  };
 
   const fideliteCount = allClientDemandes.length;
 
@@ -197,6 +266,16 @@ export default function CompteClient() {
               </div>
             </div>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setRenewOpen(true)}>
+            <RefreshCw className="h-3.5 w-3.5" /> Renouveler
+          </Button>
+          {demande.frequence === "ponctuel" && (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setSwitchAboOpen(true)}>
+              <Repeat className="h-3.5 w-3.5" /> Switcher en abonnement
+            </Button>
+          )}
         </div>
       </div>
 
@@ -503,6 +582,133 @@ export default function CompteClient() {
           </Table>
         </Section>
       </div>
+
+      {/* Renouveler Modal */}
+      <Dialog open={renewOpen} onOpenChange={setRenewOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-primary" /> Renouveler la demande
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Les informations ci-dessous sont pré-remplies depuis la demande actuelle. Vous pouvez les modifier avant de valider.
+          </p>
+          <div className="space-y-4 mt-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label>Nom du client</Label>
+                <Input value={String(renewForm.nom || "")} onChange={(e) => setRenewForm({ ...renewForm, nom: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Téléphone direct</Label>
+                <Input value={String(renewForm.telephone_direct || "")} onChange={(e) => setRenewForm({ ...renewForm, telephone_direct: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>WhatsApp</Label>
+                <Input value={String(renewForm.telephone_whatsapp || "")} onChange={(e) => setRenewForm({ ...renewForm, telephone_whatsapp: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Type de prestation</Label>
+                <Input value={String(renewForm.type_prestation || "")} onChange={(e) => setRenewForm({ ...renewForm, type_prestation: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Ville</Label>
+                <Input value={String(renewForm.ville || "")} onChange={(e) => setRenewForm({ ...renewForm, ville: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Quartier</Label>
+                <Input value={String(renewForm.quartier || "")} onChange={(e) => setRenewForm({ ...renewForm, quartier: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Adresse</Label>
+                <Input value={String(renewForm.adresse || "")} onChange={(e) => setRenewForm({ ...renewForm, adresse: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Tarif total (MAD)</Label>
+                <Input type="number" value={String(renewForm.montant_total || "")} onChange={(e) => setRenewForm({ ...renewForm, montant_total: Number(e.target.value) || null })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Durée (heures)</Label>
+                <Input type="number" value={String(renewForm.duree_heures || "")} onChange={(e) => setRenewForm({ ...renewForm, duree_heures: Number(e.target.value) || null })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Nombre d'intervenants</Label>
+                <Input type="number" value={String(renewForm.nombre_intervenants || 1)} onChange={(e) => setRenewForm({ ...renewForm, nombre_intervenants: Number(e.target.value) || 1 })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Date intervention</Label>
+                <Input type="date" value="" onChange={(e) => setRenewForm({ ...renewForm, date_prestation: e.target.value || null })} />
+              </div>
+              <div className="space-y-1">
+                <Label>Heure intervention</Label>
+                <Input type="time" value="" onChange={(e) => setRenewForm({ ...renewForm, heure_prestation: e.target.value || null })} />
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setRenewOpen(false)}>Annuler</Button>
+            <Button onClick={handleRenew} disabled={createRenewalMutation.isPending} className="gap-1.5">
+              <RefreshCw className="h-4 w-4" /> Valider le renouvellement
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Switcher en abonnement Modal */}
+      <Dialog open={switchAboOpen} onOpenChange={setSwitchAboOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Repeat className="h-5 w-5 text-primary" /> Switcher en abonnement
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Choisissez la fréquence d'abonnement pour cette demande. La demande actuelle sera convertie.
+          </p>
+          <div className="space-y-4 mt-3">
+            <div className="grid grid-cols-1 gap-2">
+              {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setSelectedFrequence(f.value)}
+                  className={cn(
+                    "flex items-center justify-between p-4 rounded-lg border-2 text-left transition-all",
+                    selectedFrequence === f.value
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border hover:border-primary/30 hover:bg-muted/50"
+                  )}
+                >
+                  <div>
+                    <p className="font-semibold text-sm">{f.label}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {f.value === "quotidien" && "Intervention chaque jour"}
+                      {f.value === "hebdomadaire" && "Une fois par semaine"}
+                      {f.value === "bi_mensuel" && "Deux fois par mois"}
+                      {f.value === "mensuel" && "Une fois par mois"}
+                    </p>
+                  </div>
+                  {selectedFrequence === f.value && (
+                    <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                      <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setSwitchAboOpen(false)}>Annuler</Button>
+            <Button
+              onClick={() => switchToAboMutation.mutate(selectedFrequence)}
+              disabled={!selectedFrequence || switchToAboMutation.isPending}
+              className="gap-1.5"
+            >
+              <Repeat className="h-4 w-4" /> Confirmer l'abonnement
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
