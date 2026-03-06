@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Edit, FileText, TrendingUp, Clock, Users } from "lucide-react";
+import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
 
@@ -21,6 +22,7 @@ export default function HistoriqueMissions() {
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterPaiement, setFilterPaiement] = useState("all");
   const [filterProfil, setFilterProfil] = useState("all");
+  const [viewMission, setViewMission] = useState<Facturation | null>(null);
   const [editMission, setEditMission] = useState<Facturation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -63,13 +65,11 @@ export default function HistoriqueMissions() {
     });
   }, [missions, filterStatut, filterPaiement, filterProfil, search]);
 
-  // KPIs
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
   const enCours = filtered.filter((m) => m.statut_mission === "confirmee").length;
   const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paye").length;
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
-  const totalFiltre = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<Facturation> & { id: string }) => {
@@ -107,57 +107,52 @@ export default function HistoriqueMissions() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-0">
+      {/* Dark Header Banner */}
+      <div className="bg-[hsl(220,40%,20%)] text-white rounded-t-lg px-6 py-5 flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">Historique des Missions</h2>
+          <p className="text-sm text-white/70">Suivi complet de toutes les interventions</p>
+        </div>
+        <Button onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5">
+          <Plus className="h-4 w-4" /> Nouvelle mission
+        </Button>
+      </div>
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-muted-foreground">
-          <CardContent className="pt-5 pb-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-3xl font-bold">{totalMissions}</p>
-                <p className="text-xs text-muted-foreground mt-1">Total missions</p>
-              </div>
-              <FileText className="h-5 w-5 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-primary bg-primary/5">
-          <CardContent className="pt-5 pb-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-3xl font-bold">{fmt(totalCA)}</p>
-                <p className="text-xs text-muted-foreground mt-1">Chiffre d'affaires</p>
-              </div>
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-amber-500">
-          <CardContent className="pt-5 pb-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-3xl font-bold">{enCours}</p>
-                <p className="text-xs text-muted-foreground mt-1">En cours</p>
-              </div>
-              <Clock className="h-5 w-5 text-amber-500" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-red-400">
-          <CardContent className="pt-5 pb-4">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-3xl font-bold">{paiementsEnAttente}</p>
-                <p className="text-xs text-muted-foreground mt-1">Paiements en attente</p>
-              </div>
-              <Users className="h-5 w-5 text-red-400" />
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0">
+        <div className="bg-[hsl(220,35%,28%)] text-white px-5 py-4 flex items-center gap-3">
+          <FileText className="h-8 w-8 text-white/60" />
+          <div>
+            <p className="text-2xl font-bold">{totalMissions}</p>
+            <p className="text-xs text-white/60">Total missions</p>
+          </div>
+        </div>
+        <div className="bg-[hsl(220,35%,25%)] text-white px-5 py-4 flex items-center gap-3">
+          <TrendingUp className="h-8 w-8 text-white/60" />
+          <div>
+            <p className="text-2xl font-bold">{fmt(totalCA)}</p>
+            <p className="text-xs text-white/60">Chiffre d'affaires</p>
+          </div>
+        </div>
+        <div className="bg-[hsl(220,35%,22%)] text-white px-5 py-4 flex items-center gap-3">
+          <Clock className="h-8 w-8 text-white/60" />
+          <div>
+            <p className="text-2xl font-bold">{enCours}</p>
+            <p className="text-xs text-white/60">En cours</p>
+          </div>
+        </div>
+        <div className="bg-[hsl(220,35%,19%)] text-white px-5 py-4 flex items-center gap-3 rounded-tr-lg">
+          <Users className="h-8 w-8 text-white/60" />
+          <div>
+            <p className="text-2xl font-bold">{paiementsEnAttente}</p>
+            <p className="text-xs text-white/60">Paiements en attente</p>
+          </div>
+        </div>
       </div>
 
       {/* Search + Filters */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
+      <div className="flex flex-wrap gap-3 items-center justify-between px-1 py-5">
         <div className="relative flex-1 max-w-lg">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Rechercher client, mission, ville..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
@@ -167,51 +162,42 @@ export default function HistoriqueMissions() {
             <SelectTrigger className="w-40"><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
-              {STATUT_MISSION_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
+              {STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterPaiement} onValueChange={setFilterPaiement}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Tous les paiements" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les paiements</SelectItem>
-              {STATUT_PAIEMENT_OPTIONS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
+              {STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={filterProfil} onValueChange={setFilterProfil}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Tous les profils" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les profils</SelectItem>
-              {profils.map((p) => (
-                <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom}</SelectItem>
-              ))}
+              {profils.map((p) => <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button onClick={() => setShowCreate(true)} className="gap-1">
-            <Plus className="h-4 w-4" /> Nouvelle mission
-          </Button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-card">
+      <div className="rounded-b-lg border bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="uppercase text-xs tracking-wider">N° Mission</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Date</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Client / Ville</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Profil</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Service</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Montant</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Part agence</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Part profil</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Encaissé par</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Paiement</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider">Statut</TableHead>
+            <TableRow className="border-b-2">
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">N° Mission</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Date</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Client / Ville</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Profil</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Service</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Montant</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Part agence</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Part profil</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Encaissé par</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Paiement</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Statut</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -219,15 +205,15 @@ export default function HistoriqueMissions() {
             {filtered.length === 0 ? (
               <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
             ) : filtered.map((m) => (
-              <TableRow key={m.id}>
-                <TableCell className="font-mono text-xs font-semibold">MSN-{String(m.num_mission).padStart(6, "0")}</TableCell>
+              <TableRow key={m.id} className="hover:bg-muted/30">
+                <TableCell className="font-mono text-xs font-semibold text-primary">MSN-{String(m.num_mission).padStart(6, "0")}</TableCell>
                 <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
                 <TableCell>
                   <div className="font-semibold text-sm">{m.nom_client}</div>
                   <div className="text-xs text-muted-foreground">{m.ville || ""}</div>
                 </TableCell>
                 <TableCell className="text-sm">{m.profil_nom || "—"}</TableCell>
-                <TableCell className="text-sm">{m.type_service || "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{m.type_service || "—"}</TableCell>
                 <TableCell className="font-semibold">{fmt(m.montant_total)}</TableCell>
                 <TableCell className="text-emerald-700 font-medium">{fmt(partAgence(m))}</TableCell>
                 <TableCell className="text-sky-700 font-medium">{fmt(partProfil(m))}</TableCell>
@@ -235,7 +221,9 @@ export default function HistoriqueMissions() {
                 <TableCell>{getPaiementBadge(m.statut_paiement)}</TableCell>
                 <TableCell>{getStatutBadge(m.statut_mission)}</TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon" onClick={() => setEditMission(m)}><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => setViewMission(m)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -243,11 +231,21 @@ export default function HistoriqueMissions() {
         </Table>
         {filtered.length > 0 && (
           <div className="flex justify-between items-center px-4 py-3 border-t text-sm text-muted-foreground">
-            <span>{filtered.length} mission(s) affichée(s)</span>
-            <span>Total affiché : <strong className="text-foreground">{fmt(totalFiltre)}</strong></span>
+            <span className="text-primary font-medium">{filtered.length} mission(s) affichée(s)</span>
+            <span>Total affiché : <strong className="text-foreground">{fmt(totalCA)}</strong></span>
           </div>
         )}
       </div>
+
+      {/* View Detail Modal */}
+      {viewMission && (
+        <MissionViewModal
+          mission={viewMission}
+          onClose={() => setViewMission(null)}
+          onEdit={() => { setEditMission(viewMission); setViewMission(null); }}
+          fmt={fmt}
+        />
+      )}
 
       {/* Edit Modal */}
       {editMission && (
@@ -271,6 +269,218 @@ export default function HistoriqueMissions() {
   );
 }
 
+/* ===== VIEW MODAL (Eye icon) ===== */
+function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturation; onClose: () => void; onEdit: () => void; fmt: (n: number) => string }) {
+  const pa = partAgence(mission);
+  const pp = partProfil(mission);
+
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden">
+        {/* Dark Header */}
+        <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 relative">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="font-mono text-sm text-white/70">MSN-{String(mission.num_mission).padStart(6, "0")}</span>
+            {(() => {
+              const opt = STATUT_MISSION_OPTIONS.find(o => o.value === mission.statut_mission);
+              return <Badge className="bg-emerald-500 text-white border-0 text-xs">{opt?.label || mission.statut_mission}</Badge>;
+            })()}
+          </div>
+          <h3 className="text-xl font-bold">{mission.nom_client}</h3>
+          <div className="flex items-center gap-4 text-sm text-white/70 mt-1">
+            <span>📅 {mission.date_intervention ? format(new Date(mission.date_intervention), "dd/MM/yyyy") : "—"}</span>
+            <span>📍 {mission.ville || "—"}</span>
+            <span>👤 {mission.profil_nom || "—"}</span>
+          </div>
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/60 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Montants Summary */}
+        <div className="grid grid-cols-3 border-b">
+          <div className="text-center py-4 border-r">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Montant Mission</p>
+            <p className="text-2xl font-bold mt-1">{fmt(mission.montant_total)}</p>
+          </div>
+          <div className="text-center py-4 border-r">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Part Agence ({mission.commission_pourcentage}%)</p>
+            <p className="text-2xl font-bold text-emerald-700 mt-1">{fmt(pa)}</p>
+          </div>
+          <div className="text-center py-4">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Part Profil</p>
+            <p className="text-2xl font-bold text-sky-700 mt-1">{fmt(pp)}</p>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <Tabs defaultValue="infos" className="px-6 pt-2 pb-4">
+          <TabsList className="mb-4 bg-transparent border-b rounded-none w-full justify-start gap-0 h-auto p-0">
+            <TabsTrigger value="infos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">
+              Informations
+            </TabsTrigger>
+            <TabsTrigger value="paiement" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">
+              Paiement client
+            </TabsTrigger>
+            <TabsTrigger value="repartition" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">
+              Répartition interne
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="infos">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Type de service</p>
+                  <p className="font-semibold text-sm">{mission.type_service || "—"}</p>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
+                <CreditCard className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Paiement prévu</p>
+                  <p className="font-semibold text-sm">{mission.mode_paiement_prevu || "—"}</p>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Encaissement par</p>
+                  <p className="font-semibold text-sm">{mission.encaisse_par === "profil" ? "Le profil" : "L'agence"}</p>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
+                <UserCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Profil assigné</p>
+                  <p className="font-semibold text-sm">{mission.profil_nom || "—"}</p>
+                </div>
+              </div>
+            </div>
+            {/* Statut Paiement */}
+            <div className="mt-5 bg-muted/30 rounded-lg p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">Statut Paiement</p>
+              <div className="flex items-center gap-3">
+                {(() => {
+                  const opt = STATUT_PAIEMENT_OPTIONS.find(o => o.value === mission.statut_paiement);
+                  return <Badge className={opt?.color || ""}>{opt?.label || mission.statut_paiement}</Badge>;
+                })()}
+                <span className="text-sm text-muted-foreground">
+                  Encaissé : {fmt(mission.montant_paye_client || 0)} / {fmt(mission.montant_total)}
+                </span>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="paiement">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground">Montant payé</p>
+                  <p className="font-semibold text-lg">{fmt(mission.montant_paye_client || 0)}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground">Reste à payer</p>
+                  <p className="font-semibold text-lg text-amber-600">{fmt(mission.montant_total - (mission.montant_paye_client || 0))}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground">Mode de paiement réel</p>
+                  <p className="font-semibold text-sm">{mission.mode_paiement_reel || "—"}</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground">Date de paiement</p>
+                  <p className="font-semibold text-sm">{mission.date_paiement_client ? format(new Date(mission.date_paiement_client), "dd/MM/yyyy") : "—"}</p>
+                </div>
+              </div>
+              {mission.justificatif_url && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <p className="text-xs text-muted-foreground mb-1">Justificatif</p>
+                  <a href={mission.justificatif_url} target="_blank" rel="noopener" className="text-primary underline text-sm">Voir le justificatif</a>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="repartition">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800">
+                  <p className="text-xs text-emerald-600">Part agence</p>
+                  <p className="font-bold text-xl text-emerald-700">{fmt(pa)}</p>
+                </div>
+                <div className="bg-sky-50 dark:bg-sky-950/30 rounded-lg p-4 border border-sky-200 dark:border-sky-800">
+                  <p className="text-xs text-sky-600">Part profil</p>
+                  <p className="font-bold text-xl text-sky-700">{fmt(pp)}</p>
+                </div>
+              </div>
+
+              {mission.encaisse_par === "profil" ? (
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p className="text-sm font-semibold">Encaissé par le profil</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Montant encaissé</p>
+                      <p className="font-medium">{fmt(mission.montant_encaisse_profil || 0)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Part agence reversée</p>
+                      <p className="font-medium">{mission.part_agence_reversee ? "✅ Oui" : "❌ Non"}</p>
+                    </div>
+                    {mission.date_remise_agence && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Date remise agence</p>
+                        <p className="font-medium">{format(new Date(mission.date_remise_agence), "dd/MM/yyyy")}</p>
+                      </div>
+                    )}
+                    {!mission.part_agence_reversee && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Solde dû à l'agence</p>
+                        <p className="font-bold text-amber-600">{fmt(pa)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <p className="text-sm font-semibold">Encaissé par l'agence</p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Part profil versée</p>
+                      <p className="font-medium">{mission.part_profil_versee ? "✅ Oui" : "❌ Non"}</p>
+                    </div>
+                    {mission.date_versement_profil && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Date versement profil</p>
+                        <p className="font-medium">{format(new Date(mission.date_versement_profil), "dd/MM/yyyy")}</p>
+                      </div>
+                    )}
+                    {!mission.part_profil_versee && (
+                      <div>
+                        <p className="text-xs text-muted-foreground">Solde dû au profil</p>
+                        <p className="font-bold text-amber-600">{fmt(pp)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Footer */}
+        <div className="flex justify-between items-center px-6 py-3 border-t bg-muted/20">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={onEdit}>
+            <Printer className="h-4 w-4" /> Modifier
+          </Button>
+          <Button variant="outline" size="sm" onClick={onClose}>Fermer</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ===== EDIT MODAL ===== */
 function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; onClose: () => void; onSave: (u: any) => void }) {
   const [form, setForm] = useState({
     statut_mission: mission.statut_mission,
@@ -305,11 +515,13 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Mission MSN-{String(mission.num_mission).padStart(6, "0")} — {mission.nom_client}</DialogTitle>
-        </DialogHeader>
+        <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 -mx-6 -mt-6 rounded-t-lg mb-4">
+          <h3 className="text-lg font-bold">Modifier — MSN-{String(mission.num_mission).padStart(6, "0")}</h3>
+          <p className="text-sm text-white/70">{mission.nom_client}</p>
+        </div>
+
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-sm bg-muted/50 p-4 rounded-lg">
             <div><span className="text-muted-foreground">Montant total :</span> <strong>{mission.montant_total} DH</strong></div>
             <div><span className="text-muted-foreground">Commission :</span> <strong>{form.commission_pourcentage}%</strong></div>
             <div><span className="text-muted-foreground">Part agence :</span> <strong className="text-emerald-700">{pa.toLocaleString("fr-MA")} DH</strong></div>
@@ -425,6 +637,7 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
   );
 }
 
+/* ===== CREATE MODAL ===== */
 function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes: any[]; profils: any[]; onClose: () => void; onCreate: (d: any) => void }) {
   const [demandeId, setDemandeId] = useState("");
   const [profilId, setProfilId] = useState("");
@@ -455,7 +668,9 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Nouvelle mission</DialogTitle></DialogHeader>
+        <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 -mx-6 -mt-6 rounded-t-lg mb-4">
+          <h3 className="text-lg font-bold">Nouvelle mission</h3>
+        </div>
         <div className="space-y-4">
           <div className="space-y-1">
             <Label>Demande source</Label>
