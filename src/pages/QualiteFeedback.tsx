@@ -171,16 +171,16 @@ export default function QualiteFeedback() {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Qualité & Feedback</h1>
-        <Button onClick={() => createFeedbackMutation.mutate()} variant="outline" size="sm">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground">Qualité & Feedback</h1>
+        <Button onClick={() => createFeedbackMutation.mutate()} variant="outline" size="sm" className="w-full sm:w-auto">
           <ClipboardCheck className="mr-2 h-4 w-4" /> Générer les feedbacks
         </Button>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -277,10 +277,10 @@ export default function QualiteFeedback() {
       {/* Filters */}
       <Card>
         <CardContent className="pt-4">
-          <div className="flex flex-wrap gap-3">
-            <Input placeholder="Rechercher client, téléphone, profil..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
+            <Input placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:max-w-xs" />
             <Select value={statutFilter} onValueChange={setStatutFilter}>
-              <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[200px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="tous">Tous les statuts</SelectItem>
                 <SelectItem value="en_attente">En attente</SelectItem>
@@ -290,7 +290,7 @@ export default function QualiteFeedback() {
               </SelectContent>
             </Select>
             <Select value={villeFilter} onValueChange={setVilleFilter}>
-              <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="toutes">Toutes les villes</SelectItem>
                 {villes.map((v) => <SelectItem key={v} value={v!}>{v}</SelectItem>)}
@@ -300,8 +300,56 @@ export default function QualiteFeedback() {
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <Card>
+      {/* Mobile cards */}
+      <div className="block md:hidden space-y-3">
+        {isLoading ? (
+          <p className="text-center py-8 text-muted-foreground">Chargement...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-center py-8 text-muted-foreground">Aucun feedback</p>
+        ) : filtered.map((f) => {
+          const st = STATUT_FEEDBACK[f.statut as keyof typeof STATUT_FEEDBACK] || STATUT_FEEDBACK.en_attente;
+          return (
+            <Card key={f.id}>
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-sm">{f.nom_client}</span>
+                  <Badge className={st.color + " text-xs"}>{st.label}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                  <span>📞 {f.telephone_client || "—"}</span>
+                  <span>📍 {f.ville || "—"}</span>
+                  <span>🧹 {f.type_service || "—"}</span>
+                  <span>👤 {f.profil_nom || "—"}</span>
+                  <span>📅 {f.date_prestation || "—"}</span>
+                  {f.satisfaction && <Badge className="text-xs w-fit bg-green-100 text-green-800">{f.satisfaction}</Badge>}
+                </div>
+                {f.note_agence && (
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`h-3 w-3 ${i < f.note_agence! ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  {(f.statut === "en_attente" || f.statut === "lien_envoye") && (
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => sendLinkMutation.mutate(f)}>
+                      <Send className="h-3 w-3 mr-1" /> Envoyer
+                    </Button>
+                  )}
+                  {f.submitted_at && (
+                    <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table */}
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -374,13 +422,13 @@ export default function QualiteFeedback() {
 
       {/* Detail modal */}
       <Dialog open={!!detailFeedback} onOpenChange={() => setDetailFeedback(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-[95vw] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Détail feedback — {detailFeedback?.nom_client}</DialogTitle>
           </DialogHeader>
           {detailFeedback && (
             <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div><span className="text-muted-foreground">Satisfaction :</span> <strong>{detailFeedback.satisfaction}</strong></div>
                 <div><span className="text-muted-foreground">Qualité ménage :</span> <strong>{detailFeedback.qualite_menage}</strong></div>
                 <div><span className="text-muted-foreground">Professionnel :</span> <strong>{detailFeedback.professionnel}</strong></div>
