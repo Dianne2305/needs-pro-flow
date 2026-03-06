@@ -178,6 +178,7 @@ export type Database = {
           part_profil_versee: boolean | null
           profil_id: string | null
           profil_nom: string | null
+          segment: string | null
           statut_mission: string
           statut_paiement: string
           type_service: string | null
@@ -205,6 +206,7 @@ export type Database = {
           part_profil_versee?: boolean | null
           profil_id?: string | null
           profil_nom?: string | null
+          segment?: string | null
           statut_mission?: string
           statut_paiement?: string
           type_service?: string | null
@@ -232,6 +234,7 @@ export type Database = {
           part_profil_versee?: boolean | null
           profil_id?: string | null
           profil_nom?: string | null
+          segment?: string | null
           statut_mission?: string
           statut_paiement?: string
           type_service?: string | null
