@@ -460,7 +460,84 @@ export default function CompteProfil() {
           );
         })()}
 
-        {/* Historique Mission */}
+        {/* Évaluation Profil */}
+        <Section title="Évaluation Profil" icon={ClipboardCheck} defaultOpen colorClass="bg-[hsl(45,60%,95%)]">
+          {feedbacks.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Étoiles</TableHead>
+                  <TableHead>Satisfaction</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {feedbacks.map((f: any) => {
+                  const stMap: Record<string, { label: string; color: string }> = {
+                    en_attente: { label: "En attente", color: "bg-yellow-100 text-yellow-800" },
+                    lien_envoye: { label: "Lien envoyé", color: "bg-blue-100 text-blue-800" },
+                    positif: { label: "Positif", color: "bg-green-100 text-green-800" },
+                    negatif: { label: "Négatif", color: "bg-red-100 text-red-800" },
+                  };
+                  const st = stMap[f.statut as string] || stMap.en_attente;
+                  return (
+                    <TableRow key={f.id}>
+                      <TableCell className="text-xs">{f.date_prestation || "—"}</TableCell>
+                      <TableCell className="text-sm">
+                        {f.nom_client ? (
+                          <button
+                            className="text-primary hover:underline cursor-pointer font-medium"
+                            onClick={() => {
+                              supabase.from("demandes").select("id").ilike("nom", f.nom_client.trim()).limit(1).then(({ data }) => {
+                                if (data && data.length > 0) {
+                                  navigate(`/compte-client?id=${data[0].id}&from=/compte-profil?id=${profilId}`);
+                                }
+                              });
+                            }}
+                          >
+                            {f.nom_client}
+                          </button>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {f.note_agence ? (
+                          <span className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`h-3.5 w-3.5 ${i < f.note_agence ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                            ))}
+                          </span>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {f.satisfaction ? (
+                          <Badge className={
+                            f.satisfaction === "Très satisfait" || f.satisfaction === "Satisfait"
+                              ? "bg-green-100 text-green-800" : f.satisfaction === "Pas satisfait"
+                              ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
+                          }>{f.satisfaction}</Badge>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell><Badge className={st.color}>{st.label}</Badge></TableCell>
+                      <TableCell>
+                        {f.submitted_at && (
+                          <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-6">Aucune évaluation pour le moment</p>
+          )}
+        </Section>
+
         <Section title="Historique Mission" icon={Briefcase} defaultOpen colorClass="bg-[hsl(160,30%,95%)]">
           {missions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">Aucune mission pour le moment</p>
