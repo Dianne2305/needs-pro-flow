@@ -142,6 +142,8 @@ export default function Dashboard() {
 
       // Create new facturation entry
       const segment = demande.type_service === "SPE" ? "entreprise" : "particulier";
+      const encaissePar = demande.mode_paiement === "Sur place" ? "profil" : "agence";
+      const montantTotal = demande.montant_total || 0;
       await supabase.from("facturation").insert({
         demande_id: demandeId,
         nom_client: demande.nom,
@@ -150,10 +152,12 @@ export default function Dashboard() {
         ville: demande.ville,
         type_service: demande.type_prestation,
         date_intervention: demande.date_prestation || null,
-        montant_total: demande.montant_total || 0,
+        montant_total: montantTotal,
         commission_pourcentage: 50,
         mode_paiement_prevu: demande.mode_paiement || null,
         segment,
+        encaisse_par: encaissePar,
+        montant_encaisse_profil: encaissePar === "profil" ? montantTotal : 0,
         statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "confirmee",
         statut_paiement: newStatut === "paye" ? "paye" : "non_paye",
       });
