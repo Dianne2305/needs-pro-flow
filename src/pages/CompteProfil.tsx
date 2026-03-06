@@ -393,6 +393,33 @@ export default function CompteProfil() {
           </div>
         </Section>
 
+        {/* Solde financier */}
+        {missions.length > 0 && (() => {
+          const profilDoitAgence = missions
+            .filter((m: any) => m.encaisse_par === "profil" && !m.part_agence_reversee)
+            .reduce((s: number, m: any) => s + partAgence(m), 0);
+          const agenceDoitProfil = missions
+            .filter((m: any) => m.encaisse_par !== "profil" && !m.part_profil_versee)
+            .reduce((s: number, m: any) => s + partProfil(m), 0);
+          const fmt = (n: number) => n.toLocaleString("fr-MA") + " DH";
+          return (
+            <Section title="Solde financier" icon={CreditCard} defaultOpen colorClass="bg-[hsl(30,40%,95%)]">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Le profil doit à l'agence</p>
+                  <p className="text-2xl font-bold text-destructive">{fmt(profilDoitAgence)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Part agence non reversée (encaissé par le profil)</p>
+                </div>
+                <div className="rounded-lg border border-sky-300/50 bg-sky-50/50 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">L'agence doit au profil</p>
+                  <p className="text-2xl font-bold text-sky-700">{fmt(agenceDoitProfil)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Part profil non versée (encaissé par l'agence)</p>
+                </div>
+              </div>
+            </Section>
+          );
+        })()}
+
         {/* Historique Mission */}
         <Section title="Historique Mission" icon={Briefcase} defaultOpen colorClass="bg-[hsl(160,30%,95%)]">
           {missions.length === 0 ? (
