@@ -685,7 +685,16 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>Annuler</Button>
-            <Button onClick={() => onSave(form)}>Enregistrer</Button>
+            <Button onClick={() => {
+              const cleaned = {
+                ...form,
+                mode_paiement_reel: form.mode_paiement_reel || null,
+                date_paiement_client: form.date_paiement_client || null,
+                date_remise_agence: form.date_remise_agence || null,
+                date_versement_profil: form.date_versement_profil || null,
+              };
+              onSave(cleaned);
+            }}>Enregistrer</Button>
           </div>
         </div>
       </DialogContent>
