@@ -221,10 +221,10 @@ export default function Dashboard() {
   const speCount = filtered.filter((d) => d.type_service === "SPE").length;
 
   const kpis = [
-    { label: "Demandes en cours", value: filtered.length, color: "text-[#faa31f]" },
-    { label: "Services Particuliers", value: sppCount, color: "text-[#50bfcb]" },
-    { label: "Services Entreprises", value: speCount, color: "text-[#04969e]" },
-    { label: "En attente", value: pendingCount, color: "text-[#d9bf12]" },
+    { label: "Demandes en cours", value: filtered.length, bg: "bg-[#faa31f]", text: "text-white" },
+    { label: "Services Particuliers", value: sppCount, bg: "bg-[#50bfcb]", text: "text-white" },
+    { label: "Services Entreprises", value: speCount, bg: "bg-[#04969e]", text: "text-white" },
+    { label: "En attente", value: pendingCount, bg: "bg-[#d9bf12]", text: "text-white" },
   ];
 
   const openModal = (d: Demande, modal: "detail" | "editBesoin" | "candidature" | "confirmOpe") => {
@@ -570,10 +570,10 @@ export default function Dashboard() {
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {kpis.map((k) => (
-          <Card key={k.label}>
+          <Card key={k.label} className={`${k.bg} border-0`}>
             <CardContent className="p-4 text-center">
-              <p className={`text-3xl font-bold ${k.color}`}>{k.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{k.label}</p>
+              <p className={`text-3xl font-bold ${k.text}`}>{k.value}</p>
+              <p className={`text-xs mt-1 ${k.text} opacity-80`}>{k.label}</p>
             </CardContent>
           </Card>
         ))}
