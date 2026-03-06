@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 import {
   ArrowLeft, User, ChevronDown, MessageSquare, Image, History, Briefcase,
   Save, Search, Phone, MapPin, CreditCard, Calendar, IdCard, Edit, UserPlus, Upload, Download, ExternalLink,
+  ShieldBan, Star, ThumbsUp, ThumbsDown,
 } from "lucide-react";
 import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
