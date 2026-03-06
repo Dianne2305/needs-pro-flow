@@ -252,12 +252,13 @@ export default function HistoriqueMissions() {
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Encaissé par</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Paiement</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Statut</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Règlement interne</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
+              <TableRow><TableCell colSpan={15} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
             ) : filtered.map((m) => (
               <TableRow key={m.id} className="hover:bg-muted/30">
                 <TableCell className="font-mono text-xs font-semibold text-primary">MSN-{String(m.num_mission).padStart(6, "0")}</TableCell>
@@ -280,6 +281,21 @@ export default function HistoriqueMissions() {
                 <TableCell className="text-sm">{m.encaisse_par === "profil" ? "Profil" : "Agence"}</TableCell>
                 <TableCell>{getPaiementBadge(m.statut_paiement)}</TableCell>
                 <TableCell>{getStatutBadge(m.statut_mission)}</TableCell>
+                <TableCell>
+                  {m.encaisse_par === "profil" ? (
+                    m.part_agence_reversee ? (
+                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Agence payée</Badge>
+                    ) : (
+                      <Badge className="bg-red-100 text-red-800 text-[10px]">❌ Agence non payée</Badge>
+                    )
+                  ) : (
+                    m.part_profil_versee ? (
+                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Profil payé</Badge>
+                    ) : (
+                      <Badge className="bg-red-100 text-red-800 text-[10px]">❌ Profil non payé</Badge>
+                    )
+                  )}
+                </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => setViewMission(m)}>
                     <Eye className="h-4 w-4" />
