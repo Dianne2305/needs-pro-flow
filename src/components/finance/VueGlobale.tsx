@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, TrendingUp, TrendingDown, Clock, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { FileText, TrendingUp, TrendingDown, Clock, ArrowDownLeft, ArrowUpRight, AlertTriangle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Facturation, partAgence, partProfil, soldeProfil, MODE_PAIEMENT_OPTIONS, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { useState, useMemo } from "react";
@@ -59,6 +59,12 @@ export default function VueGlobale() {
   const totalEnAttente = filtered.filter((m) => m.statut_paiement !== "paye").reduce((s, m) => s + (m.montant_total - (m.montant_paye_client || 0)), 0);
   const enCours = filtered.filter((m) => m.statut_mission === "confirmee").length;
   const totalMissions = filtered.length;
+
+  // Règlements internes non soldés
+  const agenceNonPayee = filtered.filter((m) => m.encaisse_par === "profil" && !m.part_agence_reversee);
+  const profilNonPaye = filtered.filter((m) => m.encaisse_par !== "profil" && !m.part_profil_versee);
+  const montantAgenceNonPayee = agenceNonPayee.reduce((s, m) => s + partAgence(m), 0);
+  const montantProfilNonPaye = profilNonPaye.reduce((s, m) => s + partProfil(m), 0);
 
   // Récapitulatif par profil
   const recapProfils = useMemo(() => {
@@ -184,6 +190,34 @@ export default function VueGlobale() {
                 <p className="text-xs text-muted-foreground mt-1">non encaissé</p>
               </div>
               <Clock className="h-5 w-5 text-amber-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Règlements internes non soldés */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-l-4 border-l-red-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-red-600">Agence non payée</p>
+                <p className="text-3xl font-bold mt-1">{fmt(montantAgenceNonPayee)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{agenceNonPayee.length} mission(s) — encaissé par profil, part agence non reversée</p>
+              </div>
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="pt-5 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">Profil non payé</p>
+                <p className="text-3xl font-bold mt-1">{fmt(montantProfilNonPaye)}</p>
+                <p className="text-xs text-muted-foreground mt-1">{profilNonPaye.length} mission(s) — encaissé par agence, part profil non versée</p>
+              </div>
+              <AlertTriangle className="h-5 w-5 text-blue-500" />
             </div>
           </CardContent>
         </Card>
