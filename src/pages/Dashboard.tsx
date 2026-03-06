@@ -27,7 +27,7 @@ type Demande = Tables<"demandes">;
 
 // Status color mapping for row backgrounds
 const STATUS_ROW_COLORS: Record<string, string> = {
-  en_cours: "bg-white",
+  en_cours: "bg-[hsl(45,80%,95%)]",
   en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
@@ -221,10 +221,10 @@ export default function Dashboard() {
   const speCount = filtered.filter((d) => d.type_service === "SPE").length;
 
   const kpis = [
-    { label: "Demandes en cours", value: filtered.length, color: "text-primary" },
-    { label: "Services Particuliers", value: sppCount, color: "text-primary" },
-    { label: "Services Entreprises", value: speCount, color: "text-spe" },
-    { label: "En attente", value: pendingCount, color: "text-amber-600" },
+    { label: "Demandes en cours", value: filtered.length, color: "text-[#faa31f]" },
+    { label: "Services Particuliers", value: sppCount, color: "text-[#50bfcb]" },
+    { label: "Services Entreprises", value: speCount, color: "text-[#04969e]" },
+    { label: "En attente", value: pendingCount, color: "text-[#d9bf12]" },
   ];
 
   const openModal = (d: Demande, modal: "detail" | "editBesoin" | "candidature" | "confirmOpe") => {
