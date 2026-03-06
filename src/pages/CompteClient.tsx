@@ -14,7 +14,7 @@ import { STATUTS, FREQUENCES, STATUT_CANDIDATURE_OPTIONS } from "@/lib/constants
 import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
-  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat
+  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -79,6 +79,16 @@ export default function CompteClient() {
       const { data, error } = await supabase.from("demandes").select("*").eq("id", demandeId).single();
       if (error) throw error;
       return data as Demande;
+    },
+    enabled: !!demandeId,
+  });
+
+  const { data: feedback } = useQuery({
+    queryKey: ["feedback_demande", demandeId],
+    queryFn: async () => {
+      if (!demandeId) return null;
+      const { data } = await supabase.from("feedbacks").select("*").eq("demande_id", demandeId).maybeSingle();
+      return data;
     },
     enabled: !!demandeId,
   });
@@ -554,6 +564,64 @@ export default function CompteClient() {
                 <Users className="h-5 w-5 text-muted-foreground" />
               </div>
               <p className="text-sm text-muted-foreground">Aucune candidature proposée</p>
+            </div>
+          )}
+        </Section>
+
+        {/* Feedback Client */}
+        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,60%,95%)]">
+          {feedback && feedback.submitted_at ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
+                <div className="py-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Satisfaction</p>
+                  <Badge className={
+                    feedback.satisfaction === "Très satisfait" || feedback.satisfaction === "Satisfait"
+                      ? "bg-green-100 text-green-800" : feedback.satisfaction === "Pas satisfait"
+                      ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
+                  }>{feedback.satisfaction}</Badge>
+                </div>
+                <div className="py-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Qualité ménage</p>
+                  <p className="text-sm font-medium">{feedback.qualite_menage || "—"}</p>
+                </div>
+                <div className="py-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Professionnel</p>
+                  <p className="text-sm font-medium">{feedback.professionnel || "—"}</p>
+                </div>
+                <div className="py-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Recommande profil</p>
+                  <p className="text-sm font-medium">{feedback.recommande_profil ? "Oui" : "Non"}</p>
+                </div>
+                <div className="py-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Recommande agence</p>
+                  <p className="text-sm font-medium">{feedback.recommande_agence ? "Oui" : "Non"}</p>
+                </div>
+                <div className="py-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Note agence</p>
+                  <span className="inline-flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`h-3.5 w-3.5 ${i < (feedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                    ))}
+                  </span>
+                </div>
+              </div>
+              {feedback.commentaire && (
+                <div className="bg-muted p-3 rounded-lg">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium mb-1">Commentaire</p>
+                  <p className="text-sm">{feedback.commentaire}</p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Soumis le {format(new Date(feedback.submitted_at), "dd/MM/yyyy à HH:mm", { locale: fr })}</p>
+            </div>
+          ) : feedback ? (
+            <div className="flex flex-col items-center py-6 text-center">
+              <Badge className="bg-yellow-100 text-yellow-800">En attente de retour</Badge>
+              <p className="text-sm text-muted-foreground mt-2">Le lien de feedback a été créé mais le client n'a pas encore répondu.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center py-6 text-center">
+              <p className="text-sm text-muted-foreground">Aucun feedback associé à cette demande</p>
             </div>
           )}
         </Section>

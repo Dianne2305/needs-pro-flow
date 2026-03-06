@@ -17,6 +17,7 @@ import { fr } from "date-fns/locale";
 import {
   ArrowLeft, User, ChevronDown, MessageSquare, Image, History, Briefcase,
   Save, Search, Phone, MapPin, CreditCard, Calendar, IdCard, Edit, UserPlus, Upload, Download, ExternalLink,
+  ShieldBan, Star, ThumbsUp, ThumbsDown,
 } from "lucide-react";
 import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
@@ -102,6 +103,16 @@ export default function CompteProfil() {
     queryFn: async () => {
       if (!profilId) return [];
       const { data } = await supabase.from("facturation").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!profilId,
+  });
+
+  const { data: feedbacks = [] } = useQuery({
+    queryKey: ["feedbacks_profil", profilId],
+    queryFn: async () => {
+      if (!profilId) return [];
+      const { data } = await supabase.from("feedbacks").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
       return data || [];
     },
     enabled: !!profilId,
@@ -227,6 +238,17 @@ export default function CompteProfil() {
           </Button>
           <Button size="sm" onClick={() => setShowPostuler(true)} className="gap-1.5">
             <UserPlus className="h-4 w-4" /> Postuler
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              updateMutation.mutate({ statut_profil: p.statut_profil === "blackliste" ? "disponible" : "blackliste" });
+            }}
+          >
+            <ShieldBan className="h-4 w-4" />
+            {p.statut_profil === "blackliste" ? "Débloquer" : "Blacklister"}
           </Button>
         </div>
       </div>
@@ -434,19 +456,45 @@ export default function CompteProfil() {
                   <TableHead>Service</TableHead>
                   <TableHead>Montant</TableHead>
                   <TableHead>Statut</TableHead>
+                  <TableHead>Feedback</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {missions.map((m: any) => (
-                  <TableRow key={m.id}>
-                    <TableCell className="font-mono text-xs">M-{m.num_mission}</TableCell>
-                    <TableCell className="text-xs">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
-                    <TableCell className="text-sm">{m.nom_client}</TableCell>
-                    <TableCell className="text-xs">{m.type_service || "—"}</TableCell>
-                    <TableCell className="font-semibold text-sm">{m.montant_total?.toLocaleString("fr-MA")} DH</TableCell>
-                    <TableCell><Badge variant="outline" className="text-xs">{m.statut_mission}</Badge></TableCell>
-                  </TableRow>
-                ))}
+                {missions.map((m: any) => {
+                  const fb = feedbacks.find((f: any) => f.demande_id === m.demande_id);
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell className="font-mono text-xs">M-{m.num_mission}</TableCell>
+                      <TableCell className="text-xs">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
+                      <TableCell className="text-sm">{m.nom_client}</TableCell>
+                      <TableCell className="text-xs">{m.type_service || "—"}</TableCell>
+                      <TableCell className="font-semibold text-sm">{m.montant_total?.toLocaleString("fr-MA")} DH</TableCell>
+                      <TableCell><Badge variant="outline" className="text-xs">{m.statut_mission}</Badge></TableCell>
+                      <TableCell>
+                        {fb ? (
+                          <div className="flex items-center gap-1.5">
+                            {fb.statut === "positif" ? (
+                              <Badge className="bg-green-100 text-green-800 text-[10px]"><ThumbsUp className="h-3 w-3 mr-1" />Positif</Badge>
+                            ) : fb.statut === "negatif" ? (
+                              <Badge className="bg-red-100 text-red-800 text-[10px]"><ThumbsDown className="h-3 w-3 mr-1" />Négatif</Badge>
+                            ) : (
+                              <Badge className="bg-yellow-100 text-yellow-800 text-[10px]">En attente</Badge>
+                            )}
+                            {fb.note_agence && (
+                              <span className="flex items-center gap-0.5">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star key={i} className={`h-3 w-3 ${i < fb.note_agence ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                                ))}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
