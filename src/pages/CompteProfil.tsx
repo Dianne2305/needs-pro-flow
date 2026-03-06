@@ -17,8 +17,9 @@ import { fr } from "date-fns/locale";
 import {
   ArrowLeft, User, ChevronDown, MessageSquare, Image, History, Briefcase,
   Save, Search, Phone, MapPin, CreditCard, Calendar, IdCard, Edit, UserPlus, Upload, Download, ExternalLink,
-  ShieldBan, Star, ThumbsUp, ThumbsDown,
+  ShieldBan, Star, ThumbsUp, ThumbsDown, Eye, ClipboardCheck,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
 import { EditProfilModal } from "@/components/profils/EditProfilModal";
@@ -69,6 +70,7 @@ export default function CompteProfil() {
   const [showPostuler, setShowPostuler] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [detailFeedback, setDetailFeedback] = useState<any>(null);
 
   const photoRef = useRef<HTMLInputElement>(null);
   const cinRef = useRef<HTMLInputElement>(null);
@@ -109,11 +111,27 @@ export default function CompteProfil() {
   });
 
   const { data: feedbacks = [] } = useQuery({
-    queryKey: ["feedbacks_profil", profilId],
+    queryKey: ["feedbacks_profil", profilId, profil?.prenom, profil?.nom],
     queryFn: async () => {
       if (!profilId) return [];
-      const { data } = await supabase.from("feedbacks").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
-      return data || [];
+      // Try both profil_id and profil_nom (full name)
+      const { data: byId } = await supabase.from("feedbacks").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
+      const fullName = profil ? `${profil.prenom} ${profil.nom}`.trim() : null;
+      let byName: any[] = [];
+      if (fullName) {
+        const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", fullName).order("created_at", { ascending: false });
+        byName = data || [];
+      }
+      // Also try just nom
+      let byNom: any[] = [];
+      if (profil?.nom) {
+        const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", profil.nom.trim()).order("created_at", { ascending: false });
+        byNom = data || [];
+      }
+      // Merge and deduplicate
+      const allFbs = [...(byId || []), ...byName, ...byNom];
+      const seen = new Set<string>();
+      return allFbs.filter(f => { if (seen.has(f.id)) return false; seen.add(f.id); return true; });
     },
     enabled: !!profilId,
   });
@@ -442,7 +460,84 @@ export default function CompteProfil() {
           );
         })()}
 
-        {/* Historique Mission */}
+        {/* Évaluation Profil */}
+        <Section title="Évaluation Profil" icon={ClipboardCheck} defaultOpen colorClass="bg-[hsl(45,60%,95%)]">
+          {feedbacks.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Étoiles</TableHead>
+                  <TableHead>Satisfaction</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {feedbacks.map((f: any) => {
+                  const stMap: Record<string, { label: string; color: string }> = {
+                    en_attente: { label: "En attente", color: "bg-yellow-100 text-yellow-800" },
+                    lien_envoye: { label: "Lien envoyé", color: "bg-blue-100 text-blue-800" },
+                    positif: { label: "Positif", color: "bg-green-100 text-green-800" },
+                    negatif: { label: "Négatif", color: "bg-red-100 text-red-800" },
+                  };
+                  const st = stMap[f.statut as string] || stMap.en_attente;
+                  return (
+                    <TableRow key={f.id}>
+                      <TableCell className="text-xs">{f.date_prestation || "—"}</TableCell>
+                      <TableCell className="text-sm">
+                        {f.nom_client ? (
+                          <button
+                            className="text-primary hover:underline cursor-pointer font-medium"
+                            onClick={() => {
+                              supabase.from("demandes").select("id").ilike("nom", f.nom_client.trim()).limit(1).then(({ data }) => {
+                                if (data && data.length > 0) {
+                                  navigate(`/compte-client?id=${data[0].id}&from=/compte-profil?id=${profilId}`);
+                                }
+                              });
+                            }}
+                          >
+                            {f.nom_client}
+                          </button>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {f.note_agence ? (
+                          <span className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`h-3.5 w-3.5 ${i < f.note_agence ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                            ))}
+                          </span>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {f.satisfaction ? (
+                          <Badge className={
+                            f.satisfaction === "Très satisfait" || f.satisfaction === "Satisfait"
+                              ? "bg-green-100 text-green-800" : f.satisfaction === "Pas satisfait"
+                              ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"
+                          }>{f.satisfaction}</Badge>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell><Badge className={st.color}>{st.label}</Badge></TableCell>
+                      <TableCell>
+                        {f.submitted_at && (
+                          <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-6">Aucune évaluation pour le moment</p>
+          )}
+        </Section>
+
         <Section title="Historique Mission" icon={Briefcase} defaultOpen colorClass="bg-[hsl(160,30%,95%)]">
           {missions.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">Aucune mission pour le moment</p>
@@ -543,6 +638,41 @@ export default function CompteProfil() {
         profil={p}
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ["profil", profilId] })}
       />
+
+      {/* Detail feedback modal */}
+      <Dialog open={!!detailFeedback} onOpenChange={() => setDetailFeedback(null)}>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Détail feedback — {detailFeedback?.nom_client}</DialogTitle>
+          </DialogHeader>
+          {detailFeedback && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div><span className="text-muted-foreground">Satisfaction :</span> <strong>{detailFeedback.satisfaction}</strong></div>
+                <div><span className="text-muted-foreground">Qualité ménage :</span> <strong>{detailFeedback.qualite_menage}</strong></div>
+                <div><span className="text-muted-foreground">Professionnel :</span> <strong>{detailFeedback.professionnel}</strong></div>
+                <div><span className="text-muted-foreground">Recommande profil :</span> <strong>{detailFeedback.recommande_profil ? "Oui" : "Non"}</strong></div>
+                <div><span className="text-muted-foreground">Recommande agence :</span> <strong>{detailFeedback.recommande_agence ? "Oui" : "Non"}</strong></div>
+                <div>
+                  <span className="text-muted-foreground">Note agence :</span>{" "}
+                  <span className="inline-flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`h-3.5 w-3.5 ${i < (detailFeedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                    ))}
+                  </span>
+                </div>
+              </div>
+              {detailFeedback.commentaire && (
+                <div className="bg-muted p-3 rounded-lg">
+                  <p className="text-muted-foreground text-xs mb-1">Commentaire</p>
+                  <p>{detailFeedback.commentaire}</p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Soumis le {new Date(detailFeedback.submitted_at!).toLocaleDateString("fr-FR")}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
