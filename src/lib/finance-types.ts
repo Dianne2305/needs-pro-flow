@@ -51,7 +51,8 @@ export function soldeProfil(missions: Facturation[]): number {
 export const STATUT_MISSION_OPTIONS = [
   { value: "confirmee", label: "Confirmée", color: "bg-emerald-100 text-emerald-800" },
   { value: "terminee", label: "Terminée", color: "bg-sky-100 text-sky-800" },
-  { value: "annulee", label: "Annulée", color: "bg-rose-100 text-rose-800" },
+  { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
+  { value: "facturation_annulee", label: "Facturation annulée", color: "bg-rose-100 text-rose-800" },
 ] as const;
 
 export const STATUT_PAIEMENT_OPTIONS = [
@@ -60,4 +61,6 @@ export const STATUT_PAIEMENT_OPTIONS = [
   { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
 ] as const;
 
-export const MODE_PAIEMENT_OPTIONS = ["Espèces", "Virement", "Chèque", "Autre"] as const;
+export const MODE_PAIEMENT_OPTIONS = ["Virement", "Chèque", "Espèces à l'agence", "Sur place"] as const;
+
+export const PROFIL_TYPE_OPTIONS = ["Femme de ménage", "Garde malade/Auxiliaire de vie"] as const;
