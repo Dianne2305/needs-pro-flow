@@ -164,7 +164,7 @@ export default function Dashboard() {
       });
     } else if (existing && statusesToUpdate.includes(newStatut)) {
       // Update existing facturation
-      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "facturation_annulee";
+      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_annulee" ? "facturation_annulee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee";
       const encaissePar = demande.mode_paiement === "Sur place" ? "profil" : "agence";
       const updates: Record<string, unknown> = {
         statut_mission: missionStatus,
