@@ -638,6 +638,41 @@ export default function CompteProfil() {
         profil={p}
         onSuccess={() => queryClient.invalidateQueries({ queryKey: ["profil", profilId] })}
       />
+
+      {/* Detail feedback modal */}
+      <Dialog open={!!detailFeedback} onOpenChange={() => setDetailFeedback(null)}>
+        <DialogContent className="max-w-[95vw] sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Détail feedback — {detailFeedback?.nom_client}</DialogTitle>
+          </DialogHeader>
+          {detailFeedback && (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div><span className="text-muted-foreground">Satisfaction :</span> <strong>{detailFeedback.satisfaction}</strong></div>
+                <div><span className="text-muted-foreground">Qualité ménage :</span> <strong>{detailFeedback.qualite_menage}</strong></div>
+                <div><span className="text-muted-foreground">Professionnel :</span> <strong>{detailFeedback.professionnel}</strong></div>
+                <div><span className="text-muted-foreground">Recommande profil :</span> <strong>{detailFeedback.recommande_profil ? "Oui" : "Non"}</strong></div>
+                <div><span className="text-muted-foreground">Recommande agence :</span> <strong>{detailFeedback.recommande_agence ? "Oui" : "Non"}</strong></div>
+                <div>
+                  <span className="text-muted-foreground">Note agence :</span>{" "}
+                  <span className="inline-flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} className={`h-3.5 w-3.5 ${i < (detailFeedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                    ))}
+                  </span>
+                </div>
+              </div>
+              {detailFeedback.commentaire && (
+                <div className="bg-muted p-3 rounded-lg">
+                  <p className="text-muted-foreground text-xs mb-1">Commentaire</p>
+                  <p>{detailFeedback.commentaire}</p>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">Soumis le {new Date(detailFeedback.submitted_at!).toLocaleDateString("fr-FR")}</p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
