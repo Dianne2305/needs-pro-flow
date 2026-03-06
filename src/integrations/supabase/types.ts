@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      campagnes_marketing: {
+        Row: {
+          canal: string
+          created_at: string
+          date_envoi: string | null
+          id: string
+          message: string | null
+          nom: string
+          nombre_destinataires: number | null
+          nombre_envoyes: number | null
+          offre_id: string | null
+          segment_cible: string
+          statut: string
+        }
+        Insert: {
+          canal?: string
+          created_at?: string
+          date_envoi?: string | null
+          id?: string
+          message?: string | null
+          nom: string
+          nombre_destinataires?: number | null
+          nombre_envoyes?: number | null
+          offre_id?: string | null
+          segment_cible?: string
+          statut?: string
+        }
+        Update: {
+          canal?: string
+          created_at?: string
+          date_envoi?: string | null
+          id?: string
+          message?: string | null
+          nom?: string
+          nombre_destinataires?: number | null
+          nombre_envoyes?: number | null
+          offre_id?: string | null
+          segment_cible?: string
+          statut?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campagnes_marketing_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "offres_marketing"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demandes: {
         Row: {
           adresse: string | null
@@ -344,6 +394,56 @@ export type Database = {
           },
         ]
       }
+      gestes_commerciaux: {
+        Row: {
+          client_nom: string
+          client_telephone: string | null
+          commentaire: string | null
+          created_at: string
+          cree_par: string | null
+          demande_id: string | null
+          id: string
+          montant: number | null
+          pourcentage: number | null
+          raison: string | null
+          type_geste: string
+        }
+        Insert: {
+          client_nom: string
+          client_telephone?: string | null
+          commentaire?: string | null
+          created_at?: string
+          cree_par?: string | null
+          demande_id?: string | null
+          id?: string
+          montant?: number | null
+          pourcentage?: number | null
+          raison?: string | null
+          type_geste: string
+        }
+        Update: {
+          client_nom?: string
+          client_telephone?: string | null
+          commentaire?: string | null
+          created_at?: string
+          cree_par?: string | null
+          demande_id?: string | null
+          id?: string
+          montant?: number | null
+          pourcentage?: number | null
+          raison?: string | null
+          type_geste?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gestes_commerciaux_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -381,6 +481,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      offres_marketing: {
+        Row: {
+          code_promo: string | null
+          created_at: string
+          date_debut: string
+          date_fin: string | null
+          id: string
+          limite_utilisation: number | null
+          nom: string
+          nombre_utilisations: number | null
+          segment_client: string | null
+          services_concernes: Json | null
+          statut: string
+          type: string
+          type_reduction: string
+          valeur_reduction: number
+        }
+        Insert: {
+          code_promo?: string | null
+          created_at?: string
+          date_debut?: string
+          date_fin?: string | null
+          id?: string
+          limite_utilisation?: number | null
+          nom: string
+          nombre_utilisations?: number | null
+          segment_client?: string | null
+          services_concernes?: Json | null
+          statut?: string
+          type?: string
+          type_reduction?: string
+          valeur_reduction?: number
+        }
+        Update: {
+          code_promo?: string | null
+          created_at?: string
+          date_debut?: string
+          date_fin?: string | null
+          id?: string
+          limite_utilisation?: number | null
+          nom?: string
+          nombre_utilisations?: number | null
+          segment_client?: string | null
+          services_concernes?: Json | null
+          statut?: string
+          type?: string
+          type_reduction?: string
+          valeur_reduction?: number
+        }
+        Relationships: []
       }
       profil_historique: {
         Row: {
