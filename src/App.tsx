@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import PendingRequests from "./pages/PendingRequests";
-import Login from "./pages/Login";
 import Parametres from "./pages/Parametres";
 import GestionFinanciere from "./pages/GestionFinanciere";
 import CompteClient from "./pages/CompteClient";
@@ -28,7 +27,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/feedback/:token" element={<FeedbackForm />} />
-          <Route path="/login" element={<Login />} />
+          
           <Route path="/*" element={
             <AppLayout>
               <Routes>
