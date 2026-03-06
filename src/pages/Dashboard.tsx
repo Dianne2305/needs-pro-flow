@@ -164,10 +164,15 @@ export default function Dashboard() {
     } else if (existing && statusesToUpdate.includes(newStatut)) {
       // Update existing facturation
       const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "facturation_annulee";
-      const updates: Record<string, unknown> = { statut_mission: missionStatus };
+      const encaissePar = demande.mode_paiement === "Sur place" ? "profil" : "agence";
+      const updates: Record<string, unknown> = {
+        statut_mission: missionStatus,
+        encaisse_par: encaissePar,
+        montant_encaisse_profil: encaissePar === "profil" ? (demande.montant_total || 0) : 0,
+      };
       if (newStatut === "paye") {
         updates.statut_paiement = "paye";
-        updates.montant_paye_client = demande.montant_total || 0;
+        updates.montant_paye_client = encaissePar === "agence" ? (demande.montant_total || 0) : 0;
         updates.date_paiement_client = new Date().toISOString().split("T")[0];
       }
       await supabase.from("facturation").update(updates).eq("id", existing.id);
