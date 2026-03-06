@@ -33,7 +33,8 @@ const STATUS_ROW_COLORS: Record<string, string> = {
   confirme: "bg-[hsl(185,50%,93%)]",
   confirme_intervention: "bg-[hsl(170,45%,91%)]",
   prestation_effectuee: "bg-[hsl(35,90%,93%)]",
-  paye: "bg-[hsl(100,60%,93%)]",
+  facturation_en_cours: "bg-[hsl(100,60%,93%)]",
+  facturation_partielle: "bg-[hsl(45,80%,93%)]",
   standby: "bg-[hsl(220,15%,93%)]",
   cloturee: "bg-[hsl(220,10%,95%)]",
   facturation_annulee: "bg-[hsl(350,80%,95%)]",
@@ -72,7 +73,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee"])
+        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -385,11 +386,14 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
           <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-green-600">
-          <CheckCircle className="h-4 w-4 mr-2" />Payé
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_en_cours" } })} className="text-green-600">
+          <CreditCard className="h-4 w-4 mr-2" />Facturation en cours
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate(`/gestion-financiere?demande_id=${d.id}`)} className="text-amber-600">
-          <CreditCard className="h-4 w-4 mr-2" />Paiement en cours
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_partielle" } })} className="text-amber-600">
+          <CreditCard className="h-4 w-4 mr-2" />Facturation partielle
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-emerald-700">
+          <CheckCircle className="h-4 w-4 mr-2" />Payé
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">

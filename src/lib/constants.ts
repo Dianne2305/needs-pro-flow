@@ -53,12 +53,13 @@ export const STATUTS = {
   confirme: { label: "Confirmé", color: "bg-cyan-100 text-cyan-800", hex: "#50bfcb" },
   confirme_intervention: { label: "Confirmé intervention", color: "bg-teal-100 text-teal-800", hex: "#3da89e" },
   prestation_effectuee: { label: "Prestation effectuée", color: "bg-orange-100 text-orange-800", hex: "#faa31f" },
-  paye: { label: "Payé", color: "bg-green-100 text-green-800", hex: "#48bd00" },
+  facturation_en_cours: { label: "Facturation en cours", color: "bg-green-100 text-green-800", hex: "#48bd00" },
+  facturation_partielle: { label: "Facturation partielle", color: "bg-yellow-100 text-yellow-800", hex: "#e6a817" },
+  paye: { label: "Payé", color: "bg-emerald-100 text-emerald-800", hex: "#1e7b34" },
   facturation_annulee: { label: "Facturation annulée", color: "bg-rose-100 text-rose-800", hex: "#e11d48" },
   annulee: { label: "Annulée", color: "bg-red-100 text-red-800", hex: "#dc2626" },
   standby: { label: "Standby", color: "bg-gray-100 text-gray-800", hex: "#9ca3af" },
   cloturee: { label: "Clôturée", color: "bg-gray-100 text-gray-600", hex: "#6b7280" },
-  paiement_en_cours: { label: "Paiement en cours", color: "bg-blue-100 text-blue-800", hex: "#3b82f6" },
   nrp: { label: "NRP", color: "bg-zinc-100 text-zinc-800", hex: "#71717a" },
 } as const;
 
