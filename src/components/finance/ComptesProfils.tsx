@@ -53,7 +53,16 @@ export default function ComptesProfils() {
 
   const profilFinances: ProfilFinance[] = useMemo(() => {
     return profils.map((p) => {
-      const ms = missions.filter((m) => m.profil_id === p.id);
+      const fullName = `${p.prenom} ${p.nom}`.toLowerCase();
+      const reverseName = `${p.nom} ${p.prenom}`.toLowerCase();
+      const ms = missions.filter((m) => 
+        m.profil_id === p.id || 
+        (!m.profil_id && m.profil_nom && (
+          m.profil_nom.toLowerCase() === fullName ||
+          m.profil_nom.toLowerCase() === reverseName ||
+          m.profil_nom.toLowerCase().includes(p.nom.toLowerCase())
+        ))
+      );
       const totalCA = ms.reduce((s, m) => s + (m.montant_total || 0), 0);
       const totalPA = ms.reduce((s, m) => s + partAgence(m), 0);
       const totalPP = ms.reduce((s, m) => s + partProfil(m), 0);
