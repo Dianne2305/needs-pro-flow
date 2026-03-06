@@ -281,18 +281,30 @@ export default function HistoriqueMissions() {
                 <TableCell className="text-sm">{m.encaisse_par === "profil" ? "Profil" : "Agence"}</TableCell>
                 <TableCell>{getPaiementBadge(m.statut_paiement)}</TableCell>
                 <TableCell>{getStatutBadge(m.statut_mission)}</TableCell>
-                <TableCell>
+                <TableCell className="min-w-[140px]">
                   {m.encaisse_par === "profil" ? (
                     m.part_agence_reversee ? (
-                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Profil a payé l'agence ({fmt(partAgence(m))})</Badge>
+                      <div className="space-y-0.5">
+                        <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Réglé</Badge>
+                        <p className="text-[10px] text-muted-foreground">Profil → Agence : {fmt(partAgence(m))}</p>
+                      </div>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800 text-[10px]">⚠️ Profil doit {fmt(partAgence(m))} à l'agence</Badge>
+                      <div className="space-y-0.5">
+                        <Badge className="bg-red-100 text-red-800 text-[10px]">⚠️ Non réglé</Badge>
+                        <p className="text-[10px] text-muted-foreground">Profil doit <strong>{fmt(partAgence(m))}</strong></p>
+                      </div>
                     )
                   ) : (
                     m.part_profil_versee ? (
-                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Agence a payé le profil ({fmt(partProfil(m))})</Badge>
+                      <div className="space-y-0.5">
+                        <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Réglé</Badge>
+                        <p className="text-[10px] text-muted-foreground">Agence → Profil : {fmt(partProfil(m))}</p>
+                      </div>
                     ) : (
-                      <Badge className="bg-amber-100 text-amber-800 text-[10px]">⚠️ Agence doit {fmt(partProfil(m))} au profil</Badge>
+                      <div className="space-y-0.5">
+                        <Badge className="bg-amber-100 text-amber-800 text-[10px]">⚠️ Non réglé</Badge>
+                        <p className="text-[10px] text-muted-foreground">Agence doit <strong>{fmt(partProfil(m))}</strong></p>
+                      </div>
                     )
                   )}
                 </TableCell>
