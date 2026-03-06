@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, TrendingUp, Building2, Users, CheckCircle, AlertCircle, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Facturation, partAgence, partProfil, soldeProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
@@ -16,6 +16,7 @@ interface ProfilFinance {
   nom: string;
   prenom: string;
   telephone: string | null;
+  ville: string | null;
   missions: Facturation[];
   totalMissions: number;
   totalCA: number;
@@ -24,16 +25,18 @@ interface ProfilFinance {
   totalVerseAuProfil: number;
   totalRecuDuProfil: number;
   solde: number;
+  enAttente: number;
 }
 
 export default function ComptesProfils() {
   const [search, setSearch] = useState("");
   const [selectedProfil, setSelectedProfil] = useState<ProfilFinance | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   const { data: profils = [] } = useQuery({
     queryKey: ["profils", "all_finance"],
     queryFn: async () => {
-      const { data } = await supabase.from("profils").select("id, nom, prenom, telephone");
+      const { data } = await supabase.from("profils").select("id, nom, prenom, telephone, ville");
       return data || [];
     },
   });
@@ -46,6 +49,8 @@ export default function ComptesProfils() {
     },
   });
 
+  const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+
   const profilFinances: ProfilFinance[] = useMemo(() => {
     return profils.map((p) => {
       const ms = missions.filter((m) => m.profil_id === p.id);
@@ -54,12 +59,14 @@ export default function ComptesProfils() {
       const totalPP = ms.reduce((s, m) => s + partProfil(m), 0);
       const totalVerse = ms.filter((m) => m.encaisse_par === "agence" && m.part_profil_versee).reduce((s, m) => s + partProfil(m), 0);
       const totalRecu = ms.filter((m) => m.encaisse_par === "profil" && m.part_agence_reversee).reduce((s, m) => s + partAgence(m), 0);
+      const solde = soldeProfil(ms);
+      const enAttente = Math.abs(solde);
 
       return {
-        id: p.id, nom: p.nom, prenom: p.prenom, telephone: p.telephone,
+        id: p.id, nom: p.nom, prenom: p.prenom, telephone: p.telephone, ville: (p as any).ville || null,
         missions: ms, totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
         totalPartProfil: totalPP, totalVerseAuProfil: totalVerse, totalRecuDuProfil: totalRecu,
-        solde: soldeProfil(ms),
+        solde, enAttente,
       };
     }).filter((p) => p.totalMissions > 0 || search);
   }, [profils, missions, search]);
@@ -71,53 +78,82 @@ export default function ComptesProfils() {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Rechercher un profil..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+    <div className="space-y-0">
+      {/* Dark Header */}
+      <div className="bg-[hsl(220,40%,20%)] text-white rounded-t-lg px-6 py-5">
+        <h2 className="text-xl font-bold">Comptes Financiers des Profils</h2>
+        <p className="text-sm text-white/70">Suivi des soldes et répartitions par femme de ménage</p>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Profil</TableHead>
-              <TableHead>Missions</TableHead>
-              <TableHead>CA généré</TableHead>
-              <TableHead>Part agence</TableHead>
-              <TableHead>Part profil</TableHead>
-              <TableHead>Versé au profil</TableHead>
-              <TableHead>Reçu du profil</TableHead>
-              <TableHead>Solde</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Aucun profil avec missions</TableCell></TableRow>
-            ) : filtered.map((p) => (
-              <TableRow key={p.id}>
-                <TableCell className="font-medium">{p.prenom} {p.nom}</TableCell>
-                <TableCell>{p.totalMissions}</TableCell>
-                <TableCell>{p.totalCA.toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell className="text-emerald-700">{p.totalPartAgence.toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell className="text-sky-700">{p.totalPartProfil.toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell>{p.totalVerseAuProfil.toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell>{p.totalRecuDuProfil.toLocaleString("fr-MA")} DH</TableCell>
-                <TableCell>
-                  <Badge className={p.solde > 0 ? "bg-red-100 text-red-800" : p.solde < 0 ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
-                    {p.solde > 0 ? `+${p.solde.toLocaleString("fr-MA")}` : p.solde < 0 ? `${p.solde.toLocaleString("fr-MA")}` : "0"} DH
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" onClick={() => setSelectedProfil(p)}><Eye className="h-4 w-4" /></Button>
-                </TableCell>
+      {/* Search + View Toggle */}
+      <div className="flex flex-wrap gap-3 items-center justify-between px-1 py-5">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Rechercher un profil..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <div className="flex gap-1 border rounded-md p-0.5">
+          <Button variant={viewMode === "cards" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("cards")}>
+            <LayoutGrid className="h-4 w-4" />
+          </Button>
+          <Button variant={viewMode === "table" ? "default" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("table")}>
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="text-center text-muted-foreground py-12">Aucun profil avec missions</div>
+      ) : viewMode === "cards" ? (
+        /* ===== CARDS VIEW ===== */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((p) => (
+            <ProfilCard key={p.id} profil={p} fmt={fmt} onView={() => setSelectedProfil(p)} />
+          ))}
+        </div>
+      ) : (
+        /* ===== TABLE VIEW ===== */
+        <div className="rounded-lg border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b-2">
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Profil</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Missions</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">CA généré</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Part agence</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Part profil</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Versé au profil</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Reçu du profil</TableHead>
+                <TableHead className="uppercase text-xs tracking-wider font-semibold">Solde</TableHead>
+                <TableHead></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((p) => (
+                <TableRow key={p.id} className="hover:bg-muted/30">
+                  <TableCell>
+                    <div className="font-semibold">{p.prenom} {p.nom}</div>
+                    <div className="text-xs text-muted-foreground">{p.ville || ""} {p.telephone ? `– ${p.telephone}` : ""}</div>
+                  </TableCell>
+                  <TableCell><Badge variant="outline" className="font-bold">{p.totalMissions}</Badge></TableCell>
+                  <TableCell className="font-medium">{fmt(p.totalCA)}</TableCell>
+                  <TableCell className="text-emerald-700 font-medium">{fmt(p.totalPartAgence)}</TableCell>
+                  <TableCell className="text-sky-700 font-medium">{fmt(p.totalPartProfil)}</TableCell>
+                  <TableCell>{fmt(p.totalVerseAuProfil)}</TableCell>
+                  <TableCell>{fmt(p.totalRecuDuProfil)}</TableCell>
+                  <TableCell>
+                    <SoldeBadge solde={p.solde} fmt={fmt} />
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" onClick={() => setSelectedProfil(p)}><Eye className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
+      {/* Detail Modal */}
       {selectedProfil && (
         <Dialog open onOpenChange={() => setSelectedProfil(null)}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -125,14 +161,12 @@ export default function ComptesProfils() {
               <DialogTitle>Compte financier — {selectedProfil.prenom} {selectedProfil.nom}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {/* KPIs */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Missions</p><p className="text-xl font-bold">{selectedProfil.totalMissions}</p></CardContent></Card>
-                <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">CA généré</p><p className="text-xl font-bold">{selectedProfil.totalCA.toLocaleString("fr-MA")} DH</p></CardContent></Card>
-                <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Part agence</p><p className="text-xl font-bold text-emerald-700">{selectedProfil.totalPartAgence.toLocaleString("fr-MA")} DH</p></CardContent></Card>
-                <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Part profil</p><p className="text-xl font-bold text-sky-700">{selectedProfil.totalPartProfil.toLocaleString("fr-MA")} DH</p></CardContent></Card>
+                <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">CA généré</p><p className="text-xl font-bold">{fmt(selectedProfil.totalCA)}</p></CardContent></Card>
+                <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Part agence</p><p className="text-xl font-bold text-emerald-700">{fmt(selectedProfil.totalPartAgence)}</p></CardContent></Card>
+                <Card><CardContent className="pt-4"><p className="text-xs text-muted-foreground">Part profil</p><p className="text-xl font-bold text-sky-700">{fmt(selectedProfil.totalPartProfil)}</p></CardContent></Card>
               </div>
-              {/* Solde */}
               <Card className={selectedProfil.solde > 0 ? "border-red-200 bg-red-50" : selectedProfil.solde < 0 ? "border-blue-200 bg-blue-50" : "border-green-200 bg-green-50"}>
                 <CardContent className="pt-4 flex justify-between items-center">
                   <div>
@@ -141,10 +175,9 @@ export default function ComptesProfils() {
                       {selectedProfil.solde > 0 ? "Le profil doit de l'argent à l'agence" : selectedProfil.solde < 0 ? "L'agence doit de l'argent au profil" : "Situation équilibrée"}
                     </p>
                   </div>
-                  <p className="text-2xl font-bold">{Math.abs(selectedProfil.solde).toLocaleString("fr-MA")} DH</p>
+                  <p className="text-2xl font-bold">{fmt(Math.abs(selectedProfil.solde))}</p>
                 </CardContent>
               </Card>
-              {/* Historique missions */}
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -163,7 +196,7 @@ export default function ComptesProfils() {
                         <TableCell className="font-mono text-xs">M-{m.num_mission}</TableCell>
                         <TableCell>{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
                         <TableCell>{m.nom_client}</TableCell>
-                        <TableCell className="font-semibold">{m.montant_total?.toLocaleString("fr-MA")} DH</TableCell>
+                        <TableCell className="font-semibold">{fmt(m.montant_total)}</TableCell>
                         <TableCell><Badge variant="outline">{m.encaisse_par === "profil" ? "Profil" : "Agence"}</Badge></TableCell>
                         <TableCell>
                           <Badge className={STATUT_PAIEMENT_OPTIONS.find((s) => s.value === m.statut_paiement)?.color || ""}>
@@ -181,4 +214,75 @@ export default function ComptesProfils() {
       )}
     </div>
   );
+}
+
+/* ===== PROFIL CARD ===== */
+function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: number) => string; onView: () => void }) {
+  const { solde } = profil;
+  // solde > 0 = profil doit à l'agence (red), solde < 0 = agence doit au profil (blue), 0 = equilibré (green)
+  const borderColor = solde > 0 ? "border-l-red-500" : solde < 0 ? "border-l-blue-500" : "border-l-green-500";
+  const soldeLabel = solde > 0 ? "PROFIL DOIT À L'AGENCE" : solde < 0 ? "AGENCE DOIT AU PROFIL" : "SITUATION ÉQUILIBRÉE";
+  const soldeLabelColor = solde > 0 ? "text-red-600" : solde < 0 ? "text-blue-600" : "text-muted-foreground";
+  const soldeValueColor = solde > 0 ? "text-red-700" : solde < 0 ? "text-blue-700" : "text-muted-foreground";
+  const SoldeIcon = solde === 0 ? CheckCircle : AlertCircle;
+  const soldeIconColor = solde === 0 ? "text-green-500" : solde > 0 ? "text-red-400" : "text-blue-400";
+
+  return (
+    <Card className={`border-l-4 ${borderColor} overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer`} onClick={onView}>
+      {/* Header */}
+      <div className="bg-[hsl(220,40%,20%)] text-white px-5 py-4 flex items-center justify-between">
+        <div>
+          <h3 className="font-bold text-lg">{profil.prenom} {profil.nom}</h3>
+          <p className="text-sm text-white/70">
+            {profil.ville || "—"} {profil.telephone ? `– ${profil.telephone}` : ""}
+          </p>
+        </div>
+        <div className="bg-white/20 rounded-md px-3 py-1.5 text-center">
+          <p className="text-[10px] uppercase tracking-wider text-white/80">Missions</p>
+          <p className="text-xl font-bold">{profil.totalMissions}</p>
+        </div>
+      </div>
+
+      <CardContent className="pt-4 pb-5 space-y-4">
+        {/* Solde Banner */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className={`text-xs font-bold uppercase tracking-wide ${soldeLabelColor}`}>{soldeLabel}</p>
+            <p className={`text-3xl font-bold ${soldeValueColor}`}>
+              {solde === 0 ? "—" : fmt(Math.abs(solde))}
+            </p>
+          </div>
+          <SoldeIcon className={`h-8 w-8 ${soldeIconColor}`} />
+        </div>
+
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <MetricItem icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />} label="CA total généré" value={fmt(profil.totalCA)} />
+          <MetricItem icon={<Building2 className="h-4 w-4 text-muted-foreground" />} label="Part agence cumulée" value={fmt(profil.totalPartAgence)} />
+          <MetricItem icon={<Users className="h-4 w-4 text-muted-foreground" />} label="Part profil cumulée" value={fmt(profil.totalPartProfil)} />
+          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Versé au profil" value={fmt(profil.totalVerseAuProfil)} />
+          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Reçu du profil" value={fmt(profil.totalRecuDuProfil)} />
+          <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="En attente (total)" value={fmt(profil.enAttente)} />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MetricItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="bg-muted/40 rounded-lg px-3 py-2.5 flex items-start gap-2">
+      <div className="mt-0.5">{icon}</div>
+      <div>
+        <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
+        <p className="font-semibold text-sm">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function SoldeBadge({ solde, fmt }: { solde: number; fmt: (n: number) => string }) {
+  if (solde === 0) return <Badge className="bg-green-100 text-green-800">Équilibré</Badge>;
+  if (solde > 0) return <Badge className="bg-red-100 text-red-800">Doit {fmt(solde)}</Badge>;
+  return <Badge className="bg-blue-100 text-blue-800">À verser {fmt(Math.abs(solde))}</Badge>;
 }
