@@ -155,6 +155,105 @@ export type Database = {
         }
         Relationships: []
       }
+      facturation: {
+        Row: {
+          commission_pourcentage: number
+          created_at: string
+          date_intervention: string | null
+          date_paiement_client: string | null
+          date_remise_agence: string | null
+          date_versement_profil: string | null
+          demande_id: string
+          encaisse_par: string | null
+          id: string
+          justificatif_url: string | null
+          mode_paiement_prevu: string | null
+          mode_paiement_reel: string | null
+          montant_encaisse_profil: number | null
+          montant_paye_client: number | null
+          montant_total: number
+          nom_client: string
+          num_mission: number
+          part_agence_reversee: boolean | null
+          part_profil_versee: boolean | null
+          profil_id: string | null
+          profil_nom: string | null
+          statut_mission: string
+          statut_paiement: string
+          type_service: string | null
+          ville: string | null
+        }
+        Insert: {
+          commission_pourcentage?: number
+          created_at?: string
+          date_intervention?: string | null
+          date_paiement_client?: string | null
+          date_remise_agence?: string | null
+          date_versement_profil?: string | null
+          demande_id: string
+          encaisse_par?: string | null
+          id?: string
+          justificatif_url?: string | null
+          mode_paiement_prevu?: string | null
+          mode_paiement_reel?: string | null
+          montant_encaisse_profil?: number | null
+          montant_paye_client?: number | null
+          montant_total?: number
+          nom_client: string
+          num_mission?: number
+          part_agence_reversee?: boolean | null
+          part_profil_versee?: boolean | null
+          profil_id?: string | null
+          profil_nom?: string | null
+          statut_mission?: string
+          statut_paiement?: string
+          type_service?: string | null
+          ville?: string | null
+        }
+        Update: {
+          commission_pourcentage?: number
+          created_at?: string
+          date_intervention?: string | null
+          date_paiement_client?: string | null
+          date_remise_agence?: string | null
+          date_versement_profil?: string | null
+          demande_id?: string
+          encaisse_par?: string | null
+          id?: string
+          justificatif_url?: string | null
+          mode_paiement_prevu?: string | null
+          mode_paiement_reel?: string | null
+          montant_encaisse_profil?: number | null
+          montant_paye_client?: number | null
+          montant_total?: number
+          nom_client?: string
+          num_mission?: number
+          part_agence_reversee?: boolean | null
+          part_profil_versee?: boolean | null
+          profil_id?: string | null
+          profil_nom?: string | null
+          statut_mission?: string
+          statut_paiement?: string
+          type_service?: string | null
+          ville?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facturation_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facturation_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "profils"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
