@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ import {
 import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
 import { EditProfilModal } from "@/components/profils/EditProfilModal";
+import { partAgence, partProfil } from "@/lib/finance-types";
 
 function Section({ title, icon: Icon, children, defaultOpen = false, colorClass = "bg-card" }: {
   title: string; icon: any; defaultOpen?: boolean; children: React.ReactNode; colorClass?: string;
@@ -391,6 +392,33 @@ export default function CompteProfil() {
             </div>
           </div>
         </Section>
+
+        {/* Solde financier */}
+        {missions.length > 0 && (() => {
+          const profilDoitAgence = missions
+            .filter((m: any) => m.encaisse_par === "profil" && !m.part_agence_reversee)
+            .reduce((s: number, m: any) => s + partAgence(m), 0);
+          const agenceDoitProfil = missions
+            .filter((m: any) => m.encaisse_par !== "profil" && !m.part_profil_versee)
+            .reduce((s: number, m: any) => s + partProfil(m), 0);
+          const fmt = (n: number) => n.toLocaleString("fr-MA") + " DH";
+          return (
+            <Section title="Solde financier" icon={CreditCard} defaultOpen colorClass="bg-[hsl(30,40%,95%)]">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Le profil doit à l'agence</p>
+                  <p className="text-2xl font-bold text-destructive">{fmt(profilDoitAgence)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Part agence non reversée (encaissé par le profil)</p>
+                </div>
+                <div className="rounded-lg border border-sky-300/50 bg-sky-50/50 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">L'agence doit au profil</p>
+                  <p className="text-2xl font-bold text-sky-700">{fmt(agenceDoitProfil)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">Part profil non versée (encaissé par l'agence)</p>
+                </div>
+              </div>
+            </Section>
+          );
+        })()}
 
         {/* Historique Mission */}
         <Section title="Historique Mission" icon={Briefcase} defaultOpen colorClass="bg-[hsl(160,30%,95%)]">
