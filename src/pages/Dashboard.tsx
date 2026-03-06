@@ -14,7 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck, Settings, Archive, Pause, Trash2, XCircle, Send } from "lucide-react";
+import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck, Settings, Archive, Pause, Trash2, XCircle, Send, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TYPES_PRESTATION, FREQUENCES, STATUTS } from "@/lib/constants";
 import { format } from "date-fns";
@@ -373,22 +373,16 @@ export default function Dashboard() {
           <MessageSquare className="h-4 w-4 mr-2" />Note opérationnelle
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "confirme_intervention" } })} className="text-emerald-600">
-          <CheckCircle className="h-4 w-4 mr-2" />Confirmé intervention
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
           <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-green-600">
           <CheckCircle className="h-4 w-4 mr-2" />Payé
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate(`/gestion-financiere?demande_id=${d.id}`)} className="text-amber-600">
+          <CreditCard className="h-4 w-4 mr-2" />Paiement en cours
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "cloturee" } })}>
-          <Archive className="h-4 w-4 mr-2" />Clôturer
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "standby" } })}>
-          <Pause className="h-4 w-4 mr-2" />Standby
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
           <XCircle className="h-4 w-4 mr-2" />Rejeté / Annulé
         </DropdownMenuItem>
