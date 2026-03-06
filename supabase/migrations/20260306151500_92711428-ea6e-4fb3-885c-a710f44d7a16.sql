@@ -1,0 +1,1 @@
+ALTER TABLE public.facturation ADD COLUMN segment text DEFAULT 'particulier';
