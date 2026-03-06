@@ -284,15 +284,15 @@ export default function HistoriqueMissions() {
                 <TableCell>
                   {m.encaisse_par === "profil" ? (
                     m.part_agence_reversee ? (
-                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Agence payée</Badge>
+                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Profil a payé l'agence ({fmt(partAgence(m))})</Badge>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800 text-[10px]">❌ Agence non payée</Badge>
+                      <Badge className="bg-red-100 text-red-800 text-[10px]">⚠️ Profil doit {fmt(partAgence(m))} à l'agence</Badge>
                     )
                   ) : (
                     m.part_profil_versee ? (
-                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Profil payé</Badge>
+                      <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Agence a payé le profil ({fmt(partProfil(m))})</Badge>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800 text-[10px]">❌ Profil non payé</Badge>
+                      <Badge className="bg-amber-100 text-amber-800 text-[10px]">⚠️ Agence doit {fmt(partProfil(m))} au profil</Badge>
                     )
                   )}
                 </TableCell>
