@@ -21,7 +21,7 @@ export default function HistoriqueMissions() {
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterPaiement, setFilterPaiement] = useState("all");
-  const [filterProfil, setFilterProfil] = useState("all");
+  const [filterSegment, setFilterSegment] = useState("all");
   const [viewMission, setViewMission] = useState<Facturation | null>(null);
   const [editMission, setEditMission] = useState<Facturation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -56,14 +56,14 @@ export default function HistoriqueMissions() {
     return missions.filter((m) => {
       if (filterStatut !== "all" && m.statut_mission !== filterStatut) return false;
       if (filterPaiement !== "all" && m.statut_paiement !== filterPaiement) return false;
-      if (filterProfil !== "all" && m.profil_id !== filterProfil) return false;
+      if (filterSegment !== "all" && (m as any).segment !== filterSegment) return false;
       if (search) {
         const s = search.toLowerCase();
         return (m.nom_client?.toLowerCase().includes(s) || m.profil_nom?.toLowerCase().includes(s) || String(m.num_mission).includes(s) || m.ville?.toLowerCase().includes(s));
       }
       return true;
     });
-  }, [missions, filterStatut, filterPaiement, filterProfil, search]);
+  }, [missions, filterStatut, filterPaiement, filterSegment, search]);
 
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
@@ -172,11 +172,12 @@ export default function HistoriqueMissions() {
               {STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Select value={filterProfil} onValueChange={setFilterProfil}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Tous les profils" /></SelectTrigger>
+          <Select value={filterSegment} onValueChange={setFilterSegment}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Tous les segments" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tous les profils</SelectItem>
-              {profils.map((p) => <SelectItem key={p.id} value={p.id}>{p.prenom} {p.nom}</SelectItem>)}
+              <SelectItem value="all">Tous les segments</SelectItem>
+              <SelectItem value="particulier">Particulier</SelectItem>
+              <SelectItem value="entreprise">Entreprise</SelectItem>
             </SelectContent>
           </Select>
         </div>
