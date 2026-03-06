@@ -180,7 +180,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                 </div>
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(STATUTS).map(([key, s]) => (
+                {Object.entries(STATUTS)
+                  .filter(([key]) => !["en_attente_confirmation", "en_attente_profil", "confirme_intervention", "standby", "cloturee"].includes(key))
+                  .map(([key, s]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
                       <span
