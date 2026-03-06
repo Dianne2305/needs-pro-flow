@@ -34,6 +34,8 @@ const STATUS_FILTER_TABS = [
   { value: "confirme", label: "Confirmé" },
   { value: "annulee", label: "Annulé" },
   { value: "paye", label: "Payé" },
+  { value: "facturation_en_cours", label: "Facturation en cours" },
+  { value: "facturation_partielle", label: "Facturation partielle" },
   { value: "prestation_effectuee", label: "Facturation" },
 ] as const;
 
@@ -44,7 +46,9 @@ const STATUS_ROW_COLORS: Record<string, string> = {
   confirme: "bg-[hsl(185,50%,93%)]",
   confirme_intervention: "bg-[hsl(185,50%,90%)]",
   prestation_effectuee: "bg-[hsl(35,90%,93%)]",
-  paye: "bg-[hsl(100,60%,93%)]",
+  facturation_en_cours: "bg-[hsl(100,60%,93%)]",
+  facturation_partielle: "bg-[hsl(45,80%,93%)]",
+  paye: "bg-[hsl(140,50%,93%)]",
   standby: "bg-[hsl(220,15%,93%)]",
   annulee: "bg-[hsl(0,60%,95%)]",
 };

@@ -33,7 +33,8 @@ const STATUS_ROW_COLORS: Record<string, string> = {
   confirme: "bg-[hsl(185,50%,93%)]",
   confirme_intervention: "bg-[hsl(170,45%,91%)]",
   prestation_effectuee: "bg-[hsl(35,90%,93%)]",
-  paye: "bg-[hsl(100,60%,93%)]",
+  facturation_en_cours: "bg-[hsl(100,60%,93%)]",
+  facturation_partielle: "bg-[hsl(45,80%,93%)]",
   standby: "bg-[hsl(220,15%,93%)]",
   cloturee: "bg-[hsl(220,10%,95%)]",
   facturation_annulee: "bg-[hsl(350,80%,95%)]",
@@ -72,7 +73,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee"])
+        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -117,8 +118,8 @@ export default function Dashboard() {
     const demande = allDemandes.find((d) => d.id === demandeId);
     if (!demande) return;
 
-    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye"];
-    const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee"];
+    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
+    const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee", "facturation_en_cours", "facturation_partielle"];
 
     // Check if facturation already exists for this demande
     const { data: existing } = await supabase
@@ -158,12 +159,12 @@ export default function Dashboard() {
         segment,
         encaisse_par: encaissePar,
         montant_encaisse_profil: encaissePar === "profil" ? montantTotal : 0,
-        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "confirmee",
-        statut_paiement: newStatut === "paye" ? "paye" : "non_paye",
+        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee",
+        statut_paiement: newStatut === "paye" ? "paye" : newStatut === "facturation_partielle" ? "partiellement_paye" : "non_paye",
       });
     } else if (existing && statusesToUpdate.includes(newStatut)) {
       // Update existing facturation
-      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "facturation_annulee";
+      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_annulee" ? "facturation_annulee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee";
       const encaissePar = demande.mode_paiement === "Sur place" ? "profil" : "agence";
       const updates: Record<string, unknown> = {
         statut_mission: missionStatus,
@@ -385,11 +386,14 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
           <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-green-600">
-          <CheckCircle className="h-4 w-4 mr-2" />Payé
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_en_cours" } })} className="text-green-600">
+          <CreditCard className="h-4 w-4 mr-2" />Facturation en cours
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate(`/gestion-financiere?demande_id=${d.id}`)} className="text-amber-600">
-          <CreditCard className="h-4 w-4 mr-2" />Paiement en cours
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_partielle" } })} className="text-amber-600">
+          <CreditCard className="h-4 w-4 mr-2" />Facturation partielle
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-emerald-700">
+          <CheckCircle className="h-4 w-4 mr-2" />Payé
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
