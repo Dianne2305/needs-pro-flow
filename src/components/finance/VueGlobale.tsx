@@ -301,8 +301,8 @@ export default function VueGlobale() {
                   <TableHead className="uppercase text-xs tracking-wider">CA total</TableHead>
                   <TableHead className="uppercase text-xs tracking-wider">Commission agence</TableHead>
                   <TableHead className="uppercase text-xs tracking-wider">À verser profils</TableHead>
-                  <TableHead className="uppercase text-xs tracking-wider">Paiements reçus</TableHead>
-                  <TableHead className="uppercase text-xs tracking-wider">En attente</TableHead>
+                  <TableHead className="uppercase text-xs tracking-wider">Paiement reçu du client</TableHead>
+                  <TableHead className="uppercase text-xs tracking-wider">En attente du client</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
