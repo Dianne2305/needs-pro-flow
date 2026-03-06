@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import PendingRequests from "./pages/PendingRequests";
-import ComingSoon from "./pages/ComingSoon";
+import Login from "./pages/Login";
+import Parametres from "./pages/Parametres";
 import GestionFinanciere from "./pages/GestionFinanciere";
 import CompteClient from "./pages/CompteClient";
 import Historique from "./pages/Historique";
@@ -27,6 +28,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/feedback/:token" element={<FeedbackForm />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/*" element={
             <AppLayout>
               <Routes>
@@ -39,7 +41,7 @@ const App = () => (
                 <Route path="/clients" element={<ListingClients />} />
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
                 <Route path="/qualite" element={<QualiteFeedback />} />
-                <Route path="/parametres" element={<ComingSoon />} />
+                <Route path="/parametres" element={<Parametres />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppLayout>
