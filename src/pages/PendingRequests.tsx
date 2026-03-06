@@ -162,7 +162,10 @@ export default function PendingRequests() {
   const statusMutation = useMutation({
     mutationFn: async ({ id, statut, motif }: { id: string; statut: string; motif?: string }) => {
       const updates: Record<string, unknown> = { statut };
-      if (statut === "confirmee") updates.confirmed_at = new Date().toISOString();
+      if (statut === "confirmee") {
+        updates.statut = "en_cours";
+        updates.confirmed_at = new Date().toISOString();
+      }
       if (motif) updates.motif_annulation = motif;
       const { error } = await supabase.from("demandes").update(updates).eq("id", id);
       if (error) throw error;
