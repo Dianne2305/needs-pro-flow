@@ -21,6 +21,7 @@ import {
 import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
 import { EditProfilModal } from "@/components/profils/EditProfilModal";
+import { partAgence, partProfil } from "@/lib/finance-types";
 
 function Section({ title, icon: Icon, children, defaultOpen = false, colorClass = "bg-card" }: {
   title: string; icon: any; defaultOpen?: boolean; children: React.ReactNode; colorClass?: string;
