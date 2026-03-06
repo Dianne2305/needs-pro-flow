@@ -27,7 +27,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/feedback/:token" element={<FeedbackForm />} />
-          <Route path="/login" element={<Login />} />
+          
           <Route path="/*" element={
             <AppLayout>
               <Routes>
