@@ -127,11 +127,24 @@ export default function Dashboard() {
       .maybeSingle();
 
     if (!existing && statusesToCreate.includes(newStatut)) {
+      // Lookup profil_id from candidat_nom
+      let profilId: string | null = null;
+      if (demande.candidat_nom) {
+        const { data: matchedProfil } = await supabase
+          .from("profils")
+          .select("id")
+          .or(`nom.ilike.%${demande.candidat_nom.split(" ").pop()}%`)
+          .limit(1)
+          .maybeSingle();
+        if (matchedProfil) profilId = matchedProfil.id;
+      }
+
       // Create new facturation entry
       const segment = demande.type_service === "SPE" ? "entreprise" : "particulier";
       await supabase.from("facturation").insert({
         demande_id: demandeId,
         nom_client: demande.nom,
+        profil_id: profilId,
         profil_nom: demande.candidat_nom || null,
         ville: demande.ville,
         type_service: demande.type_prestation,
