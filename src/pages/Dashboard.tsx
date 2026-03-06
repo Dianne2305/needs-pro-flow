@@ -118,8 +118,8 @@ export default function Dashboard() {
     const demande = allDemandes.find((d) => d.id === demandeId);
     if (!demande) return;
 
-    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye"];
-    const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee"];
+    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
+    const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee", "facturation_en_cours", "facturation_partielle"];
 
     // Check if facturation already exists for this demande
     const { data: existing } = await supabase
@@ -159,8 +159,8 @@ export default function Dashboard() {
         segment,
         encaisse_par: encaissePar,
         montant_encaisse_profil: encaissePar === "profil" ? montantTotal : 0,
-        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "confirmee",
-        statut_paiement: newStatut === "paye" ? "paye" : "non_paye",
+        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee",
+        statut_paiement: newStatut === "paye" ? "paye" : newStatut === "facturation_partielle" ? "partiellement_paye" : "non_paye",
       });
     } else if (existing && statusesToUpdate.includes(newStatut)) {
       // Update existing facturation
