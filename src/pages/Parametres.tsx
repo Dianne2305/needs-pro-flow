@@ -19,7 +19,6 @@ const Parametres = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
