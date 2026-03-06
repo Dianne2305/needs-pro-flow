@@ -93,6 +93,24 @@ export default function CompteClient() {
     enabled: !!demandeId,
   });
 
+  // All feedbacks for this client (by name)
+  const { data: allClientFeedbacks = [] } = useQuery({
+    queryKey: ["feedbacks_client", demande?.nom],
+    queryFn: async () => {
+      if (!demande?.nom) return [];
+      const { data, error } = await supabase
+        .from("feedbacks")
+        .select("*")
+        .ilike("nom_client", demande.nom.trim())
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!demande?.nom,
+  });
+
+  const [detailFeedback, setDetailFeedback] = useState<any>(null);
+
   // Count all demandes for this client (fidélité)
   const { data: allClientDemandes = [] } = useQuery({
     queryKey: ["demandes", "client_fidelite", demande?.nom],
