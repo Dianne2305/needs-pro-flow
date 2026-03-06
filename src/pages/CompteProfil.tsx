@@ -70,6 +70,7 @@ export default function CompteProfil() {
   const [showPostuler, setShowPostuler] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [detailFeedback, setDetailFeedback] = useState<any>(null);
 
   const photoRef = useRef<HTMLInputElement>(null);
   const cinRef = useRef<HTMLInputElement>(null);
