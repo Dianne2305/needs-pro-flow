@@ -10,10 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer } from "lucide-react";
+import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS, PROFIL_TYPE_OPTIONS } from "@/lib/finance-types";
-import { format } from "date-fns";
+import { format, isWithinInterval, parseISO } from "date-fns";
+import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 export default function HistoriqueMissions() {
   const { toast } = useToast();
@@ -22,6 +26,8 @@ export default function HistoriqueMissions() {
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterPaiement, setFilterPaiement] = useState("all");
   const [filterSegment, setFilterSegment] = useState("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [viewMission, setViewMission] = useState<Facturation | null>(null);
   const [editMission, setEditMission] = useState<Facturation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -57,13 +63,24 @@ export default function HistoriqueMissions() {
       if (filterStatut !== "all" && m.statut_mission !== filterStatut) return false;
       if (filterPaiement !== "all" && m.statut_paiement !== filterPaiement) return false;
       if (filterSegment !== "all" && (m as any).segment !== filterSegment) return false;
+      if (dateFrom && m.date_intervention) {
+        const d = parseISO(m.date_intervention);
+        if (d < dateFrom) return false;
+      }
+      if (dateTo && m.date_intervention) {
+        const d = parseISO(m.date_intervention);
+        const endOfDay = new Date(dateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (d > endOfDay) return false;
+      }
+      if ((dateFrom || dateTo) && !m.date_intervention) return false;
       if (search) {
         const s = search.toLowerCase();
         return (m.nom_client?.toLowerCase().includes(s) || m.profil_nom?.toLowerCase().includes(s) || String(m.num_mission).includes(s) || m.ville?.toLowerCase().includes(s));
       }
       return true;
     });
-  }, [missions, filterStatut, filterPaiement, filterSegment, search]);
+  }, [missions, filterStatut, filterPaiement, filterSegment, dateFrom, dateTo, search]);
 
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
