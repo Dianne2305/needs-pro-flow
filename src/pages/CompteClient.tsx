@@ -118,10 +118,42 @@ export default function CompteClient() {
   const [aboDate, setAboDate] = useState<Date | undefined>();
   const notesInitialized = useState(false);
 
+  // Renouveler & Switcher modals
+  const [renewOpen, setRenewOpen] = useState(false);
+  const [switchAboOpen, setSwitchAboOpen] = useState(false);
+  const [selectedFrequence, setSelectedFrequence] = useState("");
+
+  // Renew form state (pre-filled from current demande)
+  const [renewForm, setRenewForm] = useState<Record<string, unknown>>({});
+  const [renewInitialized, setRenewInitialized] = useState(false);
+
   if (demande && !notesInitialized[0]) {
     setNoteComm(demande.note_commercial || "");
     setNoteOpe(demande.note_operationnel || "");
     notesInitialized[1](true);
+  }
+
+  if (demande && !renewInitialized) {
+    setRenewForm({
+      nom: demande.nom,
+      telephone_direct: demande.telephone_direct,
+      telephone_whatsapp: demande.telephone_whatsapp,
+      type_service: demande.type_service,
+      type_prestation: demande.type_prestation,
+      type_bien: demande.type_bien,
+      frequence: demande.frequence,
+      ville: demande.ville,
+      quartier: demande.quartier,
+      adresse: demande.adresse,
+      montant_total: demande.montant_total,
+      duree_heures: demande.duree_heures,
+      nombre_intervenants: demande.nombre_intervenants,
+      avec_produit: demande.avec_produit,
+      email: (demande as any).email,
+      nom_entreprise: (demande as any).nom_entreprise,
+      contact_entreprise: (demande as any).contact_entreprise,
+    });
+    setRenewInitialized(true);
   }
 
   const fideliteCount = allClientDemandes.length;
