@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, TrendingUp, TrendingDown, Clock, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { FileText, TrendingUp, TrendingDown, Clock, ArrowDownLeft, ArrowUpRight, AlertTriangle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Facturation, partAgence, partProfil, soldeProfil, MODE_PAIEMENT_OPTIONS, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { useState, useMemo } from "react";
@@ -59,6 +59,12 @@ export default function VueGlobale() {
   const totalEnAttente = filtered.filter((m) => m.statut_paiement !== "paye").reduce((s, m) => s + (m.montant_total - (m.montant_paye_client || 0)), 0);
   const enCours = filtered.filter((m) => m.statut_mission === "confirmee").length;
   const totalMissions = filtered.length;
+
+  // Règlements internes non soldés
+  const agenceNonPayee = filtered.filter((m) => m.encaisse_par === "profil" && !m.part_agence_reversee);
+  const profilNonPaye = filtered.filter((m) => m.encaisse_par !== "profil" && !m.part_profil_versee);
+  const montantAgenceNonPayee = agenceNonPayee.reduce((s, m) => s + partAgence(m), 0);
+  const montantProfilNonPaye = profilNonPaye.reduce((s, m) => s + partProfil(m), 0);
 
   // Récapitulatif par profil
   const recapProfils = useMemo(() => {
