@@ -158,7 +158,7 @@ export default function CompteClient() {
 
   const createRenewalMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      const { error } = await supabase.from("demandes").insert(data);
+      const { error } = await supabase.from("demandes").insert(data as any);
       if (error) throw error;
     },
     onSuccess: () => {
