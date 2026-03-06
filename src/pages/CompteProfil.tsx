@@ -111,11 +111,27 @@ export default function CompteProfil() {
   });
 
   const { data: feedbacks = [] } = useQuery({
-    queryKey: ["feedbacks_profil", profilId],
+    queryKey: ["feedbacks_profil", profilId, profil?.prenom, profil?.nom],
     queryFn: async () => {
       if (!profilId) return [];
-      const { data } = await supabase.from("feedbacks").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
-      return data || [];
+      // Try both profil_id and profil_nom (full name)
+      const { data: byId } = await supabase.from("feedbacks").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
+      const fullName = profil ? `${profil.prenom} ${profil.nom}`.trim() : null;
+      let byName: any[] = [];
+      if (fullName) {
+        const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", fullName).order("created_at", { ascending: false });
+        byName = data || [];
+      }
+      // Also try just nom
+      let byNom: any[] = [];
+      if (profil?.nom) {
+        const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", profil.nom.trim()).order("created_at", { ascending: false });
+        byNom = data || [];
+      }
+      // Merge and deduplicate
+      const allFbs = [...(byId || []), ...byName, ...byNom];
+      const seen = new Set<string>();
+      return allFbs.filter(f => { if (seen.has(f.id)) return false; seen.add(f.id); return true; });
     },
     enabled: !!profilId,
   });
