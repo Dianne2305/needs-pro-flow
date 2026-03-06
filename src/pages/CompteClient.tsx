@@ -615,7 +615,23 @@ export default function CompteClient() {
                     return (
                       <TableRow key={f.id}>
                         <TableCell className="text-sm">{f.type_service || "—"}</TableCell>
-                        <TableCell className="text-sm">{f.profil_nom || "—"}</TableCell>
+                        <TableCell className="text-sm">
+                          {f.profil_nom ? (
+                            <button
+                              className="text-primary hover:underline cursor-pointer font-medium"
+                              onClick={() => {
+                                // Find profil by name and navigate
+                                supabase.from("profils").select("id").ilike("nom", f.profil_nom).limit(1).then(({ data }) => {
+                                  if (data && data.length > 0) {
+                                    navigate(`/compte-profil?id=${data[0].id}&from=/compte-client?id=${demandeId}`);
+                                  }
+                                });
+                              }}
+                            >
+                              {f.profil_nom}
+                            </button>
+                          ) : "—"}
+                        </TableCell>
                         <TableCell className="text-xs">{f.date_prestation || "—"}</TableCell>
                         <TableCell>
                           {f.satisfaction ? (
