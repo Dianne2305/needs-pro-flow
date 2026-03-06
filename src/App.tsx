@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import PendingRequests from "./pages/PendingRequests";
 import ComingSoon from "./pages/ComingSoon";
+import GestionFinanciere from "./pages/GestionFinanciere";
 import CompteClient from "./pages/CompteClient";
 import Historique from "./pages/Historique";
 import ListingClients from "./pages/ListingClients";
@@ -31,7 +32,7 @@ const App = () => (
             <Route path="/profils" element={<Profils />} />
             <Route path="/compte-profil" element={<CompteProfil />} />
             <Route path="/clients" element={<ListingClients />} />
-            <Route path="/facturation" element={<ComingSoon />} />
+            <Route path="/gestion-financiere" element={<GestionFinanciere />} />
             <Route path="/parametres" element={<ComingSoon />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
