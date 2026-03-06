@@ -15,6 +15,7 @@ import Profils from "./pages/Profils";
 import CompteProfil from "./pages/CompteProfil";
 import QualiteFeedback from "./pages/QualiteFeedback";
 import FeedbackForm from "./pages/FeedbackForm";
+import Marketing from "./pages/Marketing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/clients" element={<ListingClients />} />
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
                 <Route path="/qualite" element={<QualiteFeedback />} />
+                <Route path="/marketing" element={<Marketing />} />
                 <Route path="/parametres" element={<Parametres />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
