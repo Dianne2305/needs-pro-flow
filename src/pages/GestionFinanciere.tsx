@@ -8,7 +8,9 @@ export default function GestionFinanciere() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Gestion Financière</h1>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <BarChart3 className="h-6 w-6 text-primary" /> Gestion Financière
+        </h1>
         <p className="text-muted-foreground">Vue globale des finances, suivi facturation et comptes profils</p>
       </div>
 
