@@ -114,26 +114,36 @@ export default function CompteProfil() {
     queryKey: ["feedbacks_profil", profilId, profil?.prenom, profil?.nom],
     queryFn: async () => {
       if (!profilId) return [];
-      // Try both profil_id and profil_nom (full name)
+      // Search by profil_id
       const { data: byId } = await supabase.from("feedbacks").select("*").eq("profil_id", profilId).order("created_at", { ascending: false });
-      const fullName = profil ? `${profil.prenom} ${profil.nom}`.trim() : null;
+      
       let byName: any[] = [];
-      if (fullName) {
-        const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", fullName).order("created_at", { ascending: false });
-        byName = data || [];
-      }
-      // Also try just nom
       let byNom: any[] = [];
-      if (profil?.nom) {
-        const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", profil.nom.trim()).order("created_at", { ascending: false });
-        byNom = data || [];
+      let byPrenom: any[] = [];
+      if (profil) {
+        // Try "PRENOM NOM" and "NOM PRENOM" patterns
+        const fullName1 = `${profil.prenom} ${profil.nom}`.trim();
+        const fullName2 = `${profil.nom} ${profil.prenom}`.trim();
+        if (fullName1) {
+          const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", `%${fullName1}%`).order("created_at", { ascending: false });
+          byName = data || [];
+        }
+        if (fullName2 !== fullName1) {
+          const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", `%${fullName2}%`).order("created_at", { ascending: false });
+          byPrenom = data || [];
+        }
+        // Also try just nom
+        if (profil.nom) {
+          const { data } = await supabase.from("feedbacks").select("*").ilike("profil_nom", `%${profil.nom.trim()}%`).order("created_at", { ascending: false });
+          byNom = data || [];
+        }
       }
       // Merge and deduplicate
-      const allFbs = [...(byId || []), ...byName, ...byNom];
+      const allFbs = [...(byId || []), ...byName, ...byPrenom, ...byNom];
       const seen = new Set<string>();
       return allFbs.filter(f => { if (seen.has(f.id)) return false; seen.add(f.id); return true; });
     },
-    enabled: !!profilId,
+    enabled: !!profilId && !!profil,
   });
 
   const updateMutation = useMutation({
