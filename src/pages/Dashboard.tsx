@@ -143,7 +143,6 @@ export default function Dashboard() {
 
       // Create new facturation entry
       const segment = demande.type_service === "SPE" ? "entreprise" : "particulier";
-      const encaissePar = demande.mode_paiement === "Sur place" ? "profil" : "agence";
       const montantTotal = demande.montant_total || 0;
       await supabase.from("facturation").insert({
         demande_id: demandeId,
@@ -157,19 +156,16 @@ export default function Dashboard() {
         commission_pourcentage: 50,
         mode_paiement_prevu: demande.mode_paiement || null,
         segment,
-        encaisse_par: encaissePar,
-        montant_encaisse_profil: encaissePar === "profil" ? montantTotal : 0,
+        encaisse_par: "agence",
+        montant_encaisse_profil: 0,
         statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee",
         statut_paiement: newStatut === "paye" ? "paye" : newStatut === "facturation_partielle" ? "partiellement_paye" : "non_paye",
       });
     } else if (existing && statusesToUpdate.includes(newStatut)) {
-      // Update existing facturation
+      // Update existing facturation — ne pas écraser encaisse_par (modifiable uniquement manuellement)
       const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_annulee" ? "facturation_annulee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee";
-      const encaissePar = demande.mode_paiement === "Sur place" ? "profil" : "agence";
       const updates: Record<string, unknown> = {
         statut_mission: missionStatus,
-        encaisse_par: encaissePar,
-        montant_encaisse_profil: encaissePar === "profil" ? (demande.montant_total || 0) : 0,
       };
       if (newStatut === "paye") {
         updates.statut_paiement = "paye";
