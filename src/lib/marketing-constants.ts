@@ -15,7 +15,7 @@ export const SEGMENTS_CLIENT = [
 
 export const TYPES_GESTE = [
   { value: "reduction_prochaine", label: "Réduction prochaine prestation" },
-  { value: "credit_compte", label: "Crédit sur compte" },
+  { value: "facturation_annulee", label: "Facturation annulée" },
   { value: "intervention_gratuite", label: "Intervention gratuite" },
   { value: "code_promo_perso", label: "Code promo personnalisé" },
 ] as const;
