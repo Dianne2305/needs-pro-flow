@@ -220,10 +220,13 @@ export default function PendingRequests() {
         contact_entreprise: editForm.contact_entreprise || null,
         email: editForm.email || null,
         avec_produit: editForm.avec_produit,
+        mode_paiement: editForm.mode_paiement || null,
+        statut_paiement_commercial: editForm.statut_paiement_commercial || "non_paye",
+        montant_verse_client: editForm.montant_verse_client ? Number(editForm.montant_verse_client) : null,
         services_optionnels: JSON.stringify(
           [editForm.avec_produit && "produit", editForm.avec_torchons && "torchons"].filter(Boolean)
         ),
-      }).eq("id", editingDemande.id);
+      } as any).eq("id", editingDemande.id);
       if (error) throw error;
     },
     onSuccess: () => {
