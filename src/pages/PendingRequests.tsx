@@ -19,6 +19,7 @@ import { Search, CalendarIcon, ChevronDown, Save, Download } from "lucide-react"
 import {
   TYPES_PRESTATION, TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA,
+  MODES_PAIEMENT_COMMERCIAL, STATUTS_PAIEMENT_COMMERCIAL,
 } from "@/lib/constants";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -60,6 +61,9 @@ interface FormState {
   email: string;
   avec_produit: boolean;
   avec_torchons: boolean;
+  mode_paiement: string;
+  statut_paiement_commercial: string;
+  montant_verse_client: string;
 }
 
 const emptyForm: FormState = {
@@ -71,6 +75,7 @@ const emptyForm: FormState = {
   type_salissure: "", nature_intervention: "", description_intervention: "",
   preference_horaire: "", nom_entreprise: "", contact_entreprise: "", email: "",
   avec_produit: false, avec_torchons: false,
+  mode_paiement: "", statut_paiement_commercial: "non_paye", montant_verse_client: "",
 };
 
 // Track generated documents per demande (in-memory for now)
@@ -144,10 +149,13 @@ export default function PendingRequests() {
         contact_entreprise: form.contact_entreprise || null,
         email: form.email || null,
         avec_produit: form.avec_produit,
+        mode_paiement: form.mode_paiement || null,
+        statut_paiement_commercial: form.statut_paiement_commercial || "non_paye",
+        montant_verse_client: form.montant_verse_client ? Number(form.montant_verse_client) : null,
         services_optionnels: JSON.stringify(
           [form.avec_produit && "produit", form.avec_torchons && "torchons"].filter(Boolean)
         ),
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -212,10 +220,13 @@ export default function PendingRequests() {
         contact_entreprise: editForm.contact_entreprise || null,
         email: editForm.email || null,
         avec_produit: editForm.avec_produit,
+        mode_paiement: editForm.mode_paiement || null,
+        statut_paiement_commercial: editForm.statut_paiement_commercial || "non_paye",
+        montant_verse_client: editForm.montant_verse_client ? Number(editForm.montant_verse_client) : null,
         services_optionnels: JSON.stringify(
           [editForm.avec_produit && "produit", editForm.avec_torchons && "torchons"].filter(Boolean)
         ),
-      }).eq("id", editingDemande.id);
+      } as any).eq("id", editingDemande.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -265,6 +276,9 @@ export default function PendingRequests() {
       email: d.email || "",
       avec_produit: d.avec_produit || false,
       avec_torchons: false,
+      mode_paiement: d.mode_paiement || "",
+      statut_paiement_commercial: (d as any).statut_paiement_commercial || "non_paye",
+      montant_verse_client: (d as any).montant_verse_client ? String((d as any).montant_verse_client) : "",
     });
     setEditDialogOpen(true);
   };
@@ -489,12 +503,24 @@ export default function PendingRequests() {
 
                 {/* Tarification */}
                 {d.montant_total && (
-                  <div className="bg-muted/30 rounded-lg px-3 py-2 text-sm">
-                    <span className="font-semibold">Montant : </span>
-                    <span className="font-bold text-primary">{d.montant_total} MAD</span>
-                    <span className="text-muted-foreground ml-2 text-xs">
-                      ({isDevisType(d.type_prestation) ? "Devis" : "Réservation"})
-                    </span>
+                  <div className="bg-muted/30 rounded-lg px-3 py-2 text-sm space-y-1">
+                    <div>
+                      <span className="font-semibold">Montant : </span>
+                      <span className="font-bold text-primary">{d.montant_total} MAD</span>
+                      <span className="text-muted-foreground ml-2 text-xs">
+                        ({isDevisType(d.type_prestation) ? "Devis" : "Réservation"})
+                      </span>
+                    </div>
+                    {d.mode_paiement && (
+                      <div className="text-xs"><span className="font-semibold">Mode : </span>{d.mode_paiement}</div>
+                    )}
+                    {(d as any).statut_paiement_commercial && (d as any).statut_paiement_commercial !== "non_paye" && (
+                      <div className="text-xs">
+                        <span className="font-semibold">Paiement : </span>
+                        {STATUTS_PAIEMENT_COMMERCIAL.find(s => s.value === (d as any).statut_paiement_commercial)?.label}
+                        {(d as any).montant_verse_client ? ` — ${(d as any).montant_verse_client} MAD versés` : ""}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -578,10 +604,10 @@ export default function PendingRequests() {
             />
           </div>
 
-          {/* Tarification */}
+          {/* Tarification & Paiement */}
           <div className="grid grid-cols-2 gap-4 mt-2">
             <div className="col-span-2 border-t pt-3">
-              <p className="text-sm font-semibold text-muted-foreground mb-2">Tarification</p>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Tarification & Paiement</p>
             </div>
             <div>
               <Label>Montant total (MAD)</Label>
@@ -590,6 +616,35 @@ export default function PendingRequests() {
                 <p className="text-xs text-muted-foreground mt-1">Candidat : {(Number(form.montant_total) / 2).toFixed(0)} MAD</p>
               )}
             </div>
+            <div>
+              <Label>Mode de paiement</Label>
+              <Select value={form.mode_paiement} onValueChange={(v) => updateForm("mode_paiement", v)}>
+                <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+                <SelectContent>
+                  {MODES_PAIEMENT_COMMERCIAL.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Statut de paiement</Label>
+              <Select value={form.statut_paiement_commercial} onValueChange={(v) => updateForm("statut_paiement_commercial", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUTS_PAIEMENT_COMMERCIAL.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {(form.statut_paiement_commercial === "acompte_verse" || form.statut_paiement_commercial === "paiement_partiel") && (
+              <div>
+                <Label>Montant versé par le client (MAD)</Label>
+                <Input type="number" value={form.montant_verse_client} onChange={(e) => updateForm("montant_verse_client", e.target.value)} />
+                {form.montant_total && form.montant_verse_client && (
+                  <p className="text-xs text-destructive mt-1">
+                    Reste à payer : {(Number(form.montant_total) - Number(form.montant_verse_client)).toFixed(0)} MAD
+                  </p>
+                )}
+              </div>
+            )}
             <div className="col-span-2">
               <Label>Notes client</Label>
               <Textarea value={form.notes_client} onChange={(e) => updateForm("notes_client", e.target.value)} rows={3} />
@@ -644,10 +699,10 @@ export default function PendingRequests() {
             />
           </div>
 
-          {/* Tarification */}
+          {/* Tarification & Paiement */}
           <div className="grid grid-cols-2 gap-4 mt-2">
             <div className="col-span-2 border-t pt-3">
-              <p className="text-sm font-semibold text-muted-foreground mb-2">Tarification</p>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Tarification & Paiement</p>
             </div>
             <div>
               <Label>Montant total (MAD)</Label>
@@ -656,6 +711,35 @@ export default function PendingRequests() {
                 <p className="text-xs text-muted-foreground mt-1">Candidat : {(Number(editForm.montant_total) / 2).toFixed(0)} MAD</p>
               )}
             </div>
+            <div>
+              <Label>Mode de paiement</Label>
+              <Select value={editForm.mode_paiement} onValueChange={(v) => updateEditForm("mode_paiement", v)}>
+                <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+                <SelectContent>
+                  {MODES_PAIEMENT_COMMERCIAL.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Statut de paiement</Label>
+              <Select value={editForm.statut_paiement_commercial} onValueChange={(v) => updateEditForm("statut_paiement_commercial", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUTS_PAIEMENT_COMMERCIAL.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {(editForm.statut_paiement_commercial === "acompte_verse" || editForm.statut_paiement_commercial === "paiement_partiel") && (
+              <div>
+                <Label>Montant versé par le client (MAD)</Label>
+                <Input type="number" value={editForm.montant_verse_client} onChange={(e) => updateEditForm("montant_verse_client", e.target.value)} />
+                {editForm.montant_total && editForm.montant_verse_client && (
+                  <p className="text-xs text-destructive mt-1">
+                    Reste à payer : {(Number(editForm.montant_total) - Number(editForm.montant_verse_client)).toFixed(0)} MAD
+                  </p>
+                )}
+              </div>
+            )}
             <div className="col-span-2">
               <Label>Notes client</Label>
               <Textarea value={editForm.notes_client} onChange={(e) => updateEditForm("notes_client", e.target.value)} rows={3} />
