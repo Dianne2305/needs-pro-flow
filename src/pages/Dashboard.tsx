@@ -423,6 +423,8 @@ export default function Dashboard() {
             <TableHead>Avec produit</TableHead>
             <TableHead>Tarif total</TableHead>
             <TableHead>Mode paiement</TableHead>
+            <TableHead>Statut paiement</TableHead>
+            <TableHead>Reste à payer</TableHead>
             <TableHead>Profils envoyés</TableHead>
             <TableHead>CAO</TableHead>
             <TableHead></TableHead>
