@@ -75,11 +75,10 @@ export const CONFIRMATION_OPE_OPTIONS = [
 ] as const;
 
 export const MODES_PAIEMENT_COMMERCIAL = [
-  "Espèces",
   "Virement",
-  "Chèque",
-  "Paiement sur place",
-  "Paiement à l'agence",
+  "Par chèque",
+  "À l'agence",
+  "Sur place",
 ] as const;
 
 export const STATUTS_PAIEMENT_COMMERCIAL = [
