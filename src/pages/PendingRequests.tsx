@@ -687,10 +687,10 @@ export default function PendingRequests() {
             />
           </div>
 
-          {/* Tarification */}
+          {/* Tarification & Paiement */}
           <div className="grid grid-cols-2 gap-4 mt-2">
             <div className="col-span-2 border-t pt-3">
-              <p className="text-sm font-semibold text-muted-foreground mb-2">Tarification</p>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">Tarification & Paiement</p>
             </div>
             <div>
               <Label>Montant total (MAD)</Label>
@@ -699,6 +699,35 @@ export default function PendingRequests() {
                 <p className="text-xs text-muted-foreground mt-1">Candidat : {(Number(editForm.montant_total) / 2).toFixed(0)} MAD</p>
               )}
             </div>
+            <div>
+              <Label>Mode de paiement</Label>
+              <Select value={editForm.mode_paiement} onValueChange={(v) => updateEditForm("mode_paiement", v)}>
+                <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+                <SelectContent>
+                  {MODES_PAIEMENT_COMMERCIAL.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Statut de paiement</Label>
+              <Select value={editForm.statut_paiement_commercial} onValueChange={(v) => updateEditForm("statut_paiement_commercial", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUTS_PAIEMENT_COMMERCIAL.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {(editForm.statut_paiement_commercial === "acompte_verse" || editForm.statut_paiement_commercial === "paiement_partiel") && (
+              <div>
+                <Label>Montant versé par le client (MAD)</Label>
+                <Input type="number" value={editForm.montant_verse_client} onChange={(e) => updateEditForm("montant_verse_client", e.target.value)} />
+                {editForm.montant_total && editForm.montant_verse_client && (
+                  <p className="text-xs text-destructive mt-1">
+                    Reste à payer : {(Number(editForm.montant_total) - Number(editForm.montant_verse_client)).toFixed(0)} MAD
+                  </p>
+                )}
+              </div>
+            )}
             <div className="col-span-2">
               <Label>Notes client</Label>
               <Textarea value={editForm.notes_client} onChange={(e) => updateEditForm("notes_client", e.target.value)} rows={3} />
