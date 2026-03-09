@@ -95,8 +95,3 @@ export const STATUT_CANDIDATURE_OPTIONS = [
   { value: "desistement", label: "Désistement" },
   { value: "client_non_confirme", label: "Client n'a pas confirmé" },
 ] as const;
-  { value: "disponible", label: "Disponible" },
-  { value: "confirme", label: "Confirmé" },
-  { value: "desistement", label: "Désistement" },
-  { value: "client_non_confirme", label: "Client n'a pas confirmé" },
-] as const;
