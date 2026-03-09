@@ -19,6 +19,7 @@ import { Search, CalendarIcon, ChevronDown, Save, Download } from "lucide-react"
 import {
   TYPES_PRESTATION, TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA,
+  MODES_PAIEMENT_COMMERCIAL, STATUTS_PAIEMENT_COMMERCIAL,
 } from "@/lib/constants";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
