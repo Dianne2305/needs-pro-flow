@@ -75,6 +75,7 @@ const emptyForm: FormState = {
   type_salissure: "", nature_intervention: "", description_intervention: "",
   preference_horaire: "", nom_entreprise: "", contact_entreprise: "", email: "",
   avec_produit: false, avec_torchons: false,
+  mode_paiement: "", statut_paiement_commercial: "non_paye", montant_verse_client: "",
 };
 
 // Track generated documents per demande (in-memory for now)
