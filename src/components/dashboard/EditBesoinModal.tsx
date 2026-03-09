@@ -9,11 +9,13 @@ import { Switch } from "@/components/ui/switch";
 import {
   STATUTS, SEGMENTS,
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
+  STATUTS_PAIEMENT_COMMERCIAL,
 } from "@/lib/constants";
-import { ArrowLeft, Save, X, Send } from "lucide-react";
+import { ArrowLeft, Save, X, Send, FileText } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
 import { ServiceFormFields } from "./ServiceFormFields";
+import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
 
 type Demande = Tables<"demandes">;
 
@@ -42,8 +44,13 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [adresse, setAdresse] = useState(demande.adresse || "");
   const [montant, setMontant] = useState(String(demande.montant_total || ""));
   const [modePaiement, setModePaiement] = useState(demande.mode_paiement || "");
+  const [statutPaiement, setStatutPaiement] = useState(demande.statut_paiement_commercial || "non_paye");
+  const [montantVerse, setMontantVerse] = useState(String(demande.montant_verse_client || ""));
   const [notesClient, setNotesClient] = useState(demande.notes_client || "");
   const [sendWhatsApp, setSendWhatsApp] = useState(false);
+
+  // Devis preview
+  const [devisOpen, setDevisOpen] = useState(false);
 
   // Service-specific fields
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
@@ -98,8 +105,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       duree_heures: duree ? Number(duree) : null,
       nombre_intervenants: nbIntervenants ? Number(nbIntervenants) : 1,
       montant_total: montant ? Number(montant) : null,
-      
       mode_paiement: modePaiement || null,
+      statut_paiement_commercial: statutPaiement || "non_paye",
+      montant_verse_client: montantVerse ? Number(montantVerse) : null,
       avec_produit: avecProduit,
       notes_client: notesClient || null,
       superficie_m2: superficie ? Number(superficie) : null,
@@ -147,6 +155,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -259,6 +268,28 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
             <Input type="number" value={montant} onChange={(e) => setMontant(e.target.value)} />
             {montant && <p className="text-xs text-muted-foreground mt-1">Candidat : {(Number(montant) / 2).toFixed(0)} MAD</p>}
           </div>
+          <div>
+            <Label>Statut de paiement</Label>
+            <Select value={statutPaiement} onValueChange={setStatutPaiement}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUTS_PAIEMENT_COMMERCIAL.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {(statutPaiement === "acompte_verse" || statutPaiement === "paiement_partiel") && (
+            <div>
+              <Label>Montant versé par le client (MAD)</Label>
+              <Input type="number" value={montantVerse} onChange={(e) => setMontantVerse(e.target.value)} />
+              {montant && montantVerse && (
+                <p className="text-xs text-destructive mt-1">
+                  Reste à payer : {(Number(montant) - Number(montantVerse)).toFixed(0)} MAD
+                </p>
+              )}
+            </div>
+          )}
           <div className="col-span-2">
             <Label>Notes client</Label>
             <Textarea value={notesClient} onChange={(e) => setNotesClient(e.target.value)} rows={3} />
@@ -288,15 +319,28 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            <X className="h-4 w-4 mr-1" />Annuler
+        <div className="flex justify-between gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={() => setDevisOpen(true)}>
+            <FileText className="h-4 w-4 mr-1" />
+            {isReservation ? "Générer récapitulatif" : "Générer devis"}
           </Button>
-          <Button onClick={handleSave}>
-            <Save className="h-4 w-4 mr-1" />Enregistrer
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <X className="h-4 w-4 mr-1" />Annuler
+            </Button>
+            <Button onClick={handleSave}>
+              <Save className="h-4 w-4 mr-1" />Enregistrer
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
+
+    <DevisPreviewModal
+      demande={demande}
+      open={devisOpen}
+      onOpenChange={setDevisOpen}
+    />
+    </>
   );
 }
