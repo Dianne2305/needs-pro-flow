@@ -74,7 +74,27 @@ export const CONFIRMATION_OPE_OPTIONS = [
   { value: "annule", label: "Annulé", color: "bg-red-100 text-red-800" },
 ] as const;
 
+export const MODES_PAIEMENT_COMMERCIAL = [
+  "Espèces",
+  "Virement",
+  "Chèque",
+  "Paiement sur place",
+  "Paiement à l'agence",
+] as const;
+
+export const STATUTS_PAIEMENT_COMMERCIAL = [
+  { value: "non_paye", label: "Non payé" },
+  { value: "acompte_verse", label: "Acompte versé" },
+  { value: "paiement_partiel", label: "Paiement partiel" },
+  { value: "paiement_integral", label: "Paiement intégral" },
+] as const;
+
 export const STATUT_CANDIDATURE_OPTIONS = [
+  { value: "disponible", label: "Disponible" },
+  { value: "confirme", label: "Confirmé" },
+  { value: "desistement", label: "Désistement" },
+  { value: "client_non_confirme", label: "Client n'a pas confirmé" },
+] as const;
   { value: "disponible", label: "Disponible" },
   { value: "confirme", label: "Confirmé" },
   { value: "desistement", label: "Désistement" },

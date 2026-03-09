@@ -276,6 +276,9 @@ export default function PendingRequests() {
       email: d.email || "",
       avec_produit: d.avec_produit || false,
       avec_torchons: false,
+      mode_paiement: d.mode_paiement || "",
+      statut_paiement_commercial: (d as any).statut_paiement_commercial || "non_paye",
+      montant_verse_client: (d as any).montant_verse_client ? String((d as any).montant_verse_client) : "",
     });
     setEditDialogOpen(true);
   };
