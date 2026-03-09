@@ -503,12 +503,24 @@ export default function PendingRequests() {
 
                 {/* Tarification */}
                 {d.montant_total && (
-                  <div className="bg-muted/30 rounded-lg px-3 py-2 text-sm">
-                    <span className="font-semibold">Montant : </span>
-                    <span className="font-bold text-primary">{d.montant_total} MAD</span>
-                    <span className="text-muted-foreground ml-2 text-xs">
-                      ({isDevisType(d.type_prestation) ? "Devis" : "Réservation"})
-                    </span>
+                  <div className="bg-muted/30 rounded-lg px-3 py-2 text-sm space-y-1">
+                    <div>
+                      <span className="font-semibold">Montant : </span>
+                      <span className="font-bold text-primary">{d.montant_total} MAD</span>
+                      <span className="text-muted-foreground ml-2 text-xs">
+                        ({isDevisType(d.type_prestation) ? "Devis" : "Réservation"})
+                      </span>
+                    </div>
+                    {d.mode_paiement && (
+                      <div className="text-xs"><span className="font-semibold">Mode : </span>{d.mode_paiement}</div>
+                    )}
+                    {(d as any).statut_paiement_commercial && (d as any).statut_paiement_commercial !== "non_paye" && (
+                      <div className="text-xs">
+                        <span className="font-semibold">Paiement : </span>
+                        {STATUTS_PAIEMENT_COMMERCIAL.find(s => s.value === (d as any).statut_paiement_commercial)?.label}
+                        {(d as any).montant_verse_client ? ` — ${(d as any).montant_verse_client} MAD versés` : ""}
+                      </div>
+                    )}
                   </div>
                 )}
 
