@@ -488,6 +488,30 @@ export default function Dashboard() {
                 </TableCell>
                 <TableCell className="text-sm">{d.mode_paiement || "—"}</TableCell>
                 <TableCell className="text-sm">
+                  {(() => {
+                    const sp = (d as any).statut_paiement_commercial || "non_paye";
+                    const opt = STATUTS_PAIEMENT_COMMERCIAL.find(s => s.value === sp);
+                    const colorMap: Record<string, string> = {
+                      non_paye: "bg-red-100 text-red-800",
+                      acompte_verse: "bg-amber-100 text-amber-800",
+                      paiement_partiel: "bg-amber-100 text-amber-800",
+                      paiement_integral: "bg-emerald-100 text-emerald-800",
+                    };
+                    return <Badge variant="outline" className={`border-0 text-[10px] ${colorMap[sp] || ""}`}>{opt?.label || sp}</Badge>;
+                  })()}
+                </TableCell>
+                <TableCell className="text-sm">
+                  {(() => {
+                    const sp = (d as any).statut_paiement_commercial || "non_paye";
+                    const montantTotal = d.montant_total || 0;
+                    const montantVerse = (d as any).montant_verse_client || 0;
+                    if (sp === "paiement_integral") return <span className="text-emerald-700 font-medium">0 MAD</span>;
+                    if (sp === "non_paye") return <span className="text-destructive font-medium">{montantTotal ? `${montantTotal} MAD` : "—"}</span>;
+                    const reste = Number(montantTotal) - Number(montantVerse);
+                    return <span className="text-destructive font-medium">{reste > 0 ? `${reste} MAD` : "0 MAD"}</span>;
+                  })()}
+                </TableCell>
+                <TableCell className="text-sm">
                   {d.candidat_nom ? (
                     <button 
                       className="text-primary underline hover:text-primary/80 font-medium cursor-pointer"
