@@ -61,6 +61,9 @@ interface FormState {
   email: string;
   avec_produit: boolean;
   avec_torchons: boolean;
+  mode_paiement: string;
+  statut_paiement_commercial: string;
+  montant_verse_client: string;
 }
 
 const emptyForm: FormState = {
