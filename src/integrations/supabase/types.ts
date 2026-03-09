@@ -88,6 +88,7 @@ export type Database = {
           mode_paiement: string | null
           montant_candidat: number | null
           montant_total: number | null
+          montant_verse_client: number | null
           motif_annulation: string | null
           nature_intervention: string | null
           nom: string
@@ -102,6 +103,7 @@ export type Database = {
           services_optionnels: Json | null
           statut: string
           statut_candidature: string | null
+          statut_paiement_commercial: string | null
           superficie_m2: number | null
           telephone_direct: string | null
           telephone_whatsapp: string | null
@@ -134,6 +136,7 @@ export type Database = {
           mode_paiement?: string | null
           montant_candidat?: number | null
           montant_total?: number | null
+          montant_verse_client?: number | null
           motif_annulation?: string | null
           nature_intervention?: string | null
           nom: string
@@ -148,6 +151,7 @@ export type Database = {
           services_optionnels?: Json | null
           statut?: string
           statut_candidature?: string | null
+          statut_paiement_commercial?: string | null
           superficie_m2?: number | null
           telephone_direct?: string | null
           telephone_whatsapp?: string | null
@@ -180,6 +184,7 @@ export type Database = {
           mode_paiement?: string | null
           montant_candidat?: number | null
           montant_total?: number | null
+          montant_verse_client?: number | null
           motif_annulation?: string | null
           nature_intervention?: string | null
           nom?: string
@@ -194,6 +199,7 @@ export type Database = {
           services_optionnels?: Json | null
           statut?: string
           statut_candidature?: string | null
+          statut_paiement_commercial?: string | null
           superficie_m2?: number | null
           telephone_direct?: string | null
           telephone_whatsapp?: string | null
