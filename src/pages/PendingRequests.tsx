@@ -149,10 +149,13 @@ export default function PendingRequests() {
         contact_entreprise: form.contact_entreprise || null,
         email: form.email || null,
         avec_produit: form.avec_produit,
+        mode_paiement: form.mode_paiement || null,
+        statut_paiement_commercial: form.statut_paiement_commercial || "non_paye",
+        montant_verse_client: form.montant_verse_client ? Number(form.montant_verse_client) : null,
         services_optionnels: JSON.stringify(
           [form.avec_produit && "produit", form.avec_torchons && "torchons"].filter(Boolean)
         ),
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
