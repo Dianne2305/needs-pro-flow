@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { RefreshCw, Search, LayoutList, LayoutGrid, MoreVertical, Pencil, MessageSquare, Eye, Users, CheckCircle, UserCheck, Settings, Archive, Pause, Trash2, XCircle, Send, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { TYPES_PRESTATION, FREQUENCES, STATUTS } from "@/lib/constants";
+import { TYPES_PRESTATION, FREQUENCES, STATUTS, STATUTS_PAIEMENT_COMMERCIAL } from "@/lib/constants";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { EditBesoinModal } from "@/components/dashboard/EditBesoinModal";
