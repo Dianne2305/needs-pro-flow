@@ -908,10 +908,7 @@ export default function CompteClient() {
                     <div>
                       <p className="font-semibold text-sm">{f.label}</p>
                       <p className="text-xs text-muted-foreground">
-                        {f.value === "quotidien" && "Intervention chaque jour"}
-                        {f.value === "hebdomadaire" && "Une fois par semaine"}
-                        {f.value === "bi_mensuel" && "Deux fois par mois"}
-                        {f.value === "mensuel" && "Une fois par mois"}
+                        {f.value === "quotidien" && "7 interventions / semaine"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
