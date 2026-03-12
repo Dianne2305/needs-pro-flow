@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, X, FileText } from "lucide-react";
+import { Upload, X, FileText, Search, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 import type { OperationCaisse } from "./CaissePage";
 
 interface Props {
@@ -29,12 +31,29 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
   const [modePaiement, setModePaiement] = useState("especes");
   const [libelle, setLibelle] = useState("");
   const [clientNom, setClientNom] = useState("");
-  const [projetService, setProjetService] = useState("");
   const [utilisateur, setUtilisateur] = useState("");
   const [notes, setNotes] = useState("");
   const [justificatifUrl, setJustificatifUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showClientDemandes, setShowClientDemandes] = useState(false);
+
+  // Fetch demandes linked to the client
+  const { data: clientDemandes = [] } = useQuery({
+    queryKey: ["demandes_client", clientNom],
+    queryFn: async () => {
+      if (!clientNom.trim()) return [];
+      const { data, error } = await supabase
+        .from("demandes")
+        .select("id, num_demande, nom, type_service, ville, statut, montant_total, date_prestation, created_at")
+        .ilike("nom", `%${clientNom.trim()}%`)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!clientNom.trim() && showClientDemandes,
+  });
 
   useEffect(() => {
     if (operation) {
@@ -44,11 +63,11 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
       setModePaiement(operation.mode_paiement);
       setLibelle(operation.libelle);
       setClientNom(operation.client_nom || "");
-      setProjetService(operation.projet_service || "");
       setUtilisateur(operation.utilisateur || "");
       setNotes(operation.notes || "");
       setJustificatifUrl(operation.justificatif_url || "");
       setSelectedFile(null);
+      setShowClientDemandes(false);
     } else {
       setTypeOp(defaultType);
       setDateOp(new Date().toISOString().slice(0, 10));
@@ -56,11 +75,11 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
       setModePaiement("especes");
       setLibelle("");
       setClientNom("");
-      setProjetService("");
       setUtilisateur("");
       setNotes("");
       setJustificatifUrl("");
       setSelectedFile(null);
+      setShowClientDemandes(false);
     }
   }, [operation, defaultType, open]);
 
@@ -91,7 +110,7 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
         mode_paiement: modePaiement,
         libelle,
         client_nom: clientNom || null,
-        projet_service: projetService || null,
+        projet_service: null,
         utilisateur: utilisateur || null,
         notes: notes || null,
         justificatif_url: finalJustificatifUrl || null,
@@ -130,11 +149,18 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const STATUT_COLORS: Record<string, string> = {
+    en_attente: "bg-amber-100 text-amber-800",
+    confirmee: "bg-emerald-100 text-emerald-800",
+    terminee: "bg-sky-100 text-sky-800",
+    annulee: "bg-red-100 text-red-800",
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Modifier l'opération" : typeOp === "entree" ? "Ajouter une entrée" : "Ajouter une sortie"}</DialogTitle>
+          <DialogTitle>{isEdit ? "Modifier l'opération" : "Ajouter un mouvement"}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
@@ -184,22 +210,62 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Client associé (optionnel)</Label>
-              <Input value={clientNom} onChange={(e) => setClientNom(e.target.value)} placeholder="Nom du client" />
+          {/* Client associé with demandes lookup */}
+          <div>
+            <Label>Client associé (optionnel)</Label>
+            <div className="flex gap-2 mt-1">
+              <Input
+                value={clientNom}
+                onChange={(e) => {
+                  setClientNom(e.target.value);
+                  setShowClientDemandes(false);
+                }}
+                placeholder="Nom du client"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                disabled={!clientNom.trim()}
+                onClick={() => setShowClientDemandes(!showClientDemandes)}
+                title="Voir les demandes liées"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
-            <div>
-              <Label>Projet / Service (optionnel)</Label>
-              <Select value={projetService} onValueChange={setProjetService}>
-                <SelectTrigger><SelectValue placeholder="Sélectionner..." /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="menage">Agence Ménage</SelectItem>
-                  <SelectItem value="recrutement">Recrutement</SelectItem>
-                  <SelectItem value="autre">Autre</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
+            {showClientDemandes && (
+              <div className="mt-2 rounded-md border bg-muted/30 max-h-48 overflow-y-auto">
+                {clientDemandes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground p-3 text-center">Aucune demande trouvée pour ce client</p>
+                ) : (
+                  <div className="divide-y">
+                    {clientDemandes.map((d: any) => (
+                      <div key={d.id} className="px-3 py-2 text-sm flex items-center justify-between gap-2 hover:bg-muted/50">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-primary">#{d.num_demande}</span>
+                            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${STATUT_COLORS[d.statut] || ""}`}>
+                              {d.statut}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {d.type_service} — {d.ville}
+                            {d.montant_total ? ` — ${Number(d.montant_total).toLocaleString("fr-MA")} DH` : ""}
+                          </p>
+                          {d.date_prestation && (
+                            <p className="text-xs text-muted-foreground">
+                              Prestation: {format(new Date(d.date_prestation), "dd/MM/yyyy")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
