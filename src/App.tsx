@@ -40,6 +40,7 @@ const App = () => (
                 <Route path="/compte-profil" element={<CompteProfil />} />
                 <Route path="/clients" element={<ListingClients />} />
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
+                <Route path="/gestion-financiere/caisse" element={<GestionFinanciere />} />
                 <Route path="/qualite" element={<QualiteFeedback />} />
                 <Route path="/marketing" element={<Marketing />} />
                 <Route path="/parametres" element={<Parametres />} />
