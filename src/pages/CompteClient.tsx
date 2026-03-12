@@ -36,21 +36,21 @@ function Section({ title, icon: Icon, children, defaultOpen = false, count, colo
   return (
     <Collapsible defaultOpen={defaultOpen}>
       <CollapsibleTrigger className={cn(
-        "flex items-center justify-between w-full px-5 py-3.5 rounded-t-xl text-sm font-semibold border border-border hover:shadow-sm transition-all group",
+        "flex items-center justify-between w-full px-5 py-3.5 rounded-t-xl text-sm font-semibold border border-border hover:shadow-sm transition-all group text-white",
         colorClass
       )}>
         <span className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-background/60 text-foreground">
+          <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-white/20 text-white">
             <Icon className="h-4 w-4" />
           </span>
           {title}
           {count !== undefined && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{count}</Badge>
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-white/20 text-white border-0">{count}</Badge>
           )}
         </span>
-        <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+        <ChevronDown className="h-4 w-4 text-white/70 transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
-      <CollapsibleContent className={cn("px-5 pt-3 pb-4 border border-t-0 border-border rounded-b-xl", colorClass)}>
+      <CollapsibleContent className="px-5 pt-3 pb-4 border border-t-0 border-border rounded-b-xl bg-card">
         {children}
       </CollapsibleContent>
     </Collapsible>
@@ -371,7 +371,7 @@ export default function CompteClient() {
       <div className="space-y-3">
 
         {/* Infos Client - full width */}
-        <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,40%,96%)]">
+        <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,50%,35%)]">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1">
             <InfoItem label="Nom complet" value={demande.nom} />
             <InfoItem label="Segment" value={demande.type_service === "SPP" ? "Particulier" : "Entreprise"} />
@@ -387,7 +387,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Historique Fidélité - full width below */}
-        <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[hsl(330,40%,96%)]" count={fideliteCount}>
+        <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[hsl(330,50%,40%)]" count={fideliteCount}>
           {allClientDemandes.length > 0 ? (
             <Table>
               <TableHeader>
@@ -449,7 +449,7 @@ export default function CompteClient() {
 
         {/* Row: Avis commercial + Avis opérationnel */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Section title="Avis Service Commercial" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(45,50%,95%)]">
+          <Section title="Avis Service Commercial" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(45,60%,38%)]">
             <Textarea
               value={noteComm}
               onChange={(e) => setNoteComm(e.target.value)}
@@ -459,7 +459,7 @@ export default function CompteClient() {
             />
           </Section>
 
-          <Section title="Avis Service Opérationnel" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(25,50%,95%)]">
+          <Section title="Avis Service Opérationnel" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(25,55%,40%)]">
             <Textarea
               value={noteOpe}
               onChange={(e) => setNoteOpe(e.target.value)}
@@ -476,7 +476,7 @@ export default function CompteClient() {
         </div>
 
         {/* Fréquence */}
-        <Section title="Type de Fréquence" icon={Clock} defaultOpen colorClass="bg-[hsl(160,30%,95%)]">
+        <Section title="Type de Fréquence" icon={Clock} defaultOpen colorClass="bg-[hsl(160,40%,30%)]">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="text-sm px-3 py-1">{freq?.label || demande.frequence}</Badge>
@@ -515,7 +515,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Détails besoin actuel */}
-        <Section title="Détails Besoin Actuel" icon={Briefcase} defaultOpen colorClass="bg-[hsl(220,30%,96%)]">
+        <Section title="Détails Besoin Actuel" icon={Briefcase} defaultOpen colorClass="bg-[hsl(220,40%,35%)]">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
             <InfoItem label="Réf commande" value={<span className="font-mono">#{demande.num_demande}</span>} />
             <InfoItem label="Type de service" value={demande.type_prestation} />
@@ -549,7 +549,7 @@ export default function CompteClient() {
           title="Historique Documents"
           icon={FileText}
           defaultOpen
-          colorClass="bg-[hsl(270,25%,96%)]"
+          colorClass="bg-[hsl(270,35%,38%)]"
         >
           <Table>
             <TableHeader>
@@ -595,7 +595,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Candidatures proposées */}
-        <Section title="Candidats Proposés" icon={Users} colorClass="bg-[hsl(140,30%,95%)]" count={d.candidat_nom ? 1 : 0}>
+        <Section title="Candidats Proposés" icon={Users} colorClass="bg-[hsl(140,40%,30%)]" count={d.candidat_nom ? 1 : 0}>
           {d.candidat_nom ? (
             <Table>
               <TableHeader>
@@ -675,7 +675,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Feedback Client */}
-        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,60%,95%)]" count={allClientFeedbacks.length}>
+        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,65%,35%)]" count={allClientFeedbacks.length}>
           {allClientFeedbacks.length > 0 ? (
             <div className="space-y-3">
               <Table>
@@ -796,7 +796,7 @@ export default function CompteClient() {
         </Dialog>
 
         {/* Historique actions */}
-        <Section title="Historique" icon={Clock} colorClass="bg-[hsl(0,0%,96%)]">
+        <Section title="Historique" icon={Clock} colorClass="bg-[hsl(0,0%,30%)]">
           <Table>
             <TableHeader>
               <TableRow>
