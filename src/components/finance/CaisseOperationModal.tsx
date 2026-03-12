@@ -288,7 +288,7 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
 
           <div>
             <Label>Utilisateur</Label>
-            <Input value={utilisateur} onChange={(e) => setUtilisateur(e.target.value)} placeholder="Qui enregistre l'opération ?" />
+            <Input value={utilisateur} readOnly className="bg-muted/50 cursor-default" />
           </div>
 
           {/* File upload */}
