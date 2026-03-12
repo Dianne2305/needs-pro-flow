@@ -269,7 +269,12 @@ export default function CaissePage() {
                       <TableCell className={`font-semibold ${op.type_operation === "entree" ? "text-emerald-700" : "text-red-600"}`}>
                         {op.type_operation === "entree" ? "+" : "-"}{fmt(op.montant)}
                       </TableCell>
-                      <TableCell className="text-sm">{op.utilisateur || "—"}</TableCell>
+                       <TableCell className="text-sm">{op.utilisateur || "—"}</TableCell>
+                       <TableCell className="text-sm">
+                         {op.justificatif_url ? (
+                           <a href={op.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Voir</a>
+                         ) : "—"}
+                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(op)}>
