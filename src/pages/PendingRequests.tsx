@@ -540,7 +540,7 @@ export default function PendingRequests() {
                     className="flex-1 border-destructive text-destructive hover:bg-destructive/10"
                     onClick={() => handleReject(d)}
                   >
-                    Rejeter
+                    Annulé
                   </Button>
                   <Button
                     size="sm"
