@@ -151,6 +151,8 @@ export default function CompteClient() {
   const [renewOpen, setRenewOpen] = useState(false);
   const [switchAboOpen, setSwitchAboOpen] = useState(false);
   const [selectedFrequence, setSelectedFrequence] = useState("");
+  const [aboNbPersonnes, setAboNbPersonnes] = useState("");
+  const [aboNbHeures, setAboNbHeures] = useState("");
   const [activeDemande, setActiveDemande] = useState<Demande | null>(null);
 
   // Renew form state (pre-filled from current demande)
@@ -887,43 +889,27 @@ export default function CompteClient() {
               <Repeat className="h-5 w-5 text-primary" /> Switcher en abonnement
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Choisissez la fréquence d'abonnement. Le tarif mensuel sera calculé automatiquement.
-          </p>
           <div className="space-y-4 mt-3">
-            <div className="grid grid-cols-1 gap-2">
-              {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => {
-                const aboTarif = calculateAboTarif(activeDemande?.montant_total ?? null, f.value);
-                return (
-                  <button
-                    key={f.value}
-                    onClick={() => setSelectedFrequence(f.value)}
-                    className={cn(
-                      "flex items-center justify-between p-4 rounded-lg border-2 text-left transition-all",
-                      selectedFrequence === f.value
-                        ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border hover:border-primary/30 hover:bg-muted/50"
-                    )}
-                  >
-                    <div>
-                      <p className="font-semibold text-sm">{f.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {f.value === "quotidien" && "7 interventions / semaine"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {aboTarif && (
-                        <span className="text-sm font-bold text-primary">{aboTarif} MAD/mois</span>
-                      )}
-                      {selectedFrequence === f.value && (
-                        <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                          <div className="h-2 w-2 rounded-full bg-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="space-y-1">
+              <Label>Fréquence</Label>
+              <Select value={selectedFrequence} onValueChange={setSelectedFrequence}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une fréquence" />
+                </SelectTrigger>
+                <SelectContent>
+                  {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => (
+                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Nombre de personnes</Label>
+              <Input type="number" min={1} value={aboNbPersonnes} onChange={(e) => setAboNbPersonnes(e.target.value)} placeholder="1" />
+            </div>
+            <div className="space-y-1">
+              <Label>Nombre d'heures</Label>
+              <Input type="number" min={1} value={aboNbHeures} onChange={(e) => setAboNbHeures(e.target.value)} placeholder="3" />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
