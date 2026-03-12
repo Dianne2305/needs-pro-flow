@@ -200,8 +200,9 @@ export default function CompteClient() {
 
   const switchToAboMutation = useMutation({
     mutationFn: async (frequence: string) => {
-      if (!demandeId) return;
-      const { error } = await supabase.from("demandes").update({ frequence }).eq("id", demandeId);
+      const targetId = activeDemande?.id || demandeId;
+      if (!targetId) return;
+      const { error } = await supabase.from("demandes").update({ frequence }).eq("id", targetId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -209,6 +210,7 @@ export default function CompteClient() {
       queryClient.invalidateQueries({ queryKey: ["demandes"] });
       toast({ title: "Abonnement activé", description: "La demande a été convertie en abonnement." });
       setSwitchAboOpen(false);
+      setActiveDemande(null);
     },
   });
 
