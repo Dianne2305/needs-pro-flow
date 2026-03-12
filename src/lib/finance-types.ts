@@ -57,8 +57,8 @@ export const STATUT_MISSION_OPTIONS = [
 
 export const STATUT_PAIEMENT_OPTIONS = [
   { value: "non_paye", label: "Non payé", color: "bg-red-100 text-red-800" },
-  { value: "partiellement_paye", label: "Partiellement payé", color: "bg-amber-100 text-amber-800" },
-  { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
+  { value: "paiement_en_attente", label: "Paiement en attente", color: "bg-amber-100 text-amber-800" },
+  { value: "paiement_effectue", label: "Paiement effectué", color: "bg-green-100 text-green-800" },
 ] as const;
 
 export const MODE_PAIEMENT_OPTIONS = ["Virement", "Chèque", "Espèces à l'agence", "Sur place"] as const;

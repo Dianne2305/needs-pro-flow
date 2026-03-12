@@ -83,9 +83,8 @@ export const MODES_PAIEMENT_COMMERCIAL = [
 
 export const STATUTS_PAIEMENT_COMMERCIAL = [
   { value: "non_paye", label: "Non payé" },
-  { value: "acompte_verse", label: "Acompte versé" },
-  { value: "paiement_partiel", label: "Paiement partiel" },
-  { value: "paiement_integral", label: "Paiement intégral" },
+  { value: "paiement_en_attente", label: "Paiement en attente" },
+  { value: "paiement_effectue", label: "Paiement effectué" },
 ] as const;
 
 export const STATUT_CANDIDATURE_OPTIONS = [
