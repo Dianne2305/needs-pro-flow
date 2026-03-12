@@ -476,7 +476,7 @@ export default function CompteClient() {
         </div>
 
         {/* Fréquence */}
-        <Section title="Type de Fréquence" icon={Clock} defaultOpen colorClass="bg-[#67b8c2]">
+        <Section title="Type de Fréquence" icon={Clock} defaultOpen colorClass="bg-[#BFDDCE]">
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="text-sm px-3 py-1">{freq?.label || demande.frequence}</Badge>
