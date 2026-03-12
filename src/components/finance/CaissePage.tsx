@@ -237,16 +237,17 @@ export default function CaissePage() {
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs uppercase">Date</TableHead>
-                  <TableHead className="text-xs uppercase">Type</TableHead>
-                  <TableHead className="text-xs uppercase">Libellé</TableHead>
-                  <TableHead className="text-xs uppercase">Client</TableHead>
-                  <TableHead className="text-xs uppercase">Mode paiement</TableHead>
-                  <TableHead className="text-xs uppercase">Montant</TableHead>
-                  <TableHead className="text-xs uppercase">Utilisateur</TableHead>
-                  <TableHead className="text-xs uppercase">Actions</TableHead>
-                </TableRow>
+                 <TableRow>
+                   <TableHead className="text-xs uppercase">Date</TableHead>
+                   <TableHead className="text-xs uppercase">Type</TableHead>
+                   <TableHead className="text-xs uppercase">Libellé</TableHead>
+                   <TableHead className="text-xs uppercase">Client</TableHead>
+                   <TableHead className="text-xs uppercase">Mode paiement</TableHead>
+                   <TableHead className="text-xs uppercase">Montant</TableHead>
+                   <TableHead className="text-xs uppercase">Utilisateur</TableHead>
+                   <TableHead className="text-xs uppercase">Document</TableHead>
+                   <TableHead className="text-xs uppercase">Actions</TableHead>
+                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
