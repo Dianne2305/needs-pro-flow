@@ -382,15 +382,6 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
           <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_en_cours" } })} className="text-green-600">
-          <CreditCard className="h-4 w-4 mr-2" />Facturation en cours
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_partielle" } })} className="text-amber-600">
-          <CreditCard className="h-4 w-4 mr-2" />Facturation partielle
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "paye" } })} className="text-emerald-700">
-          <CheckCircle className="h-4 w-4 mr-2" />Payé
-        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
           <XCircle className="h-4 w-4 mr-2" />Rejeté / Annulé
