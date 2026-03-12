@@ -128,6 +128,19 @@ export default function CaissePage() {
 
   return (
     <div className="space-y-6">
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-3">
+        <Button onClick={() => handleAdd("entree")} className="bg-emerald-600 hover:bg-emerald-700">
+          <Plus className="h-4 w-4 mr-2" /> Ajouter une entrée
+        </Button>
+        <Button onClick={() => handleAdd("sortie")} variant="destructive">
+          <Plus className="h-4 w-4 mr-2" /> Ajouter une sortie
+        </Button>
+        <Button variant="outline" onClick={exportCSV} className="ml-auto">
+          <Download className="h-4 w-4 mr-2" /> Export CSV
+        </Button>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-primary">
@@ -169,19 +182,6 @@ export default function CaissePage() {
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-3">
-        <Button onClick={() => handleAdd("entree")} className="bg-emerald-600 hover:bg-emerald-700">
-          <Plus className="h-4 w-4 mr-2" /> Ajouter une entrée
-        </Button>
-        <Button onClick={() => handleAdd("sortie")} variant="destructive">
-          <Plus className="h-4 w-4 mr-2" /> Ajouter une sortie
-        </Button>
-        <Button variant="outline" onClick={exportCSV} className="ml-auto">
-          <Download className="h-4 w-4 mr-2" /> Export CSV
-        </Button>
       </div>
 
       {/* Filters */}
