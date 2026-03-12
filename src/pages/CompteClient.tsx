@@ -595,27 +595,72 @@ export default function CompteClient() {
         </Section>
 
         {/* Candidatures proposées */}
-        <Section title="Candidatures Proposées" icon={Users} colorClass="bg-[hsl(140,30%,95%)]" count={d.candidat_nom ? 1 : 0}>
+        <Section title="Candidats Proposés" icon={Users} colorClass="bg-[hsl(140,30%,95%)]" count={d.candidat_nom ? 1 : 0}>
           {d.candidat_nom ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nom prénom</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Avis du client</TableHead>
+                  <TableHead>Date d'intervention</TableHead>
+                  <TableHead>Nom du profil</TableHead>
+                  <TableHead>Statut profil</TableHead>
+                  <TableHead>Statut paiement</TableHead>
+                  <TableHead>Note du profil</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
+                  <TableCell className="text-xs">{demande.date_prestation || "—"}</TableCell>
                   <TableCell className="font-medium">{d.candidat_nom}</TableCell>
                   <TableCell>
-                    {statutCand ? (
-                      <Badge variant="outline">{statutCand.label}</Badge>
-                    ) : (
-                      <Badge variant="outline">Présenté</Badge>
-                    )}
+                    {(() => {
+                      const statutMap: Record<string, { label: string; color: string }> = {
+                        envoye: { label: "Présenté", color: "bg-blue-100 text-blue-800" },
+                        accepte: { label: "Présenté", color: "bg-green-100 text-green-800" },
+                        refuse: { label: "Désistement", color: "bg-red-100 text-red-800" },
+                        desistement: { label: "Désistement", color: "bg-red-100 text-red-800" },
+                      };
+                      const st = statutMap[d.statut_candidature] || { label: "Présenté", color: "bg-blue-100 text-blue-800" };
+                      return <Badge className={st.color}>{st.label}</Badge>;
+                    })()}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">—</TableCell>
+                  <TableCell>
+                    {(() => {
+                      const paiementMap: Record<string, { label: string; color: string }> = {
+                        non_paye: { label: "Non payé", color: "bg-red-100 text-red-800" },
+                        paye: { label: "Payé", color: "bg-green-100 text-green-800" },
+                        partiel: { label: "Partiel", color: "bg-yellow-100 text-yellow-800" },
+                      };
+                      const sp = facturation?.statut_paiement || d.statut_paiement_commercial || "non_paye";
+                      const st = paiementMap[sp] || paiementMap.non_paye;
+                      return <Badge className={st.color}>{st.label}</Badge>;
+                    })()}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      // Map satisfaction from feedback to stars
+                      const satisfactionStars: Record<string, number> = {
+                        "Très satisfait": 5,
+                        "Très satisfaite": 5,
+                        "Satisfait": 4,
+                        "Satisfaite": 4,
+                        "Moyennement satisfait": 3,
+                        "Moyennement satisfaite": 3,
+                        "Pas satisfait": 2,
+                        "Pas satisfaite": 2,
+                        "Pas content": 1,
+                        "Pas contente": 1,
+                      };
+                      const stars = feedback?.satisfaction ? (satisfactionStars[feedback.satisfaction] || 0) : 0;
+                      if (!stars) return <span className="text-xs text-muted-foreground">—</span>;
+                      return (
+                        <span className="flex items-center gap-0.5">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={`h-3.5 w-3.5 ${i < stars ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                          ))}
+                        </span>
+                      );
+                    })()}
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
