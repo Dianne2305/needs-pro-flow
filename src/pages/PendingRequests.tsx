@@ -729,7 +729,7 @@ export default function PendingRequests() {
                 </SelectContent>
               </Select>
             </div>
-            {(editForm.statut_paiement_commercial === "acompte_verse" || editForm.statut_paiement_commercial === "paiement_partiel") && (
+            {(editForm.statut_paiement_commercial === "paiement_en_attente") && (
               <div>
                 <Label>Montant versé par le client (MAD)</Label>
                 <Input type="number" value={editForm.montant_verse_client} onChange={(e) => updateEditForm("montant_verse_client", e.target.value)} />
