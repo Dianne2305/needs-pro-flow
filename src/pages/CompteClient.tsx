@@ -216,8 +216,50 @@ export default function CompteClient() {
     createRenewalMutation.mutate({
       ...renewForm,
       services_optionnels: "[]",
-      statut: "en_attente",
+      statut: "en_cours",
     });
+  };
+
+  const openRenewForDemande = (d: Demande) => {
+    setRenewForm({
+      nom: d.nom,
+      telephone_direct: d.telephone_direct,
+      telephone_whatsapp: d.telephone_whatsapp,
+      type_service: d.type_service,
+      type_prestation: d.type_prestation,
+      type_bien: d.type_bien,
+      frequence: d.frequence,
+      ville: d.ville,
+      quartier: d.quartier,
+      adresse: d.adresse,
+      montant_total: d.montant_total,
+      duree_heures: d.duree_heures,
+      nombre_intervenants: d.nombre_intervenants,
+      avec_produit: d.avec_produit,
+      email: (d as any).email,
+      nom_entreprise: (d as any).nom_entreprise,
+      contact_entreprise: (d as any).contact_entreprise,
+    });
+    setActiveDemande(d);
+    setRenewOpen(true);
+  };
+
+  const openSwitchForDemande = (d: Demande) => {
+    setActiveDemande(d);
+    setSelectedFrequence("");
+    setSwitchAboOpen(true);
+  };
+
+  // Tarif calculation for subscription based on frequency
+  const calculateAboTarif = (baseTarif: number | null, freq: string) => {
+    if (!baseTarif) return null;
+    const multipliers: Record<string, number> = {
+      quotidien: 26,
+      hebdomadaire: 4,
+      bi_mensuel: 2,
+      mensuel: 1,
+    };
+    return baseTarif * (multipliers[freq] || 1);
   };
 
   const fideliteCount = allClientDemandes.length;
