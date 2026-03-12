@@ -129,6 +129,12 @@ export default function CaissePage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-[hsl(220,40%,20%)] text-white rounded-lg px-6 py-5">
+        <h2 className="text-xl font-bold flex items-center gap-2"><Wallet className="h-5 w-5" /> La Caisse</h2>
+        <p className="text-sm text-white/70">Gestion des entrées et sorties de trésorerie</p>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3">
         <Button onClick={() => handleAdd("entree")} className="bg-emerald-600 hover:bg-emerald-700">
