@@ -151,6 +151,8 @@ export default function CompteClient() {
   const [renewOpen, setRenewOpen] = useState(false);
   const [switchAboOpen, setSwitchAboOpen] = useState(false);
   const [selectedFrequence, setSelectedFrequence] = useState("");
+  const [aboNbPersonnes, setAboNbPersonnes] = useState("");
+  const [aboNbHeures, setAboNbHeures] = useState("");
   const [activeDemande, setActiveDemande] = useState<Demande | null>(null);
 
   // Renew form state (pre-filled from current demande)
