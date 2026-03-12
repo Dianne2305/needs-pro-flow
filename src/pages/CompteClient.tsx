@@ -533,99 +533,54 @@ export default function CompteClient() {
           )}
         </Section>
 
-        {/* Détails réservation / devis */}
+        {/* Historique Documents */}
         <Section
-          title={isReservation ? "Détails Réservation" : "Détails Devis"}
-          icon={CreditCard}
+          title="Historique Documents"
+          icon={FileText}
           defaultOpen
           colorClass="bg-[hsl(270,25%,96%)]"
         >
-          <div className="space-y-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Réf</TableHead>
-                  <TableHead>Tarif</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Fréquence</TableHead>
-                  <TableHead>Création</TableHead>
-                  <TableHead>Confirmation</TableHead>
-                  <TableHead>Nb confirmations</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-mono text-xs">#{demande.num_demande}</TableCell>
-                  <TableCell className="font-medium">{demande.montant_total ? `${demande.montant_total} MAD` : "—"}</TableCell>
-                  <TableCell>
-                    {s ? (
-                      <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#fff" }}>
-                        {s.label}
-                      </Badge>
-                    ) : demande.statut}
-                  </TableCell>
-                  <TableCell className="text-xs">{freq?.label || demande.frequence}</TableCell>
-                  <TableCell className="text-xs">{format(new Date(demande.created_at), "dd/MM/yy HH:mm")}</TableCell>
-                  <TableCell className="text-xs">{demande.confirmed_at ? format(new Date(demande.confirmed_at), "dd/MM/yy HH:mm") : "—"}</TableCell>
-                  <TableCell className="text-center">1</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Télécharger PDF">
-                        <FileDown className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-
-            {/* Historique docs */}
-            <div className="border-t pt-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Historique Documents</p>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date d'émission</TableHead>
-                    <TableHead>Commercial</TableHead>
-                    <TableHead>Segment</TableHead>
-                    <TableHead>Type de service</TableHead>
-                    <TableHead>Statut demande</TableHead>
-                    <TableHead className="text-center">Fichier (PNG/PDF)</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="text-xs">{format(new Date(demande.created_at), "dd/MM/yyyy")}</TableCell>
-                    <TableCell className="text-xs font-medium">—</TableCell>
-                    <TableCell>
-                      <Badge className={demande.type_service === "SPP" ? "bg-primary text-primary-foreground text-[10px]" : "bg-spe text-spe-foreground text-[10px]"}>
-                        {demande.type_service === "SPP" ? "Particulier" : "Entreprise"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs">{demande.type_prestation}</TableCell>
-                    <TableCell>
-                      {s ? (
-                        <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#fff" }}>
-                          {s.label}
-                        </Badge>
-                      ) : demande.statut}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir le formulaire">
-                          <Eye className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Télécharger">
-                          <FileDown className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date d'émission</TableHead>
+                <TableHead>Commercial</TableHead>
+                <TableHead>Segment</TableHead>
+                <TableHead>Type de service</TableHead>
+                <TableHead>Statut demande</TableHead>
+                <TableHead className="text-center">Fichier (PNG/PDF)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="text-xs">{format(new Date(demande.created_at), "dd/MM/yyyy")}</TableCell>
+                <TableCell className="text-xs font-medium">—</TableCell>
+                <TableCell>
+                  <Badge className={demande.type_service === "SPP" ? "bg-primary text-primary-foreground text-[10px]" : "bg-spe text-spe-foreground text-[10px]"}>
+                    {demande.type_service === "SPP" ? "Particulier" : "Entreprise"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-xs">{demande.type_prestation}</TableCell>
+                <TableCell>
+                  {s ? (
+                    <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#fff" }}>
+                      {s.label}
+                    </Badge>
+                  ) : demande.statut}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir le formulaire">
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" title="Télécharger">
+                      <FileDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </Section>
 
         {/* Candidatures proposées */}
