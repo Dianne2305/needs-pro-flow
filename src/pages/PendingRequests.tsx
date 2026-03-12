@@ -547,7 +547,7 @@ export default function PendingRequests() {
                     className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
                     onClick={() => statusMutation.mutate({ id: d.id, statut: "confirmee" })}
                   >
-                    Confirmer
+                    Valider demande
                   </Button>
                   <Button
                     size="sm"
