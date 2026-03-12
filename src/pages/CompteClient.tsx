@@ -30,25 +30,34 @@ import { cn } from "@/lib/utils";
 type Demande = Tables<"demandes">;
 
 // Colored section component
+const LIGHT_COLORS = ["#BFDDCE", "#DBAE8D", "#F2E5D3", "#F4A24C"];
+
 function Section({ title, icon: Icon, children, defaultOpen = false, count, colorClass = "bg-card" }: {
   title: string; icon: any; defaultOpen?: boolean; count?: number; children: React.ReactNode; colorClass?: string;
 }) {
+  const hex = colorClass.match(/#[A-Fa-f0-9]+/)?.[0] || "";
+  const isLight = LIGHT_COLORS.includes(hex.toUpperCase());
+  const textClass = isLight ? "text-gray-800" : "text-white";
+  const iconBg = isLight ? "bg-black/10 text-gray-800" : "bg-white/20 text-white";
+  const chevronClass = isLight ? "text-gray-600" : "text-white/70";
+  const badgeCls = isLight ? "bg-black/10 text-gray-800 border-0" : "bg-white/20 text-white border-0";
+
   return (
     <Collapsible defaultOpen={defaultOpen}>
       <CollapsibleTrigger className={cn(
-        "flex items-center justify-between w-full px-5 py-3.5 rounded-t-xl text-sm font-semibold border border-border hover:shadow-sm transition-all group text-white",
-        colorClass
+        "flex items-center justify-between w-full px-5 py-3.5 rounded-t-xl text-sm font-semibold border border-border hover:shadow-sm transition-all group",
+        colorClass, textClass
       )}>
         <span className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center h-7 w-7 rounded-lg bg-white/20 text-white">
+          <span className={cn("flex items-center justify-center h-7 w-7 rounded-lg", iconBg)}>
             <Icon className="h-4 w-4" />
           </span>
           {title}
           {count !== undefined && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-white/20 text-white border-0">{count}</Badge>
+            <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0", badgeCls)}>{count}</Badge>
           )}
         </span>
-        <ChevronDown className="h-4 w-4 text-white/70 transition-transform group-data-[state=open]:rotate-180" />
+        <ChevronDown className={cn("h-4 w-4 transition-transform group-data-[state=open]:rotate-180", chevronClass)} />
       </CollapsibleTrigger>
       <CollapsibleContent className="px-5 pt-3 pb-4 border border-t-0 border-border rounded-b-xl bg-card">
         {children}
