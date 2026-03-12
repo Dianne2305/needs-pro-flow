@@ -38,6 +38,24 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showClientDemandes, setShowClientDemandes] = useState(false);
 
+  // Auto-fill utilisateur from logged-in user
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name")
+          .eq("id", user.id)
+          .single();
+        setUtilisateur(profile?.display_name || user.email || "");
+      }
+    };
+    if (open && !operation) {
+      fetchUser();
+    }
+  }, [open, operation]);
+
   // Fetch demandes linked to the client
   const { data: clientDemandes = [] } = useQuery({
     queryKey: ["demandes_client", clientNom],
@@ -270,7 +288,7 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
 
           <div>
             <Label>Utilisateur</Label>
-            <Input value={utilisateur} onChange={(e) => setUtilisateur(e.target.value)} placeholder="Qui enregistre l'opération ?" />
+            <Input value={utilisateur} readOnly className="bg-muted/50 cursor-default" />
           </div>
 
           {/* File upload */}
