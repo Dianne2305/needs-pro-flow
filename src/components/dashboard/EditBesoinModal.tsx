@@ -260,7 +260,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
               </SelectContent>
             </Select>
           </div>
-          {(statutPaiement === "acompte_verse" || statutPaiement === "paiement_partiel") && (
+          {(statutPaiement === "paiement_en_attente") && (
             <div>
               <Label>Montant versé par le client (MAD)</Label>
               <Input type="number" value={montantVerse} onChange={(e) => setMontantVerse(e.target.value)} />

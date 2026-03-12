@@ -493,9 +493,8 @@ export default function Dashboard() {
                     const opt = STATUTS_PAIEMENT_COMMERCIAL.find(s => s.value === sp);
                     const colorMap: Record<string, string> = {
                       non_paye: "bg-red-100 text-red-800",
-                      acompte_verse: "bg-amber-100 text-amber-800",
-                      paiement_partiel: "bg-amber-100 text-amber-800",
-                      paiement_integral: "bg-emerald-100 text-emerald-800",
+                      paiement_en_attente: "bg-amber-100 text-amber-800",
+                      paiement_effectue: "bg-emerald-100 text-emerald-800",
                     };
                     return <Badge variant="outline" className={`border-0 text-[10px] ${colorMap[sp] || ""}`}>{opt?.label || sp}</Badge>;
                   })()}
