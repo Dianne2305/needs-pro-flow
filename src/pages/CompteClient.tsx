@@ -352,54 +352,82 @@ export default function CompteClient() {
       {/* Sections */}
       <div className="space-y-3">
 
-        {/* Row: Infos Client + Historique Fidélité */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,40%,96%)]">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-              <InfoItem label="Nom complet" value={demande.nom} />
-              <InfoItem label="Segment" value={demande.type_service === "SPP" ? "Particulier" : "Entreprise"} />
-              <InfoItem label="Téléphone direct" value={demande.telephone_direct} />
-              <InfoItem label="WhatsApp" value={demande.telephone_whatsapp} />
-              <InfoItem label="Email" value={d.email} />
-              <InfoItem label="Ville" value={demande.ville} />
-              <InfoItem label="Quartier" value={demande.quartier} />
-              <InfoItem label="Adresse" value={demande.adresse} />
-              {d.nom_entreprise && <InfoItem label="Entreprise" value={d.nom_entreprise} />}
-              {d.contact_entreprise && <InfoItem label="Contact entreprise" value={d.contact_entreprise} />}
-            </div>
-          </Section>
+        {/* Infos Client - full width */}
+        <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,40%,96%)]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1">
+            <InfoItem label="Nom complet" value={demande.nom} />
+            <InfoItem label="Segment" value={demande.type_service === "SPP" ? "Particulier" : "Entreprise"} />
+            <InfoItem label="Téléphone direct" value={demande.telephone_direct} />
+            <InfoItem label="WhatsApp" value={demande.telephone_whatsapp} />
+            <InfoItem label="Email" value={d.email} />
+            <InfoItem label="Ville" value={demande.ville} />
+            <InfoItem label="Quartier" value={demande.quartier} />
+            <InfoItem label="Adresse" value={demande.adresse} />
+            {d.nom_entreprise && <InfoItem label="Entreprise" value={d.nom_entreprise} />}
+            {d.contact_entreprise && <InfoItem label="Contact entreprise" value={d.contact_entreprise} />}
+          </div>
+        </Section>
 
-          <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[hsl(330,40%,96%)]" count={fideliteCount}>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Ce client a fait appel à nos services <strong className="text-foreground">{fideliteCount} fois</strong>.
-              </p>
-              {allClientDemandes.length > 0 && (
-                <div className="max-h-[200px] overflow-y-auto space-y-1.5">
-                  {allClientDemandes.map((cd) => {
-                    const cs = STATUTS[cd.statut as keyof typeof STATUTS];
-                    return (
-                      <div key={cd.id} className="flex items-center justify-between p-2 bg-background/60 rounded-lg text-xs">
-                        <div>
-                          <span className="font-mono text-muted-foreground">#{cd.num_demande}</span>
-                          <span className="ml-2 font-medium">{cd.type_prestation}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">{format(new Date(cd.created_at), "dd/MM/yy")}</span>
-                          {cs && (
-                            <Badge variant="outline" className="border-0 text-[9px]" style={{ backgroundColor: cs.hex === "#ffffff" ? "#e2e8f0" : cs.hex, color: cs.hex === "#ffffff" ? "#334155" : "#fff" }}>
-                              {cs.label}
-                            </Badge>
+        {/* Historique Fidélité - full width below */}
+        <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[hsl(330,40%,96%)]" count={fideliteCount}>
+          {allClientDemandes.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Nom du service</TableHead>
+                  <TableHead>Segment</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allClientDemandes.map((cd) => {
+                  const cs = STATUTS[cd.statut as keyof typeof STATUTS];
+                  return (
+                    <TableRow key={cd.id}>
+                      <TableCell className="text-xs">{format(new Date(cd.created_at), "dd/MM/yyyy")}</TableCell>
+                      <TableCell className="text-sm font-medium">{cd.type_prestation}</TableCell>
+                      <TableCell>
+                        <Badge className={cd.type_service === "SPP" ? "bg-primary text-primary-foreground text-[10px]" : "bg-spe text-spe-foreground text-[10px]"}>
+                          {cd.type_service === "SPP" ? "Particulier" : "Entreprise"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {cs ? (
+                          <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: cs.hex === "#ffffff" ? "#e2e8f0" : cs.hex, color: cs.hex === "#ffffff" ? "#334155" : "#fff" }}>
+                            {cs.label}
+                          </Badge>
+                        ) : cd.statut}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openRenewForDemande(cd)}>
+                            <RefreshCw className="h-3 w-3" /> Renouveler
+                          </Button>
+                          {cd.frequence === "ponctuel" && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openSwitchForDemande(cd)}>
+                              <Repeat className="h-3 w-3" /> Abonnement
+                            </Button>
                           )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir détails"
+                            onClick={() => navigate(`/compte-client?id=${cd.id}&from=${location.pathname}${location.search}`)}>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Télécharger">
+                            <FileDown className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </Section>
-        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4 text-center">Aucun historique de fidélité.</p>
+          )}
+        </Section>
 
         {/* Row: Avis commercial + Avis opérationnel */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
