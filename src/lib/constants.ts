@@ -30,10 +30,13 @@ export const TYPES_BIEN = [
 
 export const FREQUENCES = [
   { value: "ponctuel", label: "Ponctuel" },
-  { value: "quotidien", label: "Quotidien" },
-  { value: "hebdomadaire", label: "Hebdomadaire" },
-  { value: "bi_mensuel", label: "Bi-mensuel" },
-  { value: "mensuel", label: "Mensuel" },
+  { value: "1_fois_semaine", label: "1 fois / semaine" },
+  { value: "2_fois_semaine", label: "2 fois / semaine" },
+  { value: "3_fois_semaine", label: "3 fois / semaine" },
+  { value: "4_fois_semaine", label: "4 fois / semaine" },
+  { value: "5_fois_semaine", label: "5 fois / semaine" },
+  { value: "6_fois_semaine", label: "6 fois / semaine" },
+  { value: "quotidien", label: "7j/7" },
 ] as const;
 
 export const QUARTIERS_CASABLANCA = [
