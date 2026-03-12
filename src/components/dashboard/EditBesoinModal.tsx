@@ -178,32 +178,13 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         <div className="grid grid-cols-4 gap-4">
           <div>
             <Label>Statut du besoin</Label>
-            <Select value={statut} onValueChange={setStatut}>
-              <SelectTrigger>
-                <div className="flex items-center gap-2">
-                  <span
-                    className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
-                    style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ffffff" }}
-                  />
-                  <SelectValue />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(STATUTS)
-                  .filter(([key]) => !["en_attente_confirmation", "en_attente_profil", "confirme_intervention", "standby", "cloturee"].includes(key))
-                  .map(([key, s]) => (
-                  <SelectItem key={key} value={key}>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
-                        style={{ backgroundColor: s.hex }}
-                      />
-                      {s.label}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 cursor-default">
+              <span
+                className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
+                style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ffffff" }}
+              />
+              <span className="text-sm">{STATUTS[statut as keyof typeof STATUTS]?.label || statut}</span>
+            </div>
           </div>
           <div>
             <Label>Segment</Label>
