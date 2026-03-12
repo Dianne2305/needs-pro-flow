@@ -340,14 +340,12 @@ export default function CompteClient() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setRenewOpen(true)}>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => openRenewForDemande(demande)}>
             <RefreshCw className="h-3.5 w-3.5" /> Renouveler
           </Button>
-          {demande.frequence === "ponctuel" && (
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setSwitchAboOpen(true)}>
-              <Repeat className="h-3.5 w-3.5" /> Switcher en abonnement
-            </Button>
-          )}
+          <Button variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
+            <Ban className="h-3.5 w-3.5" /> Black lister
+          </Button>
         </div>
       </div>
 
