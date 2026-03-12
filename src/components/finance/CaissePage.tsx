@@ -24,6 +24,7 @@ export interface OperationCaisse {
   projet_service: string | null;
   utilisateur: string | null;
   notes: string | null;
+  justificatif_url: string | null;
   created_at: string;
 }
 
