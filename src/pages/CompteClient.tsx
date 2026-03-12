@@ -14,7 +14,8 @@ import { STATUTS, FREQUENCES, STATUT_CANDIDATURE_OPTIONS } from "@/lib/constants
 import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
-  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown
+  FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
+  Ban
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -150,6 +151,7 @@ export default function CompteClient() {
   const [renewOpen, setRenewOpen] = useState(false);
   const [switchAboOpen, setSwitchAboOpen] = useState(false);
   const [selectedFrequence, setSelectedFrequence] = useState("");
+  const [activeDemande, setActiveDemande] = useState<Demande | null>(null);
 
   // Renew form state (pre-filled from current demande)
   const [renewForm, setRenewForm] = useState<Record<string, unknown>>({});
@@ -198,8 +200,9 @@ export default function CompteClient() {
 
   const switchToAboMutation = useMutation({
     mutationFn: async (frequence: string) => {
-      if (!demandeId) return;
-      const { error } = await supabase.from("demandes").update({ frequence }).eq("id", demandeId);
+      const targetId = activeDemande?.id || demandeId;
+      if (!targetId) return;
+      const { error } = await supabase.from("demandes").update({ frequence }).eq("id", targetId);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -207,6 +210,7 @@ export default function CompteClient() {
       queryClient.invalidateQueries({ queryKey: ["demandes"] });
       toast({ title: "Abonnement activé", description: "La demande a été convertie en abonnement." });
       setSwitchAboOpen(false);
+      setActiveDemande(null);
     },
   });
 
@@ -214,8 +218,50 @@ export default function CompteClient() {
     createRenewalMutation.mutate({
       ...renewForm,
       services_optionnels: "[]",
-      statut: "en_attente",
+      statut: "en_cours",
     });
+  };
+
+  const openRenewForDemande = (d: Demande) => {
+    setRenewForm({
+      nom: d.nom,
+      telephone_direct: d.telephone_direct,
+      telephone_whatsapp: d.telephone_whatsapp,
+      type_service: d.type_service,
+      type_prestation: d.type_prestation,
+      type_bien: d.type_bien,
+      frequence: d.frequence,
+      ville: d.ville,
+      quartier: d.quartier,
+      adresse: d.adresse,
+      montant_total: d.montant_total,
+      duree_heures: d.duree_heures,
+      nombre_intervenants: d.nombre_intervenants,
+      avec_produit: d.avec_produit,
+      email: (d as any).email,
+      nom_entreprise: (d as any).nom_entreprise,
+      contact_entreprise: (d as any).contact_entreprise,
+    });
+    setActiveDemande(d);
+    setRenewOpen(true);
+  };
+
+  const openSwitchForDemande = (d: Demande) => {
+    setActiveDemande(d);
+    setSelectedFrequence("");
+    setSwitchAboOpen(true);
+  };
+
+  // Tarif calculation for subscription based on frequency
+  const calculateAboTarif = (baseTarif: number | null, freq: string) => {
+    if (!baseTarif) return null;
+    const multipliers: Record<string, number> = {
+      quotidien: 26,
+      hebdomadaire: 4,
+      bi_mensuel: 2,
+      mensuel: 1,
+    };
+    return baseTarif * (multipliers[freq] || 1);
   };
 
   const fideliteCount = allClientDemandes.length;
@@ -296,68 +342,94 @@ export default function CompteClient() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setRenewOpen(true)}>
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => openRenewForDemande(demande)}>
             <RefreshCw className="h-3.5 w-3.5" /> Renouveler
           </Button>
-          {demande.frequence === "ponctuel" && (
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setSwitchAboOpen(true)}>
-              <Repeat className="h-3.5 w-3.5" /> Switcher en abonnement
-            </Button>
-          )}
+          <Button variant="outline" size="sm" className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10">
+            <Ban className="h-3.5 w-3.5" /> Black lister
+          </Button>
         </div>
       </div>
 
       {/* Sections */}
       <div className="space-y-3">
 
-        {/* Row: Infos Client + Historique Fidélité */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,40%,96%)]">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-              <InfoItem label="Nom complet" value={demande.nom} />
-              <InfoItem label="Segment" value={demande.type_service === "SPP" ? "Particulier" : "Entreprise"} />
-              <InfoItem label="Téléphone direct" value={demande.telephone_direct} />
-              <InfoItem label="WhatsApp" value={demande.telephone_whatsapp} />
-              <InfoItem label="Email" value={d.email} />
-              <InfoItem label="Ville" value={demande.ville} />
-              <InfoItem label="Quartier" value={demande.quartier} />
-              <InfoItem label="Adresse" value={demande.adresse} />
-              {d.nom_entreprise && <InfoItem label="Entreprise" value={d.nom_entreprise} />}
-              {d.contact_entreprise && <InfoItem label="Contact entreprise" value={d.contact_entreprise} />}
-            </div>
-          </Section>
+        {/* Infos Client - full width */}
+        <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,40%,96%)]">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1">
+            <InfoItem label="Nom complet" value={demande.nom} />
+            <InfoItem label="Segment" value={demande.type_service === "SPP" ? "Particulier" : "Entreprise"} />
+            <InfoItem label="Téléphone direct" value={demande.telephone_direct} />
+            <InfoItem label="WhatsApp" value={demande.telephone_whatsapp} />
+            <InfoItem label="Email" value={d.email} />
+            <InfoItem label="Ville" value={demande.ville} />
+            <InfoItem label="Quartier" value={demande.quartier} />
+            <InfoItem label="Adresse" value={demande.adresse} />
+            {d.nom_entreprise && <InfoItem label="Entreprise" value={d.nom_entreprise} />}
+            {d.contact_entreprise && <InfoItem label="Contact entreprise" value={d.contact_entreprise} />}
+          </div>
+        </Section>
 
-          <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[hsl(330,40%,96%)]" count={fideliteCount}>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Ce client a fait appel à nos services <strong className="text-foreground">{fideliteCount} fois</strong>.
-              </p>
-              {allClientDemandes.length > 0 && (
-                <div className="max-h-[200px] overflow-y-auto space-y-1.5">
-                  {allClientDemandes.map((cd) => {
-                    const cs = STATUTS[cd.statut as keyof typeof STATUTS];
-                    return (
-                      <div key={cd.id} className="flex items-center justify-between p-2 bg-background/60 rounded-lg text-xs">
-                        <div>
-                          <span className="font-mono text-muted-foreground">#{cd.num_demande}</span>
-                          <span className="ml-2 font-medium">{cd.type_prestation}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">{format(new Date(cd.created_at), "dd/MM/yy")}</span>
-                          {cs && (
-                            <Badge variant="outline" className="border-0 text-[9px]" style={{ backgroundColor: cs.hex === "#ffffff" ? "#e2e8f0" : cs.hex, color: cs.hex === "#ffffff" ? "#334155" : "#fff" }}>
-                              {cs.label}
-                            </Badge>
+        {/* Historique Fidélité - full width below */}
+        <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[hsl(330,40%,96%)]" count={fideliteCount}>
+          {allClientDemandes.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Nom du service</TableHead>
+                  <TableHead>Segment</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allClientDemandes.map((cd) => {
+                  const cs = STATUTS[cd.statut as keyof typeof STATUTS];
+                  return (
+                    <TableRow key={cd.id}>
+                      <TableCell className="text-xs">{format(new Date(cd.created_at), "dd/MM/yyyy")}</TableCell>
+                      <TableCell className="text-sm font-medium">{cd.type_prestation}</TableCell>
+                      <TableCell>
+                        <Badge className={cd.type_service === "SPP" ? "bg-primary text-primary-foreground text-[10px]" : "bg-spe text-spe-foreground text-[10px]"}>
+                          {cd.type_service === "SPP" ? "Particulier" : "Entreprise"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {cs ? (
+                          <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: cs.hex === "#ffffff" ? "#e2e8f0" : cs.hex, color: cs.hex === "#ffffff" ? "#334155" : "#fff" }}>
+                            {cs.label}
+                          </Badge>
+                        ) : cd.statut}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openRenewForDemande(cd)}>
+                            <RefreshCw className="h-3 w-3" /> Renouveler
+                          </Button>
+                          {cd.frequence === "ponctuel" && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => openSwitchForDemande(cd)}>
+                              <Repeat className="h-3 w-3" /> Abonnement
+                            </Button>
                           )}
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir détails"
+                            onClick={() => navigate(`/compte-client?id=${cd.id}&from=${location.pathname}${location.search}`)}>
+                            <Eye className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" title="Télécharger">
+                            <FileDown className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </Section>
-        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground py-4 text-center">Aucun historique de fidélité.</p>
+          )}
+        </Section>
 
         {/* Row: Avis commercial + Avis opérationnel */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -796,16 +868,16 @@ export default function CompteClient() {
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setRenewOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setRenewOpen(false); setActiveDemande(null); }}>Annuler</Button>
             <Button onClick={handleRenew} disabled={createRenewalMutation.isPending} className="gap-1.5">
-              <RefreshCw className="h-4 w-4" /> Valider le renouvellement
+              <RefreshCw className="h-4 w-4" /> Activer
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Switcher en abonnement Modal */}
-      <Dialog open={switchAboOpen} onOpenChange={setSwitchAboOpen}>
+      <Dialog open={switchAboOpen} onOpenChange={(open) => { setSwitchAboOpen(open); if (!open) setActiveDemande(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -813,41 +885,49 @@ export default function CompteClient() {
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Choisissez la fréquence d'abonnement pour cette demande. La demande actuelle sera convertie.
+            Choisissez la fréquence d'abonnement. Le tarif mensuel sera calculé automatiquement.
           </p>
           <div className="space-y-4 mt-3">
             <div className="grid grid-cols-1 gap-2">
-              {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setSelectedFrequence(f.value)}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-lg border-2 text-left transition-all",
-                    selectedFrequence === f.value
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-primary/30 hover:bg-muted/50"
-                  )}
-                >
-                  <div>
-                    <p className="font-semibold text-sm">{f.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {f.value === "quotidien" && "Intervention chaque jour"}
-                      {f.value === "hebdomadaire" && "Une fois par semaine"}
-                      {f.value === "bi_mensuel" && "Deux fois par mois"}
-                      {f.value === "mensuel" && "Une fois par mois"}
-                    </p>
-                  </div>
-                  {selectedFrequence === f.value && (
-                    <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+              {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => {
+                const aboTarif = calculateAboTarif(activeDemande?.montant_total ?? null, f.value);
+                return (
+                  <button
+                    key={f.value}
+                    onClick={() => setSelectedFrequence(f.value)}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-lg border-2 text-left transition-all",
+                      selectedFrequence === f.value
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/30 hover:bg-muted/50"
+                    )}
+                  >
+                    <div>
+                      <p className="font-semibold text-sm">{f.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {f.value === "quotidien" && "Intervention chaque jour"}
+                        {f.value === "hebdomadaire" && "Une fois par semaine"}
+                        {f.value === "bi_mensuel" && "Deux fois par mois"}
+                        {f.value === "mensuel" && "Une fois par mois"}
+                      </p>
                     </div>
-                  )}
-                </button>
-              ))}
+                    <div className="flex items-center gap-2">
+                      {aboTarif && (
+                        <span className="text-sm font-bold text-primary">{aboTarif} MAD/mois</span>
+                      )}
+                      {selectedFrequence === f.value && (
+                        <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                          <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setSwitchAboOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setSwitchAboOpen(false); setActiveDemande(null); }}>Annuler</Button>
             <Button
               onClick={() => switchToAboMutation.mutate(selectedFrequence)}
               disabled={!selectedFrequence || switchToAboMutation.isPending}
