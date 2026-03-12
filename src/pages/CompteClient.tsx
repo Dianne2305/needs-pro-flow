@@ -515,7 +515,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Détails besoin actuel */}
-        <Section title="Détails Besoin Actuel" icon={Briefcase} defaultOpen colorClass="bg-[#006694]">
+        <Section title="Détails Besoin Actuel" icon={Briefcase} defaultOpen colorClass="bg-[#027A76]">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
             <InfoItem label="Réf commande" value={<span className="font-mono">#{demande.num_demande}</span>} />
             <InfoItem label="Type de service" value={demande.type_prestation} />
