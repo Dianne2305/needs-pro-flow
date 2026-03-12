@@ -675,7 +675,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Feedback Client */}
-        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,60%,95%)]" count={allClientFeedbacks.length}>
+        <Section title="Feedback Client" icon={Star} colorClass="bg-[hsl(45,65%,35%)]" count={allClientFeedbacks.length}>
           {allClientFeedbacks.length > 0 ? (
             <div className="space-y-3">
               <Table>
