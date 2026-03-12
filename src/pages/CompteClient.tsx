@@ -371,7 +371,7 @@ export default function CompteClient() {
       <div className="space-y-3">
 
         {/* Infos Client - full width */}
-        <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[hsl(210,50%,35%)]">
+        <Section title="Informations Client" icon={User} defaultOpen colorClass="bg-[#006694]">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1">
             <InfoItem label="Nom complet" value={demande.nom} />
             <InfoItem label="Segment" value={demande.type_service === "SPP" ? "Particulier" : "Entreprise"} />
