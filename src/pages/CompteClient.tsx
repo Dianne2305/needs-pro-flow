@@ -877,7 +877,7 @@ export default function CompteClient() {
       </Dialog>
 
       {/* Switcher en abonnement Modal */}
-      <Dialog open={switchAboOpen} onOpenChange={setSwitchAboOpen}>
+      <Dialog open={switchAboOpen} onOpenChange={(open) => { setSwitchAboOpen(open); if (!open) setActiveDemande(null); }}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -885,41 +885,49 @@ export default function CompteClient() {
             </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Choisissez la fréquence d'abonnement pour cette demande. La demande actuelle sera convertie.
+            Choisissez la fréquence d'abonnement. Le tarif mensuel sera calculé automatiquement.
           </p>
           <div className="space-y-4 mt-3">
             <div className="grid grid-cols-1 gap-2">
-              {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setSelectedFrequence(f.value)}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-lg border-2 text-left transition-all",
-                    selectedFrequence === f.value
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border hover:border-primary/30 hover:bg-muted/50"
-                  )}
-                >
-                  <div>
-                    <p className="font-semibold text-sm">{f.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {f.value === "quotidien" && "Intervention chaque jour"}
-                      {f.value === "hebdomadaire" && "Une fois par semaine"}
-                      {f.value === "bi_mensuel" && "Deux fois par mois"}
-                      {f.value === "mensuel" && "Une fois par mois"}
-                    </p>
-                  </div>
-                  {selectedFrequence === f.value && (
-                    <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                      <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+              {FREQUENCES.filter(f => f.value !== "ponctuel").map((f) => {
+                const aboTarif = calculateAboTarif(activeDemande?.montant_total ?? null, f.value);
+                return (
+                  <button
+                    key={f.value}
+                    onClick={() => setSelectedFrequence(f.value)}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-lg border-2 text-left transition-all",
+                      selectedFrequence === f.value
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border hover:border-primary/30 hover:bg-muted/50"
+                    )}
+                  >
+                    <div>
+                      <p className="font-semibold text-sm">{f.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {f.value === "quotidien" && "Intervention chaque jour"}
+                        {f.value === "hebdomadaire" && "Une fois par semaine"}
+                        {f.value === "bi_mensuel" && "Deux fois par mois"}
+                        {f.value === "mensuel" && "Une fois par mois"}
+                      </p>
                     </div>
-                  )}
-                </button>
-              ))}
+                    <div className="flex items-center gap-2">
+                      {aboTarif && (
+                        <span className="text-sm font-bold text-primary">{aboTarif} MAD/mois</span>
+                      )}
+                      {selectedFrequence === f.value && (
+                        <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                          <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setSwitchAboOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setSwitchAboOpen(false); setActiveDemande(null); }}>Annuler</Button>
             <Button
               onClick={() => switchToAboMutation.mutate(selectedFrequence)}
               disabled={!selectedFrequence || switchToAboMutation.isPending}
