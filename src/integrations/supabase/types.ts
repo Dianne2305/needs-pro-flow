@@ -545,6 +545,7 @@ export type Database = {
           created_at: string
           date_operation: string
           id: string
+          justificatif_url: string | null
           libelle: string
           mode_paiement: string
           montant: number
@@ -559,6 +560,7 @@ export type Database = {
           created_at?: string
           date_operation?: string
           id?: string
+          justificatif_url?: string | null
           libelle: string
           mode_paiement?: string
           montant?: number
@@ -573,6 +575,7 @@ export type Database = {
           created_at?: string
           date_operation?: string
           id?: string
+          justificatif_url?: string | null
           libelle?: string
           mode_paiement?: string
           montant?: number
