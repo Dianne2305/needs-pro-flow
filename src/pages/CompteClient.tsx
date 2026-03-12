@@ -549,7 +549,7 @@ export default function CompteClient() {
           title="Historique Documents"
           icon={FileText}
           defaultOpen
-          colorClass="bg-[hsl(270,25%,96%)]"
+          colorClass="bg-[hsl(270,35%,38%)]"
         >
           <Table>
             <TableHeader>
