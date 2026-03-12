@@ -459,7 +459,7 @@ export default function CompteClient() {
             />
           </Section>
 
-          <Section title="Avis Service Opérationnel" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(25,50%,95%)]">
+          <Section title="Avis Service Opérationnel" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(25,55%,40%)]">
             <Textarea
               value={noteOpe}
               onChange={(e) => setNoteOpe(e.target.value)}
