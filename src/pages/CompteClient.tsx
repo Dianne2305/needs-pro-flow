@@ -796,7 +796,7 @@ export default function CompteClient() {
         </Dialog>
 
         {/* Historique actions */}
-        <Section title="Historique" icon={Clock} colorClass="bg-[hsl(0,0%,30%)]">
+        <Section title="Historique" icon={Clock} colorClass="bg-[#a8d9ec]">
           <Table>
             <TableHeader>
               <TableRow>
