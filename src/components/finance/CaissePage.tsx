@@ -131,17 +131,14 @@ export default function CaissePage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-[hsl(220,40%,20%)] text-white rounded-lg px-6 py-5">
-        <h2 className="text-xl font-bold flex items-center gap-2"><Wallet className="h-5 w-5" /> La Caisse</h2>
-        <p className="text-sm text-white/70">Gestion des entrées et sorties de trésorerie</p>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Wallet className="h-6 w-6" /> Gestion de Caisse</h1>
+        <p className="text-sm text-white/70 mt-1">Suivi des entrées et sorties de trésorerie</p>
       </div>
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-3">
-        <Button onClick={() => handleAdd("entree")} className="bg-emerald-600 hover:bg-emerald-700">
-          <Plus className="h-4 w-4 mr-2" /> Ajouter une entrée
-        </Button>
-        <Button onClick={() => handleAdd("sortie")} variant="destructive">
-          <Plus className="h-4 w-4 mr-2" /> Ajouter une sortie
+        <Button onClick={() => handleAdd("entree")}>
+          <Plus className="h-4 w-4 mr-2" /> Ajouter un mouvement
         </Button>
         <Button variant="outline" onClick={exportCSV} className="ml-auto">
           <Download className="h-4 w-4 mr-2" /> Export CSV
