@@ -539,6 +539,51 @@ export type Database = {
         }
         Relationships: []
       }
+      operations_caisse: {
+        Row: {
+          client_nom: string | null
+          created_at: string
+          date_operation: string
+          id: string
+          libelle: string
+          mode_paiement: string
+          montant: number
+          notes: string | null
+          projet_service: string | null
+          type_operation: string
+          updated_at: string
+          utilisateur: string | null
+        }
+        Insert: {
+          client_nom?: string | null
+          created_at?: string
+          date_operation?: string
+          id?: string
+          libelle: string
+          mode_paiement?: string
+          montant?: number
+          notes?: string | null
+          projet_service?: string | null
+          type_operation: string
+          updated_at?: string
+          utilisateur?: string | null
+        }
+        Update: {
+          client_nom?: string | null
+          created_at?: string
+          date_operation?: string
+          id?: string
+          libelle?: string
+          mode_paiement?: string
+          montant?: number
+          notes?: string | null
+          projet_service?: string | null
+          type_operation?: string
+          updated_at?: string
+          utilisateur?: string | null
+        }
+        Relationships: []
+      }
       profil_historique: {
         Row: {
           action: string
