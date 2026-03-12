@@ -868,9 +868,9 @@ export default function CompteClient() {
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => setRenewOpen(false)}>Annuler</Button>
+            <Button variant="outline" onClick={() => { setRenewOpen(false); setActiveDemande(null); }}>Annuler</Button>
             <Button onClick={handleRenew} disabled={createRenewalMutation.isPending} className="gap-1.5">
-              <RefreshCw className="h-4 w-4" /> Valider le renouvellement
+              <RefreshCw className="h-4 w-4" /> Activer
             </Button>
           </div>
         </DialogContent>
