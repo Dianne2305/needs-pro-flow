@@ -449,7 +449,7 @@ export default function CompteClient() {
 
         {/* Row: Avis commercial + Avis opérationnel */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Section title="Avis Service Commercial" icon={MessageSquare} defaultOpen colorClass="bg-[hsl(45,60%,38%)]">
+          <Section title="Avis Service Commercial" icon={MessageSquare} defaultOpen colorClass="bg-[#eab454]">
             <Textarea
               value={noteComm}
               onChange={(e) => setNoteComm(e.target.value)}
