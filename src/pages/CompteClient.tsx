@@ -110,6 +110,17 @@ export default function CompteClient() {
     enabled: !!demande?.nom,
   });
 
+  // Facturation for this demande (candidat payment info)
+  const { data: facturation } = useQuery({
+    queryKey: ["facturation_demande", demandeId],
+    queryFn: async () => {
+      if (!demandeId) return null;
+      const { data } = await supabase.from("facturation").select("*").eq("demande_id", demandeId).maybeSingle();
+      return data;
+    },
+    enabled: !!demandeId,
+  });
+
   const [detailFeedback, setDetailFeedback] = useState<any>(null);
 
   // Count all demandes for this client (fidélité)
