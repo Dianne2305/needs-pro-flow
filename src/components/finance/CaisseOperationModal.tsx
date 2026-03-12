@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -7,22 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Upload, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import type { OperationCaisse } from "./CaissePage";
-
-const LIBELLES_ENTREE = [
-  "Paiement client – prestation ménage",
-  "Paiement client – frais de recrutement",
-  "Paiement abonnement client",
-];
-
-const LIBELLES_SORTIE = [
-  "Paiement salaire femme de ménage",
-  "Achat matériel",
-  "Dépenses administratives",
-  "Dépenses marketing",
-  "Remboursement client",
-];
 
 interface Props {
   open: boolean;
@@ -34,17 +21,20 @@ interface Props {
 export default function CaisseOperationModal({ open, onOpenChange, operation, defaultType }: Props) {
   const queryClient = useQueryClient();
   const isEdit = !!operation;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [typeOp, setTypeOp] = useState<"entree" | "sortie">(defaultType);
   const [dateOp, setDateOp] = useState(new Date().toISOString().slice(0, 10));
   const [montant, setMontant] = useState("");
   const [modePaiement, setModePaiement] = useState("especes");
   const [libelle, setLibelle] = useState("");
-  const [libelleCustom, setLibelleCustom] = useState("");
   const [clientNom, setClientNom] = useState("");
   const [projetService, setProjetService] = useState("");
   const [utilisateur, setUtilisateur] = useState("");
   const [notes, setNotes] = useState("");
+  const [justificatifUrl, setJustificatifUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (operation) {
@@ -52,47 +42,59 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
       setDateOp(operation.date_operation);
       setMontant(String(operation.montant));
       setModePaiement(operation.mode_paiement);
-      const suggestions = operation.type_operation === "entree" ? LIBELLES_ENTREE : LIBELLES_SORTIE;
-      if (suggestions.includes(operation.libelle)) {
-        setLibelle(operation.libelle);
-        setLibelleCustom("");
-      } else {
-        setLibelle("autre");
-        setLibelleCustom(operation.libelle);
-      }
+      setLibelle(operation.libelle);
       setClientNom(operation.client_nom || "");
       setProjetService(operation.projet_service || "");
       setUtilisateur(operation.utilisateur || "");
       setNotes(operation.notes || "");
+      setJustificatifUrl(operation.justificatif_url || "");
+      setSelectedFile(null);
     } else {
       setTypeOp(defaultType);
       setDateOp(new Date().toISOString().slice(0, 10));
       setMontant("");
       setModePaiement("especes");
       setLibelle("");
-      setLibelleCustom("");
       setClientNom("");
       setProjetService("");
       setUtilisateur("");
       setNotes("");
+      setJustificatifUrl("");
+      setSelectedFile(null);
     }
   }, [operation, defaultType, open]);
 
+  const uploadFile = async (file: File): Promise<string> => {
+    const ext = file.name.split(".").pop();
+    const fileName = `caisse/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("justificatifs").upload(fileName, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from("justificatifs").getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
   const mutation = useMutation({
     mutationFn: async () => {
-      const finalLibelle = libelle === "autre" ? libelleCustom : libelle;
-      if (!finalLibelle || !montant) throw new Error("Champs obligatoires manquants");
+      if (!libelle || !montant) throw new Error("Champs obligatoires manquants");
+
+      let finalJustificatifUrl = justificatifUrl;
+      if (selectedFile) {
+        setUploading(true);
+        finalJustificatifUrl = await uploadFile(selectedFile);
+        setUploading(false);
+      }
 
       const payload = {
         type_operation: typeOp,
         date_operation: dateOp,
         montant: Number(montant),
         mode_paiement: modePaiement,
-        libelle: finalLibelle,
+        libelle,
         client_nom: clientNom || null,
         projet_service: projetService || null,
         utilisateur: utilisateur || null,
         notes: notes || null,
+        justificatif_url: finalJustificatifUrl || null,
       };
 
       if (isEdit) {
@@ -108,14 +110,29 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
       toast.success(isEdit ? "Opération modifiée" : "Opération ajoutée");
       onOpenChange(false);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err: any) => {
+      setUploading(false);
+      toast.error(err.message);
+    },
   });
 
-  const suggestions = typeOp === "entree" ? LIBELLES_ENTREE : LIBELLES_SORTIE;
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setJustificatifUrl("");
+    }
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    setJustificatifUrl("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Modifier l'opération" : typeOp === "entree" ? "Ajouter une entrée" : "Ajouter une sortie"}</DialogTitle>
         </DialogHeader>
@@ -124,7 +141,7 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Type d'opération</Label>
-              <Select value={typeOp} onValueChange={(v) => { setTypeOp(v as any); setLibelle(""); }}>
+              <Select value={typeOp} onValueChange={(v) => setTypeOp(v as any)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="entree">Entrée</SelectItem>
@@ -159,18 +176,12 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
 
           <div>
             <Label>Libellé / Motif *</Label>
-            <Select value={libelle} onValueChange={setLibelle}>
-              <SelectTrigger><SelectValue placeholder="Sélectionner un motif..." /></SelectTrigger>
-              <SelectContent>
-                {suggestions.map((s) => (
-                  <SelectItem key={s} value={s}>{s}</SelectItem>
-                ))}
-                <SelectItem value="autre">Autre (saisie libre)</SelectItem>
-              </SelectContent>
-            </Select>
-            {libelle === "autre" && (
-              <Input className="mt-2" value={libelleCustom} onChange={(e) => setLibelleCustom(e.target.value)} placeholder="Saisir le motif..." />
-            )}
+            <Textarea
+              value={libelle}
+              onChange={(e) => setLibelle(e.target.value)}
+              rows={3}
+              placeholder="Décrivez le motif de l'opération..."
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -196,6 +207,45 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
             <Input value={utilisateur} onChange={(e) => setUtilisateur(e.target.value)} placeholder="Qui enregistre l'opération ?" />
           </div>
 
+          {/* File upload */}
+          <div>
+            <Label>Document justificatif (optionnel)</Label>
+            {selectedFile ? (
+              <div className="mt-1 flex items-center gap-2 rounded-md border p-2 bg-muted/30">
+                <FileText className="h-4 w-4 text-primary" />
+                <span className="text-sm flex-1 truncate">{selectedFile.name}</span>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={removeFile}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : justificatifUrl ? (
+              <div className="mt-1 flex items-center gap-2 rounded-md border p-2 bg-muted/30">
+                <FileText className="h-4 w-4 text-primary" />
+                <a href={justificatifUrl} target="_blank" rel="noopener noreferrer" className="text-sm flex-1 truncate text-primary underline">
+                  Voir le document
+                </a>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={removeFile}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <div
+                className="mt-1 flex items-center justify-center gap-2 rounded-md border border-dashed p-4 cursor-pointer hover:bg-muted/30 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Cliquer pour télécharger (facture, reçu...)</span>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              onChange={handleFileChange}
+            />
+          </div>
+
           <div>
             <Label>Notes (optionnel)</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Remarques..." />
@@ -204,8 +254,8 @@ export default function CaisseOperationModal({ open, onOpenChange, operation, de
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending ? "Enregistrement..." : isEdit ? "Modifier" : "Enregistrer"}
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || uploading}>
+            {uploading ? "Upload..." : mutation.isPending ? "Enregistrement..." : isEdit ? "Modifier" : "Enregistrer"}
           </Button>
         </DialogFooter>
       </DialogContent>

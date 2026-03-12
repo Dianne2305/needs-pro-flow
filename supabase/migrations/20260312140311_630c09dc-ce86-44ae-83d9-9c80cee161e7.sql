@@ -1,0 +1,1 @@
+ALTER TABLE public.operations_caisse ADD COLUMN justificatif_url text DEFAULT NULL;

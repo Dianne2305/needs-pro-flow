@@ -24,6 +24,7 @@ export interface OperationCaisse {
   projet_service: string | null;
   utilisateur: string | null;
   notes: string | null;
+  justificatif_url: string | null;
   created_at: string;
 }
 
@@ -236,22 +237,23 @@ export default function CaissePage() {
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="text-xs uppercase">Date</TableHead>
-                  <TableHead className="text-xs uppercase">Type</TableHead>
-                  <TableHead className="text-xs uppercase">Libellé</TableHead>
-                  <TableHead className="text-xs uppercase">Client</TableHead>
-                  <TableHead className="text-xs uppercase">Mode paiement</TableHead>
-                  <TableHead className="text-xs uppercase">Montant</TableHead>
-                  <TableHead className="text-xs uppercase">Utilisateur</TableHead>
-                  <TableHead className="text-xs uppercase">Actions</TableHead>
-                </TableRow>
+                 <TableRow>
+                   <TableHead className="text-xs uppercase">Date</TableHead>
+                   <TableHead className="text-xs uppercase">Type</TableHead>
+                   <TableHead className="text-xs uppercase">Libellé</TableHead>
+                   <TableHead className="text-xs uppercase">Client</TableHead>
+                   <TableHead className="text-xs uppercase">Mode paiement</TableHead>
+                   <TableHead className="text-xs uppercase">Montant</TableHead>
+                   <TableHead className="text-xs uppercase">Utilisateur</TableHead>
+                   <TableHead className="text-xs uppercase">Document</TableHead>
+                   <TableHead className="text-xs uppercase">Actions</TableHead>
+                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Chargement...</TableCell></TableRow>
-                ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Aucune opération</TableCell></TableRow>
+                 {isLoading ? (
+                   <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Chargement...</TableCell></TableRow>
+                 ) : filtered.length === 0 ? (
+                   <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Aucune opération</TableCell></TableRow>
                 ) : (
                   filtered.map((op) => (
                     <TableRow key={op.id}>
@@ -267,7 +269,12 @@ export default function CaissePage() {
                       <TableCell className={`font-semibold ${op.type_operation === "entree" ? "text-emerald-700" : "text-red-600"}`}>
                         {op.type_operation === "entree" ? "+" : "-"}{fmt(op.montant)}
                       </TableCell>
-                      <TableCell className="text-sm">{op.utilisateur || "—"}</TableCell>
+                       <TableCell className="text-sm">{op.utilisateur || "—"}</TableCell>
+                       <TableCell className="text-sm">
+                         {op.justificatif_url ? (
+                           <a href={op.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Voir</a>
+                         ) : "—"}
+                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(op)}>
