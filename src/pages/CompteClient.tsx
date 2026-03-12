@@ -595,7 +595,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Candidatures proposées */}
-        <Section title="Candidats Proposés" icon={Users} colorClass="bg-[hsl(140,30%,95%)]" count={d.candidat_nom ? 1 : 0}>
+        <Section title="Candidats Proposés" icon={Users} colorClass="bg-[hsl(140,40%,30%)]" count={d.candidat_nom ? 1 : 0}>
           {d.candidat_nom ? (
             <Table>
               <TableHeader>
