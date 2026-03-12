@@ -387,7 +387,7 @@ export default function CompteClient() {
         </Section>
 
         {/* Historique Fidélité - full width below */}
-        <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[#902205]" count={fideliteCount}>
+        <Section title="Historique Fidélité" icon={Heart} defaultOpen colorClass="bg-[#E86C4F]" count={fideliteCount}>
           {allClientDemandes.length > 0 ? (
             <Table>
               <TableHeader>
