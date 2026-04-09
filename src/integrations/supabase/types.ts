@@ -213,6 +213,8 @@ export type Database = {
       }
       facturation: {
         Row: {
+          commentaire: string | null
+          commercial: string | null
           commission_pourcentage: number
           created_at: string
           date_intervention: string | null
@@ -237,10 +239,13 @@ export type Database = {
           segment: string | null
           statut_mission: string
           statut_paiement: string
+          tva_pourcentage: number
           type_service: string | null
           ville: string | null
         }
         Insert: {
+          commentaire?: string | null
+          commercial?: string | null
           commission_pourcentage?: number
           created_at?: string
           date_intervention?: string | null
@@ -265,10 +270,13 @@ export type Database = {
           segment?: string | null
           statut_mission?: string
           statut_paiement?: string
+          tva_pourcentage?: number
           type_service?: string | null
           ville?: string | null
         }
         Update: {
+          commentaire?: string | null
+          commercial?: string | null
           commission_pourcentage?: number
           created_at?: string
           date_intervention?: string | null
@@ -293,6 +301,7 @@ export type Database = {
           segment?: string | null
           statut_mission?: string
           statut_paiement?: string
+          tva_pourcentage?: number
           type_service?: string | null
           ville?: string | null
         }
