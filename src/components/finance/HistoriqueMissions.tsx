@@ -5,26 +5,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon } from "lucide-react";
+import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon, Download } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS, PROFIL_TYPE_OPTIONS } from "@/lib/finance-types";
-import { format, isWithinInterval, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+
+const STATUT_FACTURE_OPTIONS = [
+  { value: "en_attente", label: "En Attente", color: "bg-amber-100 text-amber-800" },
+  { value: "payee", label: "Payée", color: "bg-green-100 text-green-800" },
+] as const;
 
 export default function HistoriqueMissions() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
-  const [filterPaiement, setFilterPaiement] = useState("all");
   const [filterSegment, setFilterSegment] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
@@ -60,18 +64,15 @@ export default function HistoriqueMissions() {
 
   const filtered = useMemo(() => {
     return missions.filter((m) => {
-      if (filterStatut !== "all" && m.statut_mission !== filterStatut) return false;
-      if (filterPaiement !== "all" && m.statut_paiement !== filterPaiement) return false;
+      if (filterStatut !== "all" && m.statut_paiement !== filterStatut) return false;
       if (filterSegment !== "all" && (m as any).segment !== filterSegment) return false;
       if (dateFrom && m.date_intervention) {
-        const d = parseISO(m.date_intervention);
-        if (d < dateFrom) return false;
+        if (parseISO(m.date_intervention) < dateFrom) return false;
       }
       if (dateTo && m.date_intervention) {
-        const d = parseISO(m.date_intervention);
         const endOfDay = new Date(dateTo);
         endOfDay.setHours(23, 59, 59, 999);
-        if (d > endOfDay) return false;
+        if (parseISO(m.date_intervention) > endOfDay) return false;
       }
       if ((dateFrom || dateTo) && !m.date_intervention) return false;
       if (search) {
@@ -80,12 +81,12 @@ export default function HistoriqueMissions() {
       }
       return true;
     });
-  }, [missions, filterStatut, filterPaiement, filterSegment, dateFrom, dateTo, search]);
+  }, [missions, filterStatut, filterSegment, dateFrom, dateTo, search]);
 
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
-  const enCours = filtered.filter((m) => m.statut_mission === "confirmee").length;
-  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paye").length;
+  const commissionAgence = filtered.reduce((s, m) => s + partAgence(m), 0);
+  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paiement_effectue").length;
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
   const updateMutation = useMutation({
@@ -96,7 +97,7 @@ export default function HistoriqueMissions() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["facturation"] });
-      toast({ title: "Mission mise à jour" });
+      toast({ title: "Facture mise à jour" });
       setEditMission(null);
     },
   });
@@ -108,32 +109,73 @@ export default function HistoriqueMissions() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["facturation"] });
-      toast({ title: "Mission créée" });
+      toast({ title: "Facture créée" });
       setShowCreate(false);
     },
   });
 
   const getStatutBadge = (statut: string) => {
-    const opt = STATUT_MISSION_OPTIONS.find((o) => o.value === statut);
-    return <Badge className={opt?.color || ""}>{opt?.label || statut}</Badge>;
+    const opt = STATUT_FACTURE_OPTIONS.find((o) => o.value === statut);
+    if (opt) return <Badge className={opt.color}>{opt.label}</Badge>;
+    // fallback
+    if (statut === "paiement_effectue" || statut === "paye") return <Badge className="bg-green-100 text-green-800">Payée</Badge>;
+    return <Badge className="bg-amber-100 text-amber-800">En Attente</Badge>;
   };
 
-  const getPaiementBadge = (statut: string) => {
-    const opt = STATUT_PAIEMENT_OPTIONS.find((o) => o.value === statut);
-    return <Badge className={opt?.color || ""}>{opt?.label || statut}</Badge>;
+  const handleExportRapport = () => {
+    const headers = ["Commercial", "N° Facture", "Date Prestation", "Client - Ville", "Service", "Segment", "Montant HT", "TVA", "Montant TTC", "Mode paiement", "Payé", "Reste à payer", "Statut", "Date paiement", "Commentaire"];
+    const rows = filtered.map((m) => {
+      const tva = (m.tva_pourcentage || 20);
+      const montantHT = m.montant_total;
+      const montantTVA = montantHT * tva / 100;
+      const montantTTC = montantHT + montantTVA;
+      const paye = m.montant_paye_client || 0;
+      const reste = montantTTC - paye;
+      const statutLabel = m.statut_paiement === "paiement_effectue" ? "Payée" : "En Attente";
+      return [
+        m.commercial || "—",
+        `FAC-${String(m.num_mission).padStart(6, "0")}`,
+        m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—",
+        `${m.nom_client} - ${m.ville || ""}`,
+        m.type_service || "—",
+        (m as any).segment === "entreprise" ? "Entreprise" : "Particulier",
+        montantHT.toFixed(2),
+        montantTVA.toFixed(2),
+        montantTTC.toFixed(2),
+        m.mode_paiement_prevu || "—",
+        paye.toFixed(2),
+        reste.toFixed(2),
+        statutLabel,
+        m.date_paiement_client ? format(new Date(m.date_paiement_client), "dd/MM/yyyy") : "—",
+        m.commentaire || "",
+      ];
+    });
+    const csv = [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `rapport-facturation-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="space-y-0">
-      {/* Dark Header Banner */}
+      {/* Header */}
       <div className="bg-[hsl(220,40%,20%)] text-white rounded-t-lg px-6 py-5 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Historique des Missions</h2>
-          <p className="text-sm text-white/70">Suivi complet de toutes les interventions</p>
+          <h2 className="text-xl font-bold">Suivi Facturation</h2>
+          <p className="text-sm text-white/70">Suivi complet de toutes les factures</p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5">
-          <Plus className="h-4 w-4" /> Nouvelle mission
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExportRapport} variant="outline" className="bg-transparent border-white/30 text-white hover:bg-white/10 gap-1.5">
+            <Download className="h-4 w-4" /> Exporter Rapport
+          </Button>
+          <Button onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5">
+            <Plus className="h-4 w-4" /> Nouvelle Facture
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -142,7 +184,7 @@ export default function HistoriqueMissions() {
           <FileText className="h-8 w-8 text-white/60" />
           <div>
             <p className="text-2xl font-bold">{totalMissions}</p>
-            <p className="text-xs text-white/60">Total missions</p>
+            <p className="text-xs text-white/60">Total factures</p>
           </div>
         </div>
         <div className="bg-[hsl(220,35%,25%)] text-white px-5 py-4 flex items-center gap-3">
@@ -155,8 +197,8 @@ export default function HistoriqueMissions() {
         <div className="bg-[hsl(220,35%,22%)] text-white px-5 py-4 flex items-center gap-3">
           <Clock className="h-8 w-8 text-white/60" />
           <div>
-            <p className="text-2xl font-bold">{enCours}</p>
-            <p className="text-xs text-white/60">En cours</p>
+            <p className="text-2xl font-bold">{fmt(commissionAgence)}</p>
+            <p className="text-xs text-white/60">Commission Agence</p>
           </div>
         </div>
         <div className="bg-[hsl(220,35%,19%)] text-white px-5 py-4 flex items-center gap-3 rounded-tr-lg">
@@ -168,26 +210,20 @@ export default function HistoriqueMissions() {
         </div>
       </div>
 
-      {/* Search + Filters */}
+      {/* Filters */}
       <div className="flex flex-col gap-3 px-1 py-5">
         <div className="flex flex-wrap gap-3 items-center justify-between">
           <div className="relative flex-1 max-w-lg">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Rechercher client, mission, ville..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+            <Input placeholder="Rechercher client, facture, ville..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             <Select value={filterStatut} onValueChange={setFilterStatut}>
-              <SelectTrigger className="w-40"><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Statut" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                {STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterPaiement} onValueChange={setFilterPaiement}>
-              <SelectTrigger className="w-44"><SelectValue placeholder="Tous les paiements" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les paiements</SelectItem>
-                {STATUT_PAIEMENT_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                <SelectItem value="en_attente">En Attente</SelectItem>
+                <SelectItem value="payee">Payée</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterSegment} onValueChange={setFilterSegment}>
@@ -200,7 +236,6 @@ export default function HistoriqueMissions() {
             </Select>
           </div>
         </div>
-        {/* Date range */}
         <div className="flex gap-2 items-center flex-wrap">
           <span className="text-sm text-muted-foreground font-medium">Période :</span>
           <Popover>
@@ -239,93 +274,78 @@ export default function HistoriqueMissions() {
         <Table>
           <TableHeader>
             <TableRow className="border-b-2">
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">N° Mission</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Date</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Client / Ville</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Profil</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Commercial</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">N° Facture</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Date Prestation</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Client - Ville</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Service</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Segment</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Montant</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Montant HT</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">TVA</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Montant TTC</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Mode paiement</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Part agence</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Part profil</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Encaissé par</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Paiement</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Payé</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Reste à payer</TableHead>
               <TableHead className="uppercase text-xs tracking-wider font-semibold">Statut</TableHead>
-              <TableHead className="uppercase text-xs tracking-wider font-semibold">Règlement interne</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Date paiement</TableHead>
+              <TableHead className="uppercase text-xs tracking-wider font-semibold">Commentaire</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={15} className="text-center text-muted-foreground py-8">Aucune mission</TableCell></TableRow>
-            ) : filtered.map((m) => (
-              <TableRow key={m.id} className="hover:bg-muted/30">
-                <TableCell className="font-mono text-xs font-semibold text-primary">MSN-{String(m.num_mission).padStart(6, "0")}</TableCell>
-                <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
-                <TableCell>
-                  <div className="font-semibold text-sm">{m.nom_client}</div>
-                  <div className="text-xs text-muted-foreground">{m.ville || ""}</div>
-                </TableCell>
-                <TableCell className="text-sm">{m.profil_nom || "—"}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{m.type_service || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={(m as any).segment === "entreprise" ? "border-violet-300 text-violet-700 bg-violet-50" : "border-sky-300 text-sky-700 bg-sky-50"}>
-                    {(m as any).segment === "entreprise" ? "Entreprise" : "Particulier"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-semibold">{fmt(m.montant_total)}</TableCell>
-                <TableCell className="text-sm">{m.mode_paiement_prevu || "—"}</TableCell>
-                <TableCell className="text-emerald-700 font-medium">{fmt(partAgence(m))}</TableCell>
-                <TableCell className="text-sky-700 font-medium">{fmt(partProfil(m))}</TableCell>
-                <TableCell className="text-sm">{m.encaisse_par === "profil" ? "Profil" : "Agence"}</TableCell>
-                <TableCell>{getPaiementBadge(m.statut_paiement)}</TableCell>
-                <TableCell>{getStatutBadge(m.statut_mission)}</TableCell>
-                <TableCell className="min-w-[140px]">
-                  {m.encaisse_par === "profil" ? (
-                    m.part_agence_reversee ? (
-                      <div className="space-y-0.5">
-                        <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Réglé</Badge>
-                        <p className="text-[10px] text-muted-foreground">Profil → Agence : {fmt(partAgence(m))}</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-0.5">
-                        <Badge className="bg-red-100 text-red-800 text-[10px]">⚠️ Non réglé</Badge>
-                        <p className="text-[10px] text-muted-foreground">Profil doit <strong>{fmt(partAgence(m))}</strong></p>
-                      </div>
-                    )
-                  ) : (
-                    m.part_profil_versee ? (
-                      <div className="space-y-0.5">
-                        <Badge className="bg-green-100 text-green-800 text-[10px]">✅ Réglé</Badge>
-                        <p className="text-[10px] text-muted-foreground">Agence → Profil : {fmt(partProfil(m))}</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-0.5">
-                        <Badge className="bg-amber-100 text-amber-800 text-[10px]">⚠️ Non réglé</Badge>
-                        <p className="text-[10px] text-muted-foreground">Agence doit <strong>{fmt(partProfil(m))}</strong></p>
-                      </div>
-                    )
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => setViewMission(m)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+              <TableRow><TableCell colSpan={16} className="text-center text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
+            ) : filtered.map((m) => {
+              const tva = m.tva_pourcentage || 20;
+              const montantHT = m.montant_total;
+              const montantTVA = montantHT * tva / 100;
+              const montantTTC = montantHT + montantTVA;
+              const paye = m.montant_paye_client || 0;
+              const reste = montantTTC - paye;
+              const isPayee = m.statut_paiement === "paiement_effectue" || reste <= 0;
+
+              return (
+                <TableRow key={m.id} className="hover:bg-muted/30">
+                  <TableCell className="text-sm">{m.commercial || "—"}</TableCell>
+                  <TableCell className="font-mono text-xs font-semibold text-primary">FAC-{String(m.num_mission).padStart(6, "0")}</TableCell>
+                  <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
+                  <TableCell>
+                    <div className="font-semibold text-sm">{m.nom_client}</div>
+                    <div className="text-xs text-muted-foreground">{m.ville || ""}</div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{m.type_service || "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={(m as any).segment === "entreprise" ? "border-violet-300 text-violet-700 bg-violet-50" : "border-sky-300 text-sky-700 bg-sky-50"}>
+                      {(m as any).segment === "entreprise" ? "Entreprise" : "Particulier"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-semibold">{fmt(montantHT)}</TableCell>
+                  <TableCell className="text-sm">{fmt(montantTVA)}</TableCell>
+                  <TableCell className="font-semibold">{fmt(montantTTC)}</TableCell>
+                  <TableCell className="text-sm">{m.mode_paiement_prevu || "—"}</TableCell>
+                  <TableCell className="text-emerald-700 font-medium">{fmt(paye)}</TableCell>
+                  <TableCell className="text-amber-600 font-medium">{reste > 0 ? fmt(reste) : "0,00 DH"}</TableCell>
+                  <TableCell>{getStatutBadge(isPayee ? "payee" : "en_attente")}</TableCell>
+                  <TableCell className="text-sm">{m.date_paiement_client ? format(new Date(m.date_paiement_client), "dd/MM/yyyy") : "—"}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{m.commentaire || "—"}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => setViewMission(m)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
         {filtered.length > 0 && (
           <div className="flex justify-between items-center px-4 py-3 border-t text-sm text-muted-foreground">
-            <span className="text-primary font-medium">{filtered.length} mission(s) affichée(s)</span>
+            <span className="text-primary font-medium">{filtered.length} facture(s) affichée(s)</span>
             <span>Total affiché : <strong className="text-foreground">{fmt(totalCA)}</strong></span>
           </div>
         )}
       </div>
 
-      {/* View Detail Modal */}
       {viewMission && (
         <MissionViewModal
           mission={viewMission}
@@ -335,7 +355,6 @@ export default function HistoriqueMissions() {
         />
       )}
 
-      {/* Edit Modal */}
       {editMission && (
         <MissionEditModal
           mission={editMission}
@@ -344,7 +363,6 @@ export default function HistoriqueMissions() {
         />
       )}
 
-      {/* Create Modal */}
       {showCreate && (
         <MissionCreateModal
           demandes={demandes}
@@ -357,21 +375,20 @@ export default function HistoriqueMissions() {
   );
 }
 
-/* ===== VIEW MODAL (Eye icon) ===== */
+/* ===== VIEW MODAL ===== */
 function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturation; onClose: () => void; onEdit: () => void; fmt: (n: number) => string }) {
   const pa = partAgence(mission);
   const pp = partProfil(mission);
+  const tva = mission.tva_pourcentage || 20;
+  const montantTVA = mission.montant_total * tva / 100;
+  const montantTTC = mission.montant_total + montantTVA;
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl p-0 overflow-hidden">
         <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 relative">
           <div className="flex items-center gap-3 mb-1">
-            <span className="font-mono text-sm text-white/70">MSN-{String(mission.num_mission).padStart(6, "0")}</span>
-            {(() => {
-              const opt = STATUT_MISSION_OPTIONS.find(o => o.value === mission.statut_mission);
-              return <Badge className="bg-emerald-500 text-white border-0 text-xs">{opt?.label || mission.statut_mission}</Badge>;
-            })()}
+            <span className="font-mono text-sm text-white/70">FAC-{String(mission.num_mission).padStart(6, "0")}</span>
           </div>
           <h3 className="text-xl font-bold">{mission.nom_client}</h3>
           <div className="flex items-center gap-4 text-sm text-white/70 mt-1">
@@ -386,32 +403,39 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
 
         <div className="grid grid-cols-3 border-b">
           <div className="text-center py-4 border-r">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Montant Mission</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Montant HT</p>
             <p className="text-2xl font-bold mt-1">{fmt(mission.montant_total)}</p>
           </div>
           <div className="text-center py-4 border-r">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Part Agence ({mission.commission_pourcentage}%)</p>
-            <p className="text-2xl font-bold text-emerald-700 mt-1">{fmt(pa)}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">TVA ({tva}%)</p>
+            <p className="text-2xl font-bold mt-1">{fmt(montantTVA)}</p>
           </div>
           <div className="text-center py-4">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Part Profil</p>
-            <p className="text-2xl font-bold text-sky-700 mt-1">{fmt(pp)}</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Montant TTC</p>
+            <p className="text-2xl font-bold text-emerald-700 mt-1">{fmt(montantTTC)}</p>
           </div>
         </div>
 
         <Tabs defaultValue="infos" className="px-6 pt-2 pb-4">
           <TabsList className="mb-4 bg-transparent border-b rounded-none w-full justify-start gap-0 h-auto p-0">
             <TabsTrigger value="infos" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Informations</TabsTrigger>
-            <TabsTrigger value="paiement" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Paiement client</TabsTrigger>
-            <TabsTrigger value="repartition" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Répartition interne</TabsTrigger>
+            <TabsTrigger value="paiement" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Paiement</TabsTrigger>
+            <TabsTrigger value="repartition" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2 text-sm">Répartition</TabsTrigger>
           </TabsList>
 
           <TabsContent value="infos">
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
+                <UserCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Commercial</p>
+                  <p className="font-semibold text-sm">{mission.commercial || "—"}</p>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
                 <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Type de service</p>
+                  <p className="text-xs text-muted-foreground">Service</p>
                   <p className="font-semibold text-sm">{mission.type_service || "—"}</p>
                 </div>
               </div>
@@ -425,37 +449,17 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
               <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
                 <CreditCard className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <p className="text-xs text-muted-foreground">Paiement prévu</p>
+                  <p className="text-xs text-muted-foreground">Mode paiement</p>
                   <p className="font-semibold text-sm">{mission.mode_paiement_prevu || "—"}</p>
                 </div>
               </div>
-              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
-                <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Encaissement par</p>
-                  <p className="font-semibold text-sm">{mission.encaisse_par === "profil" ? "Le profil" : "L'agence"}</p>
-                </div>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4 flex items-start gap-3">
-                <UserCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Profil assigné</p>
-                  <p className="font-semibold text-sm">{mission.profil_nom || "—"}</p>
-                </div>
-              </div>
             </div>
-            <div className="mt-5 bg-muted/30 rounded-lg p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-2">Statut Paiement</p>
-              <div className="flex items-center gap-3">
-                {(() => {
-                  const opt = STATUT_PAIEMENT_OPTIONS.find(o => o.value === mission.statut_paiement);
-                  return <Badge className={opt?.color || ""}>{opt?.label || mission.statut_paiement}</Badge>;
-                })()}
-                <span className="text-sm text-muted-foreground">
-                  Encaissé : {fmt(mission.montant_paye_client || 0)} / {fmt(mission.montant_total)}
-                </span>
+            {mission.commentaire && (
+              <div className="mt-4 bg-muted/30 rounded-lg p-4">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold mb-1">Commentaire</p>
+                <p className="text-sm">{mission.commentaire}</p>
               </div>
-            </div>
+            )}
           </TabsContent>
 
           <TabsContent value="paiement">
@@ -467,7 +471,7 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
                 </div>
                 <div className="bg-muted/50 rounded-lg p-4">
                   <p className="text-xs text-muted-foreground">Reste à payer</p>
-                  <p className="font-semibold text-lg text-amber-600">{fmt(mission.montant_total - (mission.montant_paye_client || 0))}</p>
+                  <p className="font-semibold text-lg text-amber-600">{fmt(montantTTC - (mission.montant_paye_client || 0))}</p>
                 </div>
                 <div className="bg-muted/50 rounded-lg p-4">
                   <p className="text-xs text-muted-foreground">Mode de paiement réel</p>
@@ -512,18 +516,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
                       <p className="text-xs text-muted-foreground">Part agence reversée</p>
                       <p className="font-medium">{mission.part_agence_reversee ? "✅ Oui" : "❌ Non"}</p>
                     </div>
-                    {mission.date_remise_agence && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Date remise agence</p>
-                        <p className="font-medium">{format(new Date(mission.date_remise_agence), "dd/MM/yyyy")}</p>
-                      </div>
-                    )}
-                    {!mission.part_agence_reversee && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Solde dû à l'agence</p>
-                        <p className="font-bold text-amber-600">{fmt(pa)}</p>
-                      </div>
-                    )}
                   </div>
                 </div>
               ) : (
@@ -534,18 +526,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
                       <p className="text-xs text-muted-foreground">Part profil versée</p>
                       <p className="font-medium">{mission.part_profil_versee ? "✅ Oui" : "❌ Non"}</p>
                     </div>
-                    {mission.date_versement_profil && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Date versement profil</p>
-                        <p className="font-medium">{format(new Date(mission.date_versement_profil), "dd/MM/yyyy")}</p>
-                      </div>
-                    )}
-                    {!mission.part_profil_versee && (
-                      <div>
-                        <p className="text-xs text-muted-foreground">Solde dû au profil</p>
-                        <p className="font-bold text-amber-600">{fmt(pp)}</p>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -567,7 +547,6 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
 /* ===== EDIT MODAL ===== */
 function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; onClose: () => void; onSave: (u: any) => void }) {
   const [form, setForm] = useState({
-    statut_mission: mission.statut_mission,
     statut_paiement: mission.statut_paiement,
     montant_paye_client: mission.montant_paye_client || 0,
     mode_paiement_reel: mission.mode_paiement_reel || "",
@@ -579,11 +558,15 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
     part_profil_versee: mission.part_profil_versee,
     date_versement_profil: mission.date_versement_profil || "",
     commission_pourcentage: mission.commission_pourcentage,
+    commercial: mission.commercial || "",
+    commentaire: mission.commentaire || "",
+    tva_pourcentage: mission.tva_pourcentage || 20,
   });
 
-  const pa = mission.montant_total * form.commission_pourcentage / 100;
-  const pp = mission.montant_total * (100 - form.commission_pourcentage) / 100;
-  const resteClient = mission.montant_total - form.montant_paye_client;
+  const tva = form.tva_pourcentage;
+  const montantTVA = mission.montant_total * tva / 100;
+  const montantTTC = mission.montant_total + montantTVA;
+  const resteClient = montantTTC - form.montant_paye_client;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -600,42 +583,44 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 -mx-6 -mt-6 rounded-t-lg mb-4">
-          <h3 className="text-lg font-bold">Modifier — MSN-{String(mission.num_mission).padStart(6, "0")}</h3>
+          <h3 className="text-lg font-bold">Modifier — FAC-{String(mission.num_mission).padStart(6, "0")}</h3>
           <p className="text-sm text-white/70">{mission.nom_client}</p>
         </div>
 
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4 text-sm bg-muted/50 p-4 rounded-lg">
-            <div><span className="text-muted-foreground">Montant total :</span> <strong>{mission.montant_total} DH</strong></div>
+            <div><span className="text-muted-foreground">Montant HT :</span> <strong>{mission.montant_total} DH</strong></div>
+            <div><span className="text-muted-foreground">TVA ({tva}%) :</span> <strong>{montantTVA.toFixed(2)} DH</strong></div>
+            <div><span className="text-muted-foreground">Montant TTC :</span> <strong>{montantTTC.toFixed(2)} DH</strong></div>
             <div><span className="text-muted-foreground">Commission :</span> <strong>{form.commission_pourcentage}%</strong></div>
-            <div><span className="text-muted-foreground">Part agence :</span> <strong className="text-emerald-700">{pa.toLocaleString("fr-MA")} DH</strong></div>
-            <div><span className="text-muted-foreground">Part profil :</span> <strong className="text-sky-700">{pp.toLocaleString("fr-MA")} DH</strong></div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Statut mission</Label>
-              <Select value={form.statut_mission} onValueChange={(v) => setForm({ ...form, statut_mission: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-              </Select>
+              <Label>Commercial</Label>
+              <Input value={form.commercial} onChange={(e) => setForm({ ...form, commercial: e.target.value })} placeholder="Nom du commercial" />
             </div>
             <div className="space-y-1">
-              <Label>Commission %</Label>
-              <Input type="number" value={form.commission_pourcentage} onChange={(e) => setForm({ ...form, commission_pourcentage: Number(e.target.value) })} />
+              <Label>TVA %</Label>
+              <Input type="number" value={form.tva_pourcentage} onChange={(e) => setForm({ ...form, tva_pourcentage: Number(e.target.value) })} />
             </div>
           </div>
 
+          <div className="space-y-1">
+            <Label>Commentaire</Label>
+            <Textarea value={form.commentaire} onChange={(e) => setForm({ ...form, commentaire: e.target.value })} placeholder="Commentaire sur la facture..." rows={3} />
+          </div>
+
           <div className="border-t pt-4">
-            <h4 className="font-semibold mb-3">💳 Paiement client</h4>
+            <h4 className="font-semibold mb-3">💳 Paiement</h4>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label>Montant payé</Label>
                 <Input type="number" value={form.montant_paye_client} onChange={(e) => setForm({ ...form, montant_paye_client: Number(e.target.value) })} />
-                {resteClient > 0 && <p className="text-xs text-amber-600">Reste : {resteClient.toLocaleString("fr-MA")} DH</p>}
+                {resteClient > 0 && <p className="text-xs text-amber-600">Reste : {resteClient.toFixed(2)} DH</p>}
               </div>
               <div className="space-y-1">
-                <Label>Mode de paiement réel</Label>
+                <Label>Mode de paiement</Label>
                 <Select value={form.mode_paiement_reel} onValueChange={(v) => setForm({ ...form, mode_paiement_reel: v })}>
                   <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
                   <SelectContent>{MODE_PAIEMENT_OPTIONS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
@@ -716,6 +701,8 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
             <Button onClick={() => {
               const cleaned = {
                 ...form,
+                commercial: form.commercial || null,
+                commentaire: form.commentaire || null,
                 mode_paiement_reel: form.mode_paiement_reel || null,
                 date_paiement_client: form.date_paiement_client || null,
                 date_remise_agence: form.date_remise_agence || null,
@@ -734,7 +721,6 @@ function MissionEditModal({ mission, onClose, onSave }: { mission: Facturation; 
 function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes: any[]; profils: any[]; onClose: () => void; onCreate: (d: any) => void }) {
   const [mode, setMode] = useState<"auto" | "manual">("auto");
   const [demandeId, setDemandeId] = useState("");
-  // Manual fields
   const [dateIntervention, setDateIntervention] = useState("");
   const [profilType, setProfilType] = useState("");
   const [nomClient, setNomClient] = useState("");
@@ -744,14 +730,15 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
   const [montantTotal, setMontantTotal] = useState(0);
   const [commission, setCommission] = useState(50);
   const [modePaiement, setModePaiement] = useState("");
-  const [statutMission, setStatutMission] = useState("confirmee");
   const [encaissePar, setEncaissePar] = useState("agence");
   const [profilId, setProfilId] = useState("");
+  const [commercial, setCommercial] = useState("");
+  const [commentaire, setCommentaire] = useState("");
+  const [tvaPourcentage, setTvaPourcentage] = useState(20);
 
   const selectedDemande = demandes.find((d) => d.id === demandeId);
   const selectedProfil = profils.find((p) => p.id === profilId);
 
-  // Auto-fill from demande
   const effectiveMontant = mode === "auto" && selectedDemande ? (selectedDemande.montant_total || 0) : montantTotal;
   const effectiveSegment = mode === "auto" && selectedDemande ? (selectedDemande.type_service === "SPE" ? "entreprise" : "particulier") : segment;
 
@@ -774,8 +761,11 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
         montant_total: selectedDemande.montant_total || 0,
         commission_pourcentage: commission,
         mode_paiement_prevu: modePaiement || selectedDemande.mode_paiement,
-        statut_mission: statutMission,
+        statut_mission: "confirmee",
         encaisse_par: encaissePar,
+        commercial: commercial || null,
+        commentaire: commentaire || null,
+        tva_pourcentage: tvaPourcentage,
       });
     } else {
       if (!nomClient) return;
@@ -791,8 +781,11 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
         montant_total: montantTotal,
         commission_pourcentage: commission,
         mode_paiement_prevu: modePaiement,
-        statut_mission: statutMission,
+        statut_mission: "confirmee",
         encaisse_par: encaissePar,
+        commercial: commercial || null,
+        commentaire: commentaire || null,
+        tva_pourcentage: tvaPourcentage,
       });
     }
   };
@@ -801,11 +794,10 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="bg-[hsl(220,40%,20%)] text-white px-6 py-4 -mx-6 -mt-6 rounded-t-lg mb-4">
-          <h3 className="text-lg font-bold">Nouvelle mission</h3>
-          <p className="text-sm text-white/70">Remplissez les informations de la mission</p>
+          <h3 className="text-lg font-bold">Nouvelle Facture</h3>
+          <p className="text-sm text-white/70">Remplissez les informations de la facture</p>
         </div>
 
-        {/* Mode toggle */}
         <div className="flex gap-2 mb-4">
           <Button variant={mode === "auto" ? "default" : "outline"} size="sm" onClick={() => setMode("auto")}>
             Depuis une demande
@@ -883,7 +875,17 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
             </>
           )}
 
-          {/* Common fields */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label>Commercial</Label>
+              <Input value={commercial} onChange={(e) => setCommercial(e.target.value)} placeholder="Nom du commercial" />
+            </div>
+            <div className="space-y-1">
+              <Label>TVA %</Label>
+              <Input type="number" value={tvaPourcentage} onChange={(e) => setTvaPourcentage(Number(e.target.value))} />
+            </div>
+          </div>
+
           <div className="space-y-1">
             <Label>Profil assigné</Label>
             <Select value={profilId} onValueChange={setProfilId}>
@@ -899,7 +901,7 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
           <div className="grid grid-cols-2 gap-4">
             {mode === "manual" && (
               <div className="space-y-1">
-                <Label>Montant total (MAD)</Label>
+                <Label>Montant HT (MAD)</Label>
                 <Input type="number" value={montantTotal} onChange={(e) => setMontantTotal(Number(e.target.value))} />
               </div>
             )}
@@ -909,7 +911,6 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
             </div>
           </div>
 
-          {/* Calculated parts */}
           {effectiveMontant > 0 && (
             <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-lg">
               <div>
@@ -932,32 +933,26 @@ function MissionCreateModal({ demandes, profils, onClose, onCreate }: { demandes
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Statut mission</Label>
-              <Select value={statutMission} onValueChange={setStatutMission}>
+              <Label>Encaissement par</Label>
+              <Select value={encaissePar} onValueChange={setEncaissePar}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{STATUT_MISSION_OPTIONS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  <SelectItem value="agence">L'Agence</SelectItem>
+                  <SelectItem value="profil">Le Profil</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-1">
-            <Label>Encaissement par</Label>
-            <Select value={encaissePar} onValueChange={setEncaissePar}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="agence">L'Agence</SelectItem>
-                <SelectItem value="profil">Le Profil</SelectItem>
-              </SelectContent>
-            </Select>
-            {encaissePar === "profil" && (
-              <p className="text-xs text-amber-600 mt-1">⚠️ Le profil récupère le total chez le client, y compris la part de l'agence.</p>
-            )}
+            <Label>Commentaire</Label>
+            <Textarea value={commentaire} onChange={(e) => setCommentaire(e.target.value)} placeholder="Commentaire sur la facture..." rows={3} />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={onClose}>Annuler</Button>
             <Button onClick={handleCreate} disabled={mode === "auto" ? !demandeId : !nomClient}>
-              Créer la mission
+              Créer la facture
             </Button>
           </div>
         </div>
