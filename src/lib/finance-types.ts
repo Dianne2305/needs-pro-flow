@@ -24,6 +24,9 @@ export interface Facturation {
   part_profil_versee: boolean;
   date_versement_profil: string | null;
   created_at: string;
+  commercial: string | null;
+  commentaire: string | null;
+  tva_pourcentage: number;
 }
 
 export function partAgence(f: Facturation): number {
