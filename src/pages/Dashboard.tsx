@@ -487,24 +487,9 @@ export default function Dashboard() {
                     <Badge variant="outline" className="text-[10px]">Non</Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-[11px] px-1 truncate max-w-[55px]">
-                  {d.mode_paiement || "—"}
-                </TableCell>
-                <TableCell className="text-[11px] px-1">
-                  {(() => {
-                    const sp = d.statut_paiement_commercial;
-                    if (sp === "paye") return <Badge className="bg-emerald-100 text-emerald-800 text-[9px] px-1">Payé</Badge>;
-                    if (sp === "agence_payee_client") return <Badge className="bg-blue-100 text-blue-800 text-[9px] px-1">Agence payée</Badge>;
-                    if (sp === "profil_paye_client") return <Badge className="bg-orange-100 text-orange-800 text-[9px] px-1">Profil payé</Badge>;
-                    if (sp === "paiement_partiel") return <Badge className="bg-amber-100 text-amber-800 text-[9px] px-1">Partiel</Badge>;
-                    if (sp === "facturation_annulee") return <Badge className="bg-rose-100 text-rose-800 text-[9px] px-1">Fact. annulée</Badge>;
-                    return <Badge variant="outline" className="text-[9px] px-1">Paiement en attente</Badge>;
-                  })()}
-                </TableCell>
                 <TableCell className="text-[11px] px-1 font-medium whitespace-nowrap">
                   {d.montant_total ? `${d.montant_total} MAD` : "—"}
                 </TableCell>
-                <TableCell className="px-1">{renderQuickMenu(d)}</TableCell>
               </TableRow>
             );
           })}
