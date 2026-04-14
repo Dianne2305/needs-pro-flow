@@ -388,7 +388,7 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
           <XCircle className="h-4 w-4 mr-2" />Rejeté / Annulé
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_annulee" } })} className="text-orange-600">
+        <DropdownMenuItem onClick={() => { setSelectedDemande(d); setFactAnnuleeRaison(""); setFactAnnuleePayerProfil(false); setFactAnnuleeMontantProfil(""); setFactAnnuleeOpen(true); }} className="text-orange-600">
           <XCircle className="h-4 w-4 mr-2" />Facturation annulée
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
