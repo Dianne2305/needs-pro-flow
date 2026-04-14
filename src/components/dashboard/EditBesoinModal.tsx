@@ -383,10 +383,36 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                 <div>
                   <Label>Note commercial</Label>
                   <Textarea value={noteCommercial} onChange={(e) => setNoteCommercial(e.target.value)} rows={3} placeholder="Notes du commercial..." />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={async () => {
+                      if (!noteCommercial.trim()) return;
+                      await logAction("Note commerciale ajoutée", noteCommercial);
+                      queryClient.invalidateQueries({ queryKey: ["demande_historique", demande.id] });
+                      onSave({ note_commercial: noteCommercial || null });
+                    }}
+                  >
+                    Entrer
+                  </Button>
                 </div>
                 <div>
                   <Label>Note opération</Label>
                   <Textarea value={noteOperationnel} onChange={(e) => setNoteOperationnel(e.target.value)} rows={3} placeholder="Notes opérationnelles..." />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={async () => {
+                      if (!noteOperationnel.trim()) return;
+                      await logAction("Note opérationnelle ajoutée", noteOperationnel);
+                      queryClient.invalidateQueries({ queryKey: ["demande_historique", demande.id] });
+                      onSave({ note_operationnel: noteOperationnel || null });
+                    }}
+                  >
+                    Entrer
+                  </Button>
                 </div>
               </div>
             </CollapsibleContent>
