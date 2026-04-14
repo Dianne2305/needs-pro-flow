@@ -468,6 +468,55 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   </div>
                 </div>
 
+                {/* Profil doit (when profil_paye_client) */}
+                {statutPaiement === "profil_paye_client" && (
+                  <div className="mt-4 p-4 rounded-lg border border-red-200 bg-red-50 space-y-3">
+                    <h4 className="text-sm font-bold text-red-700">Profil doit</h4>
+                    {demande.candidat_nom && (
+                      <p className="text-sm text-red-600">Profil : <strong>{demande.candidat_nom}</strong></p>
+                    )}
+                    <div className="max-w-xs">
+                      <Label className="text-red-700">Montant (MAD)</Label>
+                      <Input
+                        type="number"
+                        value={montantProfilDoit}
+                        onChange={(e) => setMontantProfilDoit(e.target.value)}
+                        placeholder="0"
+                        className="border-red-300 text-red-700 font-semibold"
+                        disabled={statutPaiement === "paye"}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Agence doit (when agence_payee_client) */}
+                {statutPaiement === "agence_payee_client" && (
+                  <div className="mt-4 p-4 rounded-lg border border-orange-200 bg-orange-50 space-y-3">
+                    <h4 className="text-sm font-bold text-orange-700">Agence doit</h4>
+                    {demande.candidat_nom && (
+                      <p className="text-sm text-orange-600">Profil : <strong>{demande.candidat_nom}</strong></p>
+                    )}
+                    <div className="max-w-xs">
+                      <Label className="text-orange-700">Montant (MAD)</Label>
+                      <Input
+                        type="number"
+                        value={montantAgenceDoit}
+                        onChange={(e) => setMontantAgenceDoit(e.target.value)}
+                        placeholder="0"
+                        className="border-orange-300 text-orange-700 font-semibold"
+                        disabled={statutPaiement === "paye"}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Payé: info */}
+                {statutPaiement === "paye" && (
+                  <div className="mt-4 p-3 rounded-lg border border-emerald-200 bg-emerald-50">
+                    <p className="text-sm font-medium text-emerald-700">✓ Paiement complet — la demande sera retirée du tableau de bord</p>
+                  </div>
+                )}
+
                 {/* Bouton Facturation annulée */}
                 {statutPaiement !== "facturation_annulee" && (
                   <div className="mt-4">
