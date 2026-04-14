@@ -25,6 +25,16 @@ type Demande = Tables<"demandes">;
 
 const MODES_PAIEMENT = ["Virement", "Par chèque", "À l'agence", "Sur place"] as const;
 
+const STATUTS_BESOIN_LIFECYCLE = [
+  { value: "nouveau_besoin", label: "Nouveau besoin" },
+  { value: "confirme_intervention", label: "Confirmé intervention" },
+  { value: "prestation_effectuee", label: "Prestation effectuée" },
+  { value: "paye", label: "Payé" },
+  { value: "facturation_annulee", label: "Facturation annulée" },
+  { value: "standby", label: "Standby" },
+  { value: "annulee", label: "Annulée" },
+] as const;
+
 interface Props {
   demande: Demande;
   open: boolean;
