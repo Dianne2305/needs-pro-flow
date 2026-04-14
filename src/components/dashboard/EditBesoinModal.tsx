@@ -34,7 +34,7 @@ interface Props {
 
 export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) {
   const queryClient = useQueryClient();
-  const [statut] = useState(demande.statut);
+  const [statut, setStatut] = useState(demande.statut);
   const [segment, setSegment] = useState(
     demande.type_service === "SPE" ? "entreprise" : "particulier"
   );
