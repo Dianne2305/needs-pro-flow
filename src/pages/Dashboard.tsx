@@ -397,22 +397,22 @@ export default function Dashboard() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-[11px] px-1 w-8 leading-tight"></TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Com</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Date</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Statut</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Client</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight max-w-[60px]">Lieu</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight max-w-[60px] truncate">Service</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Seg.</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Hrs</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Profil</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight whitespace-normal">Opt. sup.</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">CAO</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight whitespace-normal">Mode paie.</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight whitespace-normal">Statut paie.</TableHead>
-            <TableHead className="text-[11px] px-1 leading-tight">Tarif</TableHead>
-            <TableHead className="text-[11px] px-1 w-6"></TableHead>
+            <TableHead className="text-xs font-bold px-1 w-8 leading-tight"></TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Com</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Date</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Statut</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Client</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px]">Lieu</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px] truncate">Service</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Seg.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Hrs</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Profil</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Opt. sup.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">CAO</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Mode paie.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut paie.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight">Tarif</TableHead>
+            <TableHead className="text-xs font-bold px-1 w-6"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
