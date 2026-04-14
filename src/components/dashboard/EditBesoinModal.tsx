@@ -72,6 +72,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   // Collapsible states
   const [formOpen, setFormOpen] = useState(false);
+  const [agenceOpen, setAgenceOpen] = useState(true);
   const [historiqueOpen, setHistoriqueOpen] = useState(true);
 
   // Service-specific fields
@@ -263,12 +264,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
           </Collapsible>
 
           {/* ——— Section 2: Espace agence ——— */}
-          <div className="mt-2">
-            <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-[#E86C4F] text-white font-medium text-sm">
-              <Building2 className="h-4 w-4" />
-              Espace agence
-            </div>
-            <div className="pt-4 space-y-5">
+          <Collapsible open={agenceOpen} onOpenChange={setAgenceOpen} className="mt-2">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-[#E86C4F] text-white font-medium text-sm hover:opacity-90 transition-opacity">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Espace agence
+              </div>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${agenceOpen ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4 space-y-5">
 
               {/* Sub-section: Besoin */}
               <div>
@@ -385,8 +389,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   <Textarea value={noteOperationnel} onChange={(e) => setNoteOperationnel(e.target.value)} rows={3} placeholder="Notes opérationnelles..." />
                 </div>
               </div>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* ——— Section 3: Historique des actions ——— */}
           <Collapsible open={historiqueOpen} onOpenChange={setHistoriqueOpen} className="mt-2">
