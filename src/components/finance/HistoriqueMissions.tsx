@@ -220,11 +220,12 @@ export default function HistoriqueMissions() {
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             <Select value={filterStatut} onValueChange={setFilterStatut}>
-              <SelectTrigger className="w-40"><SelectValue placeholder="Statut" /></SelectTrigger>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Statut" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="en_attente">En Attente</SelectItem>
-                <SelectItem value="payee">Payée</SelectItem>
+                {STATUT_FACTURE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterSegment} onValueChange={setFilterSegment}>
