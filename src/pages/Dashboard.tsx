@@ -422,17 +422,17 @@ export default function Dashboard() {
             const rowColor = STATUS_ROW_COLORS[d.statut] || "";
             return (
               <TableRow key={d.id} className={rowColor}>
-                <TableCell className="px-2">{renderActionButtons(d)}</TableCell>
-                <TableCell className="text-xs px-2">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
-                <TableCell className="text-xs px-2 whitespace-nowrap">
+                <TableCell className="px-1">{renderActionButtons(d)}</TableCell>
+                <TableCell className="text-[11px] px-1">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
+                <TableCell className="text-[11px] px-1 whitespace-nowrap">
                   {d.date_prestation ? format(new Date(d.date_prestation + "T00:00:00"), "dd/MM/yy", { locale: fr }) : "—"}
                   {d.heure_prestation && <span className="text-muted-foreground ml-1">{d.heure_prestation.slice(0,5)}</span>}
                 </TableCell>
-                <TableCell className="px-2">{renderStatusBadge(d.statut)}</TableCell>
-                <TableCell className="px-2">
+                <TableCell className="px-1">{renderStatusBadge(d.statut)}</TableCell>
+                <TableCell className="px-1">
                   <div className="flex items-center gap-1">
                     <button
-                      className="text-primary underline hover:text-primary/80 font-medium text-xs cursor-pointer"
+                      className="text-primary underline hover:text-primary/80 font-medium text-[11px] cursor-pointer truncate max-w-[80px]"
                       onClick={() => openCompteClient(d)}
                     >
                       {d.nom}
@@ -448,16 +448,16 @@ export default function Dashboard() {
                     })()}
                   </div>
                 </TableCell>
-                <TableCell className="text-xs px-2">
+                <TableCell className="text-[11px] px-1 truncate max-w-[60px]">
                   {d.quartier ? `${d.quartier}, ${d.ville}` : d.ville}
                 </TableCell>
-                <TableCell className="text-xs px-2">{d.type_prestation}</TableCell>
-                <TableCell className="px-2">{renderServiceBadge(d.type_service)}</TableCell>
-                <TableCell className="text-xs px-2 text-center">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
-                <TableCell className="text-xs px-2">
+                <TableCell className="text-[11px] px-1 truncate max-w-[60px]">{d.type_prestation}</TableCell>
+                <TableCell className="px-1">{renderServiceBadge(d.type_service)}</TableCell>
+                <TableCell className="text-[11px] px-1 text-center">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
+                <TableCell className="text-[11px] px-1">
                   {d.candidat_nom ? (
                     <button 
-                      className="text-primary underline hover:text-primary/80 font-medium cursor-pointer"
+                      className="text-primary underline hover:text-primary/80 font-medium cursor-pointer text-[11px] truncate max-w-[70px] block"
                       onClick={() => navigate(`/compte-profil?nom=${encodeURIComponent(d.candidat_nom!)}`)}
                     >
                       {d.candidat_nom}
@@ -466,24 +466,35 @@ export default function Dashboard() {
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs px-2 text-center">
+                <TableCell className="text-[11px] px-1 text-center">
                   {d.avec_produit ? (
                     <Badge className="bg-primary/10 text-primary text-[10px]">Oui</Badge>
                   ) : (
                     <span className="text-muted-foreground">Non</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs px-2">
+                <TableCell className="text-[11px] px-1">
                   {d.confirmation_ope === "confirme" ? (
                     <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge>
                   ) : (
                     <Badge variant="outline" className="text-[10px]">Non</Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-xs px-2 font-medium">
+                <TableCell className="text-[11px] px-1 truncate max-w-[55px]">
+                  {d.mode_paiement || "—"}
+                </TableCell>
+                <TableCell className="text-[11px] px-1">
+                  {(() => {
+                    const sp = d.statut_paiement_commercial;
+                    if (sp === "paiement_effectue") return <Badge className="bg-emerald-100 text-emerald-800 text-[9px] px-1">Payé</Badge>;
+                    if (sp === "paiement_en_attente") return <Badge className="bg-amber-100 text-amber-800 text-[9px] px-1">Attente</Badge>;
+                    return <Badge variant="outline" className="text-[9px] px-1">Non payé</Badge>;
+                  })()}
+                </TableCell>
+                <TableCell className="text-[11px] px-1 font-medium whitespace-nowrap">
                   {d.montant_total ? `${d.montant_total} MAD` : "—"}
                 </TableCell>
-                <TableCell className="px-2">{renderQuickMenu(d)}</TableCell>
+                <TableCell className="px-1">{renderQuickMenu(d)}</TableCell>
               </TableRow>
             );
           })}
