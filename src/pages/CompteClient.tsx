@@ -130,6 +130,22 @@ export default function CompteClient() {
     enabled: !!demandeId,
   });
 
+  // Historique des actions pour cette demande
+  const { data: demandeHistorique = [] } = useQuery({
+    queryKey: ["demande_historique", demandeId],
+    queryFn: async () => {
+      if (!demandeId) return [];
+      const { data, error } = await supabase
+        .from("demande_historique")
+        .select("*")
+        .eq("demande_id", demandeId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!demandeId,
+  });
+
   const [detailFeedback, setDetailFeedback] = useState<any>(null);
 
   // Count all demandes for this client (fidélité)
