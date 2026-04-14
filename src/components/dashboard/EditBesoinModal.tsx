@@ -201,6 +201,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const handleSave = async () => {
     // Build change log
     const changes: string[] = [];
+    if (statut !== demande.statut) changes.push(`Statut besoin → ${STATUTS[statut as keyof typeof STATUTS]?.label || statut}`);
     if (segment !== (demande.type_service === "SPE" ? "entreprise" : "particulier")) changes.push(`Segment → ${segment}`);
     if (typePrestation !== demande.type_prestation) changes.push(`Service → ${typePrestation}`);
     if (Number(montantHT) !== (demande.montant_total || 0)) changes.push(`Montant HT → ${montantHT} MAD`);
