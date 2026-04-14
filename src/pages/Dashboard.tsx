@@ -216,12 +216,8 @@ export default function Dashboard() {
   const sppCount = filtered.filter((d) => d.type_service === "SPP").length;
   const speCount = filtered.filter((d) => d.type_service === "SPE").length;
 
-  const kpis = [
-    { label: "Demandes en cours", value: filtered.length, bg: "bg-gradient-to-br from-[#e8920a] to-[#fcc35c]", text: "text-white" },
-    { label: "Services Particuliers", value: sppCount, bg: "bg-gradient-to-br from-[#3da8b3] to-[#7dd4dc]", text: "text-white" },
-    { label: "Services Entreprises", value: speCount, bg: "bg-gradient-to-br from-[#037a82] to-[#1ab5bf]", text: "text-white" },
-    { label: "En attente", value: pendingCount, bg: "bg-gradient-to-br from-[#b8a20e] to-[#e8d84a]", text: "text-white" },
-  ];
+  // KPI data (no separate SPP/SPE cards)
+
 
   const openModal = (d: Demande, modal: "detail" | "editBesoin" | "candidature" | "confirmOpe") => {
     setSelectedDemande(d);
