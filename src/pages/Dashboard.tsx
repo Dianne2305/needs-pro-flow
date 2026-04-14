@@ -406,7 +406,7 @@ export default function Dashboard() {
             <TableHead className="text-xs font-bold px-1 w-8 leading-tight"></TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight">Com</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight">Date</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Statut</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut besoin</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight">Client</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px]">Lieu</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px] truncate">Service</TableHead>
