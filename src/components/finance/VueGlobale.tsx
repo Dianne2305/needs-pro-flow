@@ -78,11 +78,11 @@ export default function VueGlobale() {
     { name: "Entreprises", value: nbEntreprises },
   ];
 
-  // Agence non payée (profil a encaissé, part agence non reversée) - grouped by profil
+  // Agence non payée (profil payé par client, part agence non reversée) - grouped by profil
   const agenceNonPayee = useMemo(() => {
     const map: Record<string, { nom: string; montant: number }> = {};
     missions.forEach((m) => {
-      if (m.encaisse_par === "profil" && !m.part_agence_reversee) {
+      if (m.statut_paiement === "profil_paye_client" && !m.part_agence_reversee) {
         const key = m.profil_nom || "Inconnu";
         if (!map[key]) map[key] = { nom: key, montant: 0 };
         map[key].montant += partAgence(m);
@@ -91,11 +91,11 @@ export default function VueGlobale() {
     return Object.values(map).filter((v) => v.montant > 0);
   }, [missions]);
 
-  // Profil non payé (agence a encaissé, part profil non versée) - grouped by profil
+  // Profil non payé (agence payée par client, part profil non versée) - grouped by profil
   const profilNonPaye = useMemo(() => {
     const map: Record<string, { nom: string; montant: number }> = {};
     missions.forEach((m) => {
-      if (m.encaisse_par !== "profil" && !m.part_profil_versee) {
+      if (m.statut_paiement === "agence_payee_client" && !m.part_profil_versee) {
         const key = m.profil_nom || "Inconnu";
         if (!map[key]) map[key] = { nom: key, montant: 0 };
         map[key].montant += partProfil(m);
@@ -110,8 +110,8 @@ export default function VueGlobale() {
   // Debit/Credit table
   const debitCreditData = useMemo(() => {
     return filtered.map((m) => {
-      const debit = m.encaisse_par === "profil" && !m.part_agence_reversee ? partAgence(m) : 0;
-      const credit = m.encaisse_par !== "profil" && !m.part_profil_versee ? partProfil(m) : 0;
+      const debit = m.statut_paiement === "profil_paye_client" && !m.part_agence_reversee ? partAgence(m) : 0;
+      const credit = m.statut_paiement === "agence_payee_client" && !m.part_profil_versee ? partProfil(m) : 0;
       const commission = partAgence(m);
       return { ...m, debit, credit, commission };
     }).filter((m) => m.debit > 0 || m.credit > 0);
