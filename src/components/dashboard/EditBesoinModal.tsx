@@ -25,6 +25,16 @@ type Demande = Tables<"demandes">;
 
 const MODES_PAIEMENT = ["Virement", "Par chèque", "À l'agence", "Sur place"] as const;
 
+const STATUTS_BESOIN_LIFECYCLE = [
+  { value: "nouveau_besoin", label: "Nouveau besoin" },
+  { value: "confirme_intervention", label: "Confirmé intervention" },
+  { value: "prestation_effectuee", label: "Prestation effectuée" },
+  { value: "paye", label: "Payé" },
+  { value: "facturation_annulee", label: "Facturation annulée" },
+  { value: "standby", label: "Standby" },
+  { value: "annulee", label: "Annulée" },
+] as const;
+
 interface Props {
   demande: Demande;
   open: boolean;
@@ -34,7 +44,7 @@ interface Props {
 
 export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) {
   const queryClient = useQueryClient();
-  const [statut] = useState(demande.statut);
+  const [statut, setStatut] = useState(demande.statut);
   const [segment, setSegment] = useState(
     demande.type_service === "SPE" ? "entreprise" : "particulier"
   );
@@ -376,13 +386,27 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Statut du besoin</Label>
-                    <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 cursor-default">
-                      <span
-                        className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
-                        style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ccc" }}
-                      />
-                      <span className="text-sm">{STATUTS[statut as keyof typeof STATUTS]?.label || statut}</span>
-                    </div>
+                    <Select value={statut} onValueChange={setStatut}>
+                      <SelectTrigger>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
+                            style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ccc" }}
+                          />
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUTS_BESOIN_LIFECYCLE.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            <div className="flex items-center gap-2">
+                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUTS[s.value as keyof typeof STATUTS]?.hex || "#ccc" }} />
+                              {s.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label>Segment</Label>
