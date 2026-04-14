@@ -132,7 +132,7 @@ export default function HistoriqueMissions() {
       const montantTTC = montantHT + montantTVA;
       const paye = m.montant_paye_client || 0;
       const reste = montantTTC - paye;
-      const statutLabel = m.statut_paiement === "paiement_effectue" ? "Payée" : "En Attente";
+      const statutLabel = STATUT_FACTURE_OPTIONS.find((o) => o.value === m.statut_paiement)?.label || m.statut_paiement;
       return [
         m.commercial || "—",
         `FAC-${String(m.num_mission).padStart(6, "0")}`,
