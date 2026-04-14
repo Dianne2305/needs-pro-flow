@@ -355,7 +355,7 @@ export default function Dashboard() {
           setSelectedDemande(d);
           setConfirmOpeOpen(true);
         }}>
-          <CheckCircle className="h-4 w-4 mr-2" />Confirmation Opé
+          <CheckCircle className="h-4 w-4 mr-2" />Confirmation avant opération
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openCompteClient(d)}>
           <UserCheck className="h-4 w-4 mr-2" />Compte Client
@@ -382,8 +382,11 @@ export default function Dashboard() {
           <MessageSquare className="h-4 w-4 mr-2" />Note opérationnelle
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
-          <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_en_cours" } })} className="text-indigo-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Pres. en cours
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_terminee", statut_paiement_commercial: "non_paye" } })} className="text-sky-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Pres. terminée
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
