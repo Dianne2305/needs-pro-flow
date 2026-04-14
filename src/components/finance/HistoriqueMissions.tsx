@@ -25,6 +25,7 @@ const STATUT_FACTURE_OPTIONS = [
   { value: "profil_paye_client", label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
   { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
   { value: "paiement_partiel", label: "Paiement partiel", color: "bg-amber-100 text-amber-800" },
+  { value: "facturation_annulee", label: "Facturation annulée", color: "bg-rose-100 text-rose-800" },
 ] as const;
 
 export default function HistoriqueMissions() {

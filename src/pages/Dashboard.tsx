@@ -747,13 +747,45 @@ export default function Dashboard() {
             <Button variant="outline" onClick={() => setFactAnnuleeOpen(false)}>Annuler</Button>
             <Button
               disabled={!factAnnuleeRaison || updateMutation.isPending}
-              onClick={() => {
+              onClick={async () => {
                 if (!selectedDemande) return;
+
+                // 1. Update demande
                 const updates: Record<string, unknown> = {
                   statut: "facturation_annulee",
+                  statut_paiement_commercial: "facturation_annulee",
                   motif_annulation: factAnnuleeRaison,
                   montant_candidat: factAnnuleePayerProfil && factAnnuleeMontantProfil ? Number(factAnnuleeMontantProfil) : null,
                 };
+
+                // 2. Update facturation record
+                const { data: existingFact } = await supabase
+                  .from("facturation")
+                  .select("id")
+                  .eq("demande_id", selectedDemande.id)
+                  .maybeSingle();
+
+                if (existingFact) {
+                  const factUpdates: Record<string, unknown> = {
+                    statut_mission: "facturation_annulee",
+                    statut_paiement: "facturation_annulee",
+                    commentaire: factAnnuleeRaison,
+                  };
+                  if (factAnnuleePayerProfil && factAnnuleeMontantProfil) {
+                    factUpdates.montant_encaisse_profil = Number(factAnnuleeMontantProfil);
+                    factUpdates.part_profil_versee = false;
+                  }
+                  await supabase.from("facturation").update(factUpdates).eq("id", existingFact.id);
+                }
+
+                // 3. Log to historique
+                await supabase.from("demande_historique").insert({
+                  demande_id: selectedDemande.id,
+                  action: "Facturation annulée",
+                  details: `Raison : ${factAnnuleeRaison}${factAnnuleePayerProfil ? ` | Profil payé : ${factAnnuleeMontantProfil} MAD` : " | Profil non payé"}`,
+                  utilisateur: null,
+                });
+
                 updateMutation.mutate({ id: selectedDemande.id, updates }, {
                   onSuccess: () => setFactAnnuleeOpen(false),
                 });
