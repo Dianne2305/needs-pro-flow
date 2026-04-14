@@ -14,7 +14,7 @@ import {
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   STATUTS_PAIEMENT_COMMERCIAL,
 } from "@/lib/constants";
-import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList, History, Receipt } from "lucide-react";
+import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList, History, Receipt, Users, Plus, Trash2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { ServiceFormFields } from "./ServiceFormFields";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
@@ -74,6 +74,39 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [formOpen, setFormOpen] = useState(false);
   const [agenceOpen, setAgenceOpen] = useState(true);
   const [historiqueOpen, setHistoriqueOpen] = useState(true);
+  const [gestionPartsOpen, setGestionPartsOpen] = useState(true);
+
+  // Gestion des parts state
+  const [partAgence, setPartAgence] = useState("0");
+  const [profilParts, setProfilParts] = useState<{ profilId: string; part: string }[]>([
+    { profilId: "", part: "0" },
+  ]);
+
+  // Fetch profils for dropdown
+  const { data: profilsList = [] } = useQuery({
+    queryKey: ["profils_listing"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profils")
+        .select("id, nom, prenom, type_profil, statut_profil")
+        .order("prenom", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Gestion des parts calculations
+  const totalReparti = useMemo(() => {
+    const agence = Number(partAgence) || 0;
+    const profils = profilParts.reduce((sum, p) => sum + (Number(p.part) || 0), 0);
+    return agence + profils;
+  }, [partAgence, profilParts]);
+
+  const resteARepartir = useMemo(() => {
+    return montantTTC - totalReparti;
+  }, [montantTTC, totalReparti]);
+
+  const repartitionCorrecte = Math.abs(resteARepartir) < 0.01;
 
   // Service-specific fields
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
@@ -376,6 +409,96 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Sub-section: Gestion des parts */}
+              <div>
+                <Collapsible open={gestionPartsOpen} onOpenChange={setGestionPartsOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 mb-3 hover:opacity-90 transition-opacity">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-emerald-600" />
+                      <h3 className="text-lg font-bold text-emerald-700">Gestion des parts</h3>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-emerald-600 transition-transform duration-200 ${gestionPartsOpen ? "rotate-180" : ""}`} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4">
+                    {/* Montant total (read-only) */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Montant total TTC (MAD)</Label>
+                        <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50 cursor-default">
+                          <span className="text-sm font-semibold">{montantTTC.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label>Part de l'agence (MAD)</Label>
+                        <Input type="number" value={partAgence} onChange={(e) => setPartAgence(e.target.value)} />
+                      </div>
+                    </div>
+
+                    {/* Profil lines */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold">Profils intervenants</Label>
+                      {profilParts.map((pp, index) => {
+                        const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
+                        const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
+                        return (
+                          <div key={index} className="flex items-end gap-3">
+                            <div className="flex-1">
+                              <Label className="text-xs">Nom du profil</Label>
+                              <Select value={pp.profilId} onValueChange={(val) => {
+                                const updated = [...profilParts];
+                                updated[index] = { ...updated[index], profilId: val };
+                                setProfilParts(updated);
+                              }}>
+                                <SelectTrigger><SelectValue placeholder="Sélectionner un profil..." /></SelectTrigger>
+                                <SelectContent>
+                                  {availableProfils.map((p) => (
+                                    <SelectItem key={p.id} value={p.id}>
+                                      {p.prenom} {p.nom} {p.type_profil ? `(${p.type_profil})` : ""}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="w-32">
+                              <Label className="text-xs">Part (MAD)</Label>
+                              <Input type="number" value={pp.part} onChange={(e) => {
+                                const updated = [...profilParts];
+                                updated[index] = { ...updated[index], part: e.target.value };
+                                setProfilParts(updated);
+                              }} />
+                            </div>
+                            {profilParts.length > 1 && (
+                              <Button variant="ghost" size="icon" className="text-destructive h-10 w-10" onClick={() => {
+                                setProfilParts(profilParts.filter((_, i) => i !== index));
+                              }}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0" }])}>
+                        <Plus className="h-4 w-4 mr-1" />
+                        Ajouter un autre profil
+                      </Button>
+                    </div>
+
+                    {/* Répartition summary */}
+                    <div className={`flex items-center justify-between px-4 py-3 rounded-lg border ${repartitionCorrecte ? "bg-emerald-50 border-emerald-200" : "bg-destructive/10 border-destructive/30"}`}>
+                      <div className="flex gap-6 text-sm">
+                        <span>Total réparti : <strong>{totalReparti.toFixed(2)} MAD</strong></span>
+                        <span>Reste à répartir : <strong className={repartitionCorrecte ? "text-emerald-600" : "text-destructive"}>{resteARepartir.toFixed(2)} MAD</strong></span>
+                      </div>
+                      {repartitionCorrecte ? (
+                        <span className="text-xs font-medium text-emerald-600">✓ Répartition correcte</span>
+                      ) : (
+                        <span className="text-xs font-medium text-destructive">⚠ Répartition incorrecte</span>
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
 
               {/* Notes */}
