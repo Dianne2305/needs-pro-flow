@@ -164,8 +164,8 @@ export default function Dashboard() {
         segment,
         encaisse_par: "agence",
         montant_encaisse_profil: 0,
-        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee",
-        statut_paiement: newStatut === "paye" ? "paye" : newStatut === "facturation_partielle" ? "partiellement_paye" : "non_paye",
+        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "confirmee",
+        statut_paiement: newStatut === "paye" ? "paye" : "non_paye",
       });
     } else if (existing && statusesToUpdate.includes(newStatut)) {
       // Update existing facturation — ne pas écraser encaisse_par (modifiable uniquement manuellement)
