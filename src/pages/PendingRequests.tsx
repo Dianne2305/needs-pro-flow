@@ -171,7 +171,7 @@ export default function PendingRequests() {
     mutationFn: async ({ id, statut, motif }: { id: string; statut: string; motif?: string }) => {
       const updates: Record<string, unknown> = { statut };
       if (statut === "confirmee") {
-        updates.statut = "en_cours";
+        updates.statut = "nouveau_besoin";
         updates.confirmed_at = new Date().toISOString();
       }
       if (motif) updates.motif_annulation = motif;

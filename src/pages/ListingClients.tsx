@@ -36,11 +36,12 @@ const STATUS_FILTER_TABS = [
   { value: "paye", label: "Payé" },
   { value: "facturation_en_cours", label: "Facturation en cours" },
   { value: "facturation_partielle", label: "Facturation partielle" },
+  { value: "facturation_annulee", label: "Facturation annulée" },
   { value: "prestation_effectuee", label: "Facturation" },
 ] as const;
 
 const STATUS_ROW_COLORS: Record<string, string> = {
-  en_cours: "bg-background",
+  nouveau_besoin: "bg-[hsl(210,80%,95%)]",
   en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
@@ -51,6 +52,7 @@ const STATUS_ROW_COLORS: Record<string, string> = {
   paye: "bg-[hsl(140,50%,93%)]",
   standby: "bg-[hsl(220,15%,93%)]",
   annulee: "bg-[hsl(0,60%,95%)]",
+  facturation_annulee: "bg-[hsl(350,80%,95%)]",
 };
 
 export default function ListingClients() {
@@ -197,7 +199,7 @@ export default function ListingClients() {
   const renderStatusBadge = (statut: string) => {
     const s = STATUTS[statut as keyof typeof STATUTS];
     return s ? (
-      <Badge variant="outline" className="border-0 font-medium text-xs whitespace-nowrap" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>
+      <Badge variant="outline" className="border-0 font-medium text-xs whitespace-nowrap" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
         {s.label}
       </Badge>
     ) : <Badge variant="outline" className="text-xs">{statut}</Badge>;
