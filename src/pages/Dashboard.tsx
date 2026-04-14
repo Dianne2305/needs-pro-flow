@@ -67,6 +67,12 @@ export default function Dashboard() {
   const [reportDate, setReportDate] = useState("");
   const [reportHeure, setReportHeure] = useState("");
 
+  // Facturation annulée modal
+  const [factAnnuleeOpen, setFactAnnuleeOpen] = useState(false);
+  const [factAnnuleeRaison, setFactAnnuleeRaison] = useState("");
+  const [factAnnuleePayerProfil, setFactAnnuleePayerProfil] = useState(false);
+  const [factAnnuleeMontantProfil, setFactAnnuleeMontantProfil] = useState("");
+
   const { data: allDemandes = [], isLoading, refetch } = useQuery({
     queryKey: ["demandes", "confirmed"],
     queryFn: async () => {
