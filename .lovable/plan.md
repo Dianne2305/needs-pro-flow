@@ -1,96 +1,54 @@
 
 
-# Back-Office Agence Ménage - Phase 1
+## Plan : Réorganiser le tableau du Dashboard pour tenir sur une seule page
 
-## Vue d'ensemble
-Application de gestion back-office pour une agence de services de ménage/nettoyage, avec une interface professionnelle aux couleurs de la marque (#0b7f7a). Données stockées dans une base Supabase (Lovable Cloud). Phase 1 = les 2 pages essentielles + la navigation complète.
+### Objectif
+Réduire le nombre de colonnes, abréger les titres, et réordonner selon les 13 colonnes demandées — sans défilement horizontal.
 
----
+### Colonnes actuelles → Nouvelles colonnes (dans l'ordre)
 
-## Navigation latérale (Sidebar)
-Menu avec les entrées suivantes (les pages non implémentées en phase 1 afficheront "Bientôt disponible") :
-- 🏠 Tableau de bord (actif)
-- ⏳ Demandes en attente
-- 👤 Listing profils *(phase 2)*
-- 🏢 Listing clients *(phase 2)*
-- 💰 Facturation *(phase 2)*
-- ⚙️ Paramètres *(phase 2)*
+| # | Nouvelle colonne | Titre affiché | Notes |
+|---|---|---|---|
+| 1 | Actions | Icône ⚙️ uniquement (pas de texte "Actions") | Garder le dropdown existant |
+| 2 | Commercial | **Com** | Abrégé |
+| 3 | Date intervention | **Date** | Abrégé, format compact dd/MM/yy |
+| 4 | Statut du besoin | **Statut** | Badge existant |
+| 5 | Nom du client | **Client** | Cliquable → redirige vers `/compte-client?id=...` |
+| 6 | Quartier/Ville | **Lieu** | Compact sur une ligne |
+| 7 | Type de service | **Service** | Texte prestation |
+| 8 | Segment | **Seg.** | Badge SPP/SPE |
+| 9 | Nb d'heures | **Hrs** | Abrégé |
+| 10 | Profils envoyés | **Profil** | Cliquable → redirige vers `/compte-profil?id=...` |
+| 11 | Option supplémentaire | **Opt. sup.** | Remplace "Avec produit" |
+| 12 | CAO | **CAO** | Inchangé |
+| 13 | Tarif total | **Tarif** | Montant MAD |
 
----
+### Colonnes supprimées
+- Fréquence
+- Mode paiement
+- Statut paiement
+- Reste à payer
+- Colonne vide du menu 3 points (intégré dans Actions ou conservé en dernière colonne discrète)
 
-## Page 1 : Demandes clients en attente de confirmation
+### Modifications techniques
 
-Page listant les demandes clients arrivant du formulaire externe (saisie manuelle ou import).
+**Fichier : `src/pages/Dashboard.tsx`**
 
-**Fonctionnalités :**
-- Formulaire d'ajout d'une demande (toutes les infos : nom, téléphone +212, type de service SPP/SPE, type de prestation, type de bien, fréquence, durée, nombre d'intervenants, date/heure, ville Casablanca + quartiers, adresse, montant total, notes client)
-- Le montant candidat est calculé automatiquement (montant total / 2)
-- Bouton **Confirmer** pour valider une demande → elle passe au Tableau de bord
-- Bouton **Rejeter** pour refuser une demande
-- Liste des demandes en attente avec recherche et filtres
+1. **TableHeader** (lignes ~402-422) : Remplacer les 18 colonnes par les 13 listées ci-dessus avec titres abrégés. Ajouter `className="text-xs"` sur tous les `TableHead` pour compacité.
 
----
+2. **TableBody / renderTable** (lignes ~427-525) : Réordonner les `TableCell` selon le nouvel ordre. Supprimer les cellules Fréquence, Mode paiement, Statut paiement, Reste à payer.
 
-## Page 2 : Tableau de bord (Home)
+3. **Actions** : Remplacer le bouton texte "Actions" par une icône seule (`<Settings className="h-4 w-4" />`).
 
-Affiche les demandes **confirmées** depuis la page des demandes en attente.
+4. **Nom du client** : Rendre cliquable avec `onClick={() => openCompteClient(d)}` (déjà existant).
 
-### Récapitulatif en haut de page (cartes KPI)
-- Nombre de demandes en cours (du jour par défaut)
-- Nombre de services pour particuliers (SPP)
-- Nombre de services pour entreprise (SPE)
-- Nombre de demandes en attente de confirmation
-- Les KPIs se mettent à jour selon les filtres appliqués
+5. **Profils envoyés** : Rendre le nom cliquable pour naviguer vers `/compte-profil?id={profil_id}`. Chercher le profil_id depuis la table `profils` par nom si nécessaire.
 
-### Deux onglets : Besoins / Abonnements
-- **Onglet Besoins** : toutes les demandes ponctuelles
-- **Onglet Abonnements** : demandes récurrentes (filtres : fréquence, type prestation, type service)
+6. **Option supplémentaire** : Renommer le champ `avec_produit` en affichage "Opt. sup." avec le même badge Oui/Non.
 
-### Affichage des demandes
-- **Mode tableau/liste** : colonnes avec toutes les infos (num demande, date confirmation, nom, téléphones, type de service avec couleur SPP #0b7f7a / SPE vert citron, prestation, lieu, montant total, montant candidat, notes)
-- **Mode carte** : affichage en grille, cliquer ouvre une fiche détaillée complète (adapté mobile)
-- Bouton pour basculer entre les deux modes
+7. **Menu 3 points** : Fusionner dans la colonne Actions ou le garder en dernière colonne sans titre.
 
-### Actions sur chaque demande (icône crayon / 3 points)
-- Éditer le besoin
-- Ajouter une note (commerciale ou opérationnelle)
-- Statuer : Clôturer, Standby, Supprimer, Rejeté/Annulé
-- Bouton "Plus" pour voir toutes les informations du formulaire client
+8. **colSpan** : Mettre à jour le `colSpan` de la ligne vide (actuellement 18) vers 13.
 
-### Barre de recherche et filtres
-- Recherche textuelle libre
-- Filtre par type de service : SPP, SPE, Tous
-- Filtre par période : deux calendriers pour comparer deux périodes
-- Filtre par type de prestation : Ménage standard, Grand Ménage, Nettoyage Fin de chantier, Ménage post-déménagement, Ménage AirBNB, Garde malade, Ménage Bureaux, Placement...
-
-### Bouton actualiser
-- Bouton visible pour forcer le rechargement des données
-
----
-
-## Notifications / Rappels 24h (in-app pour la phase 1)
-
-- Système d'alertes in-app : badge/notification dans le back-office 24h avant chaque prestation
-- Messages pré-rédigés affichés dans l'alerte :
-  - **Client** : "Bonjour Madame, nous vous relançons pour confirmer votre réservation du [date], pour [type prestation]." + boutons Confirmer / Demande de report
-  - **Profil** : message de confirmation ou report
-  - **Opérationnel** : message de confirmation ou report
-- *L'envoi WhatsApp et Email sera ajouté en phase ultérieure (nécessite intégration API)*
-
----
-
-## Base de données (Lovable Cloud / Supabase)
-
-Tables principales :
-- **demandes** : toutes les informations des demandes clients (statut, infos contact, prestation, lieu, montants, notes)
-- **notifications** : alertes de rappel 24h
-
----
-
-## Design
-- Couleur principale : #0b7f7a (vert pastel Agence Ménage)
-- Badge SPP : #0b7f7a | Badge SPE : vert citron
-- Interface responsive, optimisée pour mobile (mode carte par défaut sur petit écran)
-- Indicatif téléphonique : +212 (Maroc)
-- Villes : Casablanca avec liste de quartiers
+9. **Styles compacts** : Ajouter `text-xs` et `px-2` sur les cellules pour réduire la largeur globale.
 
