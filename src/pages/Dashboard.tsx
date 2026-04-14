@@ -417,7 +417,7 @@ export default function Dashboard() {
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-           <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+           <TableRow><TableCell colSpan={16} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => {
             const rowColor = STATUS_ROW_COLORS[d.statut] || "";
             return (
