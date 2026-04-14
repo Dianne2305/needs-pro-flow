@@ -337,11 +337,11 @@ export default function Dashboard() {
   };
 
   // Main Action dropdown
-  const renderActionButtons = (d: Demande) => (
+   const renderActionButtons = (d: Demande) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1">
-          <Settings className="h-3.5 w-3.5" />Actions
+        <Button variant="outline" size="icon" className="h-7 w-7">
+          <Settings className="h-3.5 w-3.5" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
@@ -401,111 +401,65 @@ export default function Dashboard() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="whitespace-nowrap">Actions</TableHead>
-            <TableHead>Commercial</TableHead>
-            <TableHead>Date intervention</TableHead>
-            <TableHead>Nb heures</TableHead>
-            <TableHead>Statut besoin</TableHead>
-            <TableHead>Nom client</TableHead>
-            <TableHead>Quartier / Ville</TableHead>
-            <TableHead>Fréquence</TableHead>
-            <TableHead>Segment</TableHead>
-            <TableHead>Type de service</TableHead>
-            <TableHead>Avec produit</TableHead>
-            <TableHead>Tarif total</TableHead>
-            <TableHead>Mode paiement</TableHead>
-            <TableHead>Statut paiement</TableHead>
-            <TableHead>Reste à payer</TableHead>
-            <TableHead>Profils envoyés</TableHead>
-            <TableHead>CAO</TableHead>
-            <TableHead></TableHead>
+            <TableHead className="text-xs px-2 w-10"></TableHead>
+            <TableHead className="text-xs px-2">Com</TableHead>
+            <TableHead className="text-xs px-2">Date</TableHead>
+            <TableHead className="text-xs px-2">Statut</TableHead>
+            <TableHead className="text-xs px-2">Client</TableHead>
+            <TableHead className="text-xs px-2">Lieu</TableHead>
+            <TableHead className="text-xs px-2">Service</TableHead>
+            <TableHead className="text-xs px-2">Seg.</TableHead>
+            <TableHead className="text-xs px-2">Hrs</TableHead>
+            <TableHead className="text-xs px-2">Profil</TableHead>
+            <TableHead className="text-xs px-2">Opt. sup.</TableHead>
+            <TableHead className="text-xs px-2">CAO</TableHead>
+            <TableHead className="text-xs px-2">Tarif</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow><TableCell colSpan={18} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+           <TableRow><TableCell colSpan={13} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => {
             const rowColor = STATUS_ROW_COLORS[d.statut] || "";
-            const isReservation = ["confirme", "confirme_intervention", "prestation_effectuee", "paye"].includes(d.statut);
             return (
               <TableRow key={d.id} className={rowColor}>
-                <TableCell>{renderActionButtons(d)}</TableCell>
-                <TableCell className="text-sm">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
-                <TableCell className="text-xs whitespace-nowrap">
+                <TableCell className="px-2">{renderActionButtons(d)}</TableCell>
+                <TableCell className="text-xs px-2">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
+                <TableCell className="text-xs px-2 whitespace-nowrap">
                   {d.date_prestation ? format(new Date(d.date_prestation + "T00:00:00"), "dd/MM/yy", { locale: fr }) : "—"}
                   {d.heure_prestation && <span className="text-muted-foreground ml-1">{d.heure_prestation.slice(0,5)}</span>}
                 </TableCell>
-                <TableCell className="text-sm text-center">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
-                <TableCell>{renderStatusBadge(d.statut)}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium text-sm">{d.nom}</span>
+                <TableCell className="px-2">{renderStatusBadge(d.statut)}</TableCell>
+                <TableCell className="px-2">
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="text-primary underline hover:text-primary/80 font-medium text-xs cursor-pointer"
+                      onClick={() => openCompteClient(d)}
+                    >
+                      {d.nom}
+                    </button>
                     {(() => {
                       const count = clientCountMap[d.nom?.trim().toLowerCase()] || 0;
                       if (count <= 1) return null;
                       return (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 shrink-0 border-primary/30 text-primary">
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 shrink-0 border-primary/30 text-primary">
                           x{count}
                         </Badge>
                       );
                     })()}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm">
-                  <div>{d.quartier || "—"}</div>
-                  <div className="text-xs text-muted-foreground">{d.ville}</div>
+                <TableCell className="text-xs px-2">
+                  {d.quartier ? `${d.quartier}, ${d.ville}` : d.ville}
                 </TableCell>
-                <TableCell className="text-xs">
-                  {d.frequence === "ponctuel" ? "Une fois" : "Abonnement"}
-                </TableCell>
-                <TableCell>{renderServiceBadge(d.type_service)}</TableCell>
-                <TableCell className="text-sm">{d.type_prestation}</TableCell>
-                <TableCell className="text-sm text-center">
-                  {d.avec_produit ? (
-                    <Badge className="bg-primary/10 text-primary text-[10px]">Oui</Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-xs">Non</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-sm font-medium">
-                  {d.montant_total ? (
-                    <div>
-                      <span>{d.montant_total} MAD</span>
-                      <div className="text-[10px] text-muted-foreground">
-                        {isReservation ? "Prix/réservation" : "Prix/devis"}
-                      </div>
-                    </div>
-                  ) : "—"}
-                </TableCell>
-                <TableCell className="text-sm">{d.mode_paiement || "—"}</TableCell>
-                <TableCell className="text-sm">
-                  {(() => {
-                    const sp = (d as any).statut_paiement_commercial || "non_paye";
-                    const opt = STATUTS_PAIEMENT_COMMERCIAL.find(s => s.value === sp);
-                    const colorMap: Record<string, string> = {
-                      non_paye: "bg-red-100 text-red-800",
-                      paiement_en_attente: "bg-amber-100 text-amber-800",
-                      paiement_effectue: "bg-emerald-100 text-emerald-800",
-                    };
-                    return <Badge variant="outline" className={`border-0 text-[10px] ${colorMap[sp] || ""}`}>{opt?.label || sp}</Badge>;
-                  })()}
-                </TableCell>
-                <TableCell className="text-sm">
-                  {(() => {
-                    const sp = (d as any).statut_paiement_commercial || "non_paye";
-                    const montantTotal = d.montant_total || 0;
-                    const montantVerse = (d as any).montant_verse_client || 0;
-                    if (sp === "paiement_integral") return <span className="text-emerald-700 font-medium">0 MAD</span>;
-                    if (sp === "non_paye") return <span className="text-destructive font-medium">{montantTotal ? `${montantTotal} MAD` : "—"}</span>;
-                    const reste = Number(montantTotal) - Number(montantVerse);
-                    return <span className="text-destructive font-medium">{reste > 0 ? `${reste} MAD` : "0 MAD"}</span>;
-                  })()}
-                </TableCell>
-                <TableCell className="text-sm">
+                <TableCell className="text-xs px-2">{d.type_prestation}</TableCell>
+                <TableCell className="px-2">{renderServiceBadge(d.type_service)}</TableCell>
+                <TableCell className="text-xs px-2 text-center">{d.duree_heures ? `${d.duree_heures}h` : "—"}</TableCell>
+                <TableCell className="text-xs px-2">
                   {d.candidat_nom ? (
                     <button 
                       className="text-primary underline hover:text-primary/80 font-medium cursor-pointer"
-                      onClick={() => openModal(d, "candidature")}
+                      onClick={() => navigate(`/compte-profil?nom=${encodeURIComponent(d.candidat_nom!)}`)}
                     >
                       {d.candidat_nom}
                     </button>
@@ -513,14 +467,23 @@ export default function Dashboard() {
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell className="text-xs">
+                <TableCell className="text-xs px-2 text-center">
+                  {d.avec_produit ? (
+                    <Badge className="bg-primary/10 text-primary text-[10px]">Oui</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">Non</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-xs px-2">
                   {d.confirmation_ope === "confirme" ? (
                     <Badge className="bg-emerald-100 text-emerald-800 text-[10px]">Oui</Badge>
                   ) : (
                     <Badge variant="outline" className="text-[10px]">Non</Badge>
                   )}
                 </TableCell>
-                <TableCell>{renderQuickMenu(d)}</TableCell>
+                <TableCell className="text-xs px-2 font-medium">
+                  {d.montant_total ? `${d.montant_total} MAD` : "—"}
+                </TableCell>
               </TableRow>
             );
           })}
