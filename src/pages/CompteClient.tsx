@@ -15,7 +15,7 @@ import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
   FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
-  Ban
+  Ban, History
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
