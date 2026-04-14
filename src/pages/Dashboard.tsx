@@ -541,15 +541,32 @@ export default function Dashboard() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {kpis.map((k) => (
-          <Card key={k.label} className={`${k.bg} border-0`}>
-            <CardContent className="p-4 text-center">
-              <p className={`text-3xl font-bold ${k.text}`}>{k.value}</p>
-              <p className={`text-xs mt-1 ${k.text} opacity-80`}>{k.label}</p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-2 gap-4">
+        <Card
+          className="bg-gradient-to-br from-[#e8920a] to-[#fcc35c] border-0 cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => {
+            if (filterService === "all") setFilterService("SPP");
+            else if (filterService === "SPP") setFilterService("SPE");
+            else setFilterService("all");
+          }}
+        >
+          <CardContent className="p-4 text-center">
+            <p className="text-3xl font-bold text-white">{filtered.length}</p>
+            <p className="text-xs mt-1 text-white opacity-80">Demandes en cours</p>
+            <p className="text-[10px] mt-0.5 text-white opacity-70">
+              {sppCount} particulier{sppCount > 1 ? "s" : ""} · {speCount} entreprise{speCount > 1 ? "s" : ""}
+            </p>
+          </CardContent>
+        </Card>
+        <Card
+          className="bg-gradient-to-br from-[#b8a20e] to-[#e8d84a] border-0 cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => navigate("/pending-requests")}
+        >
+          <CardContent className="p-4 text-center">
+            <p className="text-3xl font-bold text-white">{pendingCount}</p>
+            <p className="text-xs mt-1 text-white opacity-80">En attente</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
