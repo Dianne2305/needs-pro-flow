@@ -439,7 +439,16 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   </div>
                   <div>
                     <Label>Statut de paiement</Label>
-                    <Select value={statutPaiement} onValueChange={setStatutPaiement}>
+                    <Select value={statutPaiement} onValueChange={(val) => {
+                      setStatutPaiement(val);
+                      // Auto-fill amounts when status changes
+                      if (val === "profil_paye_client") {
+                        setMontantProfilDoit(partAgence || "0");
+                      } else if (val === "agence_payee_client") {
+                        const totalProfilParts = profilParts.reduce((s, p) => s + (Number(p.part) || 0), 0);
+                        setMontantAgenceDoit(totalProfilParts > 0 ? String(totalProfilParts) : "0");
+                      }
+                    }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATUTS_PAIEMENT_COMMERCIAL.map((s) => (
