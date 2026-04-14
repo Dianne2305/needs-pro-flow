@@ -443,6 +443,59 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     )}
                   </div>
                 </div>
+
+                {/* Facturation annulée block */}
+                {statutPaiement === "facturation_annulee" && (
+                  <div className="mt-4 p-4 rounded-lg border border-rose-200 bg-rose-50 space-y-3">
+                    <h4 className="text-sm font-bold text-rose-700 flex items-center gap-2">
+                      <X className="h-4 w-4" /> Facturation annulée
+                    </h4>
+                    <div>
+                      <Label className="text-rose-700">Raison de l'annulation</Label>
+                      <Textarea
+                        value={factAnnuleeRaison}
+                        onChange={(e) => setFactAnnuleeRaison(e.target.value)}
+                        placeholder="Indiquer la raison de l'annulation..."
+                        className="border-rose-200"
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Label className="text-rose-700">Le profil sera payé ?</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={factAnnuleePayerProfil ? "default" : "outline"}
+                          className={factAnnuleePayerProfil ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                          onClick={() => setFactAnnuleePayerProfil(true)}
+                        >
+                          Oui
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={!factAnnuleePayerProfil ? "default" : "outline"}
+                          className={!factAnnuleePayerProfil ? "bg-rose-600 hover:bg-rose-700" : ""}
+                          onClick={() => setFactAnnuleePayerProfil(false)}
+                        >
+                          Non
+                        </Button>
+                      </div>
+                    </div>
+                    {factAnnuleePayerProfil && (
+                      <div>
+                        <Label className="text-rose-700">Montant à payer au profil (MAD)</Label>
+                        <Input
+                          type="number"
+                          value={factAnnuleeMontantProfil}
+                          onChange={(e) => setFactAnnuleeMontantProfil(e.target.value)}
+                          placeholder="0"
+                          className="border-rose-200 max-w-xs"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Sub-section: Gestion des parts */}
