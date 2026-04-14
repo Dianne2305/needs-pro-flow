@@ -651,7 +651,7 @@ export default function CompteClient() {
                   <TableCell>
                     {(() => {
                       const paiementMap: Record<string, { label: string; color: string }> = {
-                        non_paye: { label: "Non payé", color: "bg-red-100 text-red-800" },
+                        non_paye: { label: "Paiement en attente", color: "bg-red-100 text-red-800" },
                         paye: { label: "Payé", color: "bg-green-100 text-green-800" },
                         partiel: { label: "Partiel", color: "bg-yellow-100 text-yellow-800" },
                       };
