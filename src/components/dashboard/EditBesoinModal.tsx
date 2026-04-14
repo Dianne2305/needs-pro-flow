@@ -454,10 +454,23 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                       setStatutPaiement(val);
                       // Auto-fill amounts when status changes
                       if (val === "profil_paye_client") {
-                        setMontantProfilDoit(partAgence || "0");
+                        const agencePart = Number(partAgence) || 0;
+                        const defaultAmount = agencePart > 0 ? String(agencePart) : String((Number(montantHT) || 0) * 0.5);
+                        setMontantProfilDoit(defaultAmount);
+                        // Also auto-fill the profil part in Gestion des parts
+                        const profilPartAmount = (Number(montantHT) || 0) - agencePart;
+                        if (profilParts.length > 0) {
+                          const updated = [...profilParts];
+                          updated[0] = { ...updated[0], part: String(profilPartAmount > 0 ? profilPartAmount : 0) };
+                          setProfilParts(updated);
+                        }
                       } else if (val === "agence_payee_client") {
                         const totalProfilParts = profilParts.reduce((s, p) => s + (Number(p.part) || 0), 0);
-                        setMontantAgenceDoit(totalProfilParts > 0 ? String(totalProfilParts) : "0");
+                        const defaultAmount = totalProfilParts > 0 ? String(totalProfilParts) : String((Number(montantHT) || 0) * 0.5);
+                        setMontantAgenceDoit(defaultAmount);
+                        // Also auto-fill partAgence in Gestion des parts
+                        const agenceAmount = (Number(montantHT) || 0) - totalProfilParts;
+                        setPartAgence(agenceAmount > 0 ? String(agenceAmount) : String((Number(montantHT) || 0) * 0.5));
                       }
                     }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
