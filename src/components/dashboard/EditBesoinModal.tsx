@@ -438,7 +438,13 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
                     {/* Profil lines */}
                     <div className="space-y-3">
-                      <Label className="text-sm font-semibold">Profils intervenants</Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Profils intervenants</Label>
+                        <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0" }])}>
+                          <Plus className="h-4 w-4 mr-1" />
+                          Ajouter un autre profil
+                        </Button>
+                      </div>
                       {profilParts.map((pp, index) => {
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
@@ -479,10 +485,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                           </div>
                         );
                       })}
-                      <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0" }])}>
-                        <Plus className="h-4 w-4 mr-1" />
-                        Ajouter un autre profil
-                      </Button>
                     </div>
 
                     {/* Répartition summary */}
