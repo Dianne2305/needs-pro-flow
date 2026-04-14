@@ -121,7 +121,7 @@ export default function HistoriqueMissions() {
   const getStatutBadge = (statut: string) => {
     const opt = STATUT_FACTURE_OPTIONS.find((o) => o.value === statut);
     if (opt) return <Badge className={opt.color}>{opt.label}</Badge>;
-    return <Badge className="bg-red-100 text-red-800">Non payé / Client</Badge>;
+    return <Badge className="bg-red-100 text-red-800">Paiement en attente</Badge>;
   };
 
   const handleExportRapport = () => {
