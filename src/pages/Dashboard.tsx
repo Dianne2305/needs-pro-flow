@@ -332,7 +332,7 @@ export default function Dashboard() {
   const renderStatusBadge = (statut: string) => {
     const s = STATUTS[statut as keyof typeof STATUTS];
     return s ? (
-      <Badge variant="outline" className="border-0 font-medium text-xs" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
+      <Badge variant="outline" className="border-0 font-medium text-[10px] leading-tight whitespace-normal text-center max-w-[80px]" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
         {s.label}
       </Badge>
     ) : <Badge variant="outline" className="text-xs">{statut}</Badge>;
@@ -406,7 +406,7 @@ export default function Dashboard() {
             <TableHead className="text-xs font-bold px-1 w-8 leading-tight"></TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight">Com</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight">Date</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Statut</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut besoin</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight">Client</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px]">Lieu</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px] truncate">Service</TableHead>
