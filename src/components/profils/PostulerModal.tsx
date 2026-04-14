@@ -30,7 +30,7 @@ export function PostulerModal({ open, onOpenChange, profil }: Props) {
       const { data } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["en_attente", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention"])
+        .in("statut", ["en_attente", "nouveau_besoin", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention"])
         .order("created_at", { ascending: false });
       return data || [];
     },

@@ -1,0 +1,6 @@
+
+ALTER TABLE public.demandes DROP CONSTRAINT IF EXISTS demandes_statut_check;
+
+UPDATE public.demandes SET statut = 'nouveau_besoin' WHERE statut = 'en_cours';
+
+ALTER TABLE public.demandes ADD CONSTRAINT demandes_statut_check CHECK (statut IN ('en_attente', 'nouveau_besoin', 'en_cours', 'en_attente_confirmation', 'en_attente_profil', 'confirme', 'confirme_intervention', 'prestation_effectuee', 'facturation_en_cours', 'facturation_partielle', 'paye', 'facturation_annulee', 'annulee', 'standby', 'cloturee', 'nrp', 'rejetee', 'confirmee'));

@@ -50,7 +50,7 @@ export const QUARTIERS_CASABLANCA = [
 ] as const;
 
 export const STATUTS = {
-  en_cours: { label: "En cours", color: "bg-slate-100 text-slate-800", hex: "#ffffff" },
+  nouveau_besoin: { label: "Nouveau besoin", color: "bg-blue-100 text-blue-800", hex: "#3b82f6" },
   en_attente_confirmation: { label: "En attente de confirmation", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
   en_attente_profil: { label: "En attente profil", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
   confirme: { label: "Confirmé", color: "bg-cyan-100 text-cyan-800", hex: "#50bfcb" },

@@ -240,7 +240,7 @@ export default function CompteClient() {
     createRenewalMutation.mutate({
       ...renewForm,
       services_optionnels: "[]",
-      statut: "en_cours",
+      statut: "nouveau_besoin",
     });
   };
 
@@ -358,7 +358,7 @@ export default function CompteClient() {
                   {demande.type_service === "SPP" ? "Particulier" : "Entreprise"}
                 </Badge>
                 {s && (
-                  <Badge variant="outline" className="border-0 text-[10px] font-medium" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>
+                  <Badge variant="outline" className="border-0 text-[10px] font-medium" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
                     {s.label}
                   </Badge>
                 )}
@@ -422,7 +422,7 @@ export default function CompteClient() {
                       </TableCell>
                       <TableCell>
                         {cs ? (
-                          <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: cs.hex === "#ffffff" ? "#e2e8f0" : cs.hex, color: cs.hex === "#ffffff" ? "#334155" : "#fff" }}>
+                          <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: cs.hex, color: "#fff" }}>
                             {cs.label}
                           </Badge>
                         ) : cd.statut}
@@ -583,7 +583,7 @@ export default function CompteClient() {
                 <TableCell className="text-xs">{demande.type_prestation}</TableCell>
                 <TableCell>
                   {s ? (
-                    <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#fff" }}>
+                    <Badge variant="outline" className="border-0 text-[10px]" style={{ backgroundColor: s.hex, color: "#fff" }}>
                       {s.label}
                     </Badge>
                   ) : demande.statut}

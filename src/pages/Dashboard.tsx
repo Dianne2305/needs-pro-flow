@@ -27,7 +27,7 @@ type Demande = Tables<"demandes">;
 
 // Status color mapping for row backgrounds
 const STATUS_ROW_COLORS: Record<string, string> = {
-  en_cours: "bg-[hsl(45,80%,95%)]",
+  nouveau_besoin: "bg-[hsl(210,80%,95%)]",
   en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
@@ -67,13 +67,19 @@ export default function Dashboard() {
   const [reportDate, setReportDate] = useState("");
   const [reportHeure, setReportHeure] = useState("");
 
+  // Facturation annulée modal
+  const [factAnnuleeOpen, setFactAnnuleeOpen] = useState(false);
+  const [factAnnuleeRaison, setFactAnnuleeRaison] = useState("");
+  const [factAnnuleePayerProfil, setFactAnnuleePayerProfil] = useState(false);
+  const [factAnnuleeMontantProfil, setFactAnnuleeMontantProfil] = useState("");
+
   const { data: allDemandes = [], isLoading, refetch } = useQuery({
     queryKey: ["demandes", "confirmed"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
+        .in("statut", ["confirmee", "cloturee", "standby", "nouveau_besoin", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -118,7 +124,7 @@ export default function Dashboard() {
     const demande = allDemandes.find((d) => d.id === demandeId);
     if (!demande) return;
 
-    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
+    const statusesToCreate = ["confirmee", "nouveau_besoin", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
     const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee", "facturation_en_cours", "facturation_partielle"];
 
     // Check if facturation already exists for this demande
@@ -326,7 +332,7 @@ export default function Dashboard() {
   const renderStatusBadge = (statut: string) => {
     const s = STATUTS[statut as keyof typeof STATUTS];
     return s ? (
-      <Badge variant="outline" className="border-0 font-medium text-xs" style={{ backgroundColor: s.hex === "#ffffff" ? "#e2e8f0" : s.hex, color: s.hex === "#ffffff" ? "#334155" : "#ffffff" }}>
+      <Badge variant="outline" className="border-0 font-medium text-xs" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
         {s.label}
       </Badge>
     ) : <Badge variant="outline" className="text-xs">{statut}</Badge>;
@@ -382,7 +388,7 @@ export default function Dashboard() {
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
           <XCircle className="h-4 w-4 mr-2" />Rejeté / Annulé
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "facturation_annulee" } })} className="text-orange-600">
+        <DropdownMenuItem onClick={() => { setSelectedDemande(d); setFactAnnuleeRaison(""); setFactAnnuleePayerProfil(false); setFactAnnuleeMontantProfil(""); setFactAnnuleeOpen(true); }} className="text-orange-600">
           <XCircle className="h-4 w-4 mr-2" />Facturation annulée
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
@@ -564,10 +570,10 @@ export default function Dashboard() {
           }}
         >
           <CardContent className="p-4 text-center">
-            <p className="text-4xl font-bold text-white">{allDemandes.filter(d => d.statut === "en_cours").length}</p>
+            <p className="text-4xl font-bold text-white">{allDemandes.filter(d => d.statut === "nouveau_besoin").length}</p>
             <p className="text-sm mt-1 text-white opacity-80">Demandes en cours</p>
             <p className="text-xs mt-0.5 text-white opacity-70">
-              {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPP").length} particulier(s) · {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPE").length} entreprise(s)
+              {allDemandes.filter(d => d.statut === "nouveau_besoin" && d.type_service === "SPP").length} particulier(s) · {allDemandes.filter(d => d.statut === "nouveau_besoin" && d.type_service === "SPE").length} entreprise(s)
             </p>
           </CardContent>
         </Card>
@@ -705,6 +711,53 @@ export default function Dashboard() {
           <div className="flex justify-end gap-2 pt-4 border-t">
             <Button variant="outline" onClick={() => setReportOpen(false)}>Annuler</Button>
             <Button onClick={saveReport} disabled={updateMutation.isPending}>Enregistrer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Facturation annulée Dialog */}
+      <Dialog open={factAnnuleeOpen} onOpenChange={setFactAnnuleeOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Facturation annulée — #{selectedDemande?.num_demande}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Raison de l'annulation</Label>
+              <Textarea value={factAnnuleeRaison} onChange={(e) => setFactAnnuleeRaison(e.target.value)} rows={3} placeholder="Indiquer la raison..." />
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="text-sm">Le profil sera payé ?</Label>
+              <div className="flex gap-2">
+                <Button size="sm" variant={factAnnuleePayerProfil ? "default" : "outline"} onClick={() => setFactAnnuleePayerProfil(true)}>Oui</Button>
+                <Button size="sm" variant={!factAnnuleePayerProfil ? "default" : "outline"} onClick={() => setFactAnnuleePayerProfil(false)}>Non</Button>
+              </div>
+            </div>
+            {factAnnuleePayerProfil && (
+              <div>
+                <Label>Montant à payer au profil (MAD)</Label>
+                <Input type="number" value={factAnnuleeMontantProfil} onChange={(e) => setFactAnnuleeMontantProfil(e.target.value)} placeholder="0" />
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setFactAnnuleeOpen(false)}>Annuler</Button>
+            <Button
+              disabled={!factAnnuleeRaison || updateMutation.isPending}
+              onClick={() => {
+                if (!selectedDemande) return;
+                const updates: Record<string, unknown> = {
+                  statut: "facturation_annulee",
+                  motif_annulation: factAnnuleeRaison,
+                  montant_candidat: factAnnuleePayerProfil && factAnnuleeMontantProfil ? Number(factAnnuleeMontantProfil) : null,
+                };
+                updateMutation.mutate({ id: selectedDemande.id, updates }, {
+                  onSuccess: () => setFactAnnuleeOpen(false),
+                });
+              }}
+            >
+              Confirmer l'annulation
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
