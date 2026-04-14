@@ -27,7 +27,7 @@ type Demande = Tables<"demandes">;
 
 // Status color mapping for row backgrounds
 const STATUS_ROW_COLORS: Record<string, string> = {
-  en_cours: "bg-[hsl(45,80%,95%)]",
+  nouveau_besoin: "bg-[hsl(210,80%,95%)]",
   en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
@@ -73,7 +73,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["confirmee", "cloturee", "standby", "en_cours", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
+        .in("statut", ["confirmee", "cloturee", "standby", "nouveau_besoin", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -118,7 +118,7 @@ export default function Dashboard() {
     const demande = allDemandes.find((d) => d.id === demandeId);
     if (!demande) return;
 
-    const statusesToCreate = ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
+    const statusesToCreate = ["confirmee", "nouveau_besoin", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
     const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee", "facturation_en_cours", "facturation_partielle"];
 
     // Check if facturation already exists for this demande
@@ -564,10 +564,10 @@ export default function Dashboard() {
           }}
         >
           <CardContent className="p-4 text-center">
-            <p className="text-4xl font-bold text-white">{allDemandes.filter(d => d.statut === "en_cours").length}</p>
+            <p className="text-4xl font-bold text-white">{allDemandes.filter(d => d.statut === "nouveau_besoin").length}</p>
             <p className="text-sm mt-1 text-white opacity-80">Demandes en cours</p>
             <p className="text-xs mt-0.5 text-white opacity-70">
-              {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPP").length} particulier(s) · {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPE").length} entreprise(s)
+              {allDemandes.filter(d => d.statut === "nouveau_besoin" && d.type_service === "SPP").length} particulier(s) · {allDemandes.filter(d => d.statut === "nouveau_besoin" && d.type_service === "SPE").length} entreprise(s)
             </p>
           </CardContent>
         </Card>
