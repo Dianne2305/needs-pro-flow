@@ -64,6 +64,41 @@ export type Database = {
           },
         ]
       }
+      demande_historique: {
+        Row: {
+          action: string
+          created_at: string
+          demande_id: string
+          details: string | null
+          id: string
+          utilisateur: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          demande_id: string
+          details?: string | null
+          id?: string
+          utilisateur?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          demande_id?: string
+          details?: string | null
+          id?: string
+          utilisateur?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demande_historique_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demandes: {
         Row: {
           adresse: string | null
