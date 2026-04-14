@@ -208,6 +208,16 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         factUpdates.date_paiement_client = new Date().toISOString().split("T")[0];
       }
 
+      // If facturation annulée
+      if (statutPaiement === "facturation_annulee") {
+        factUpdates.statut_mission = "facturation_annulee";
+        factUpdates.commentaire = factAnnuleeRaison || null;
+        if (factAnnuleePayerProfil && factAnnuleeMontantProfil) {
+          factUpdates.part_profil_versee = false;
+          factUpdates.montant_encaisse_profil = Number(factAnnuleeMontantProfil);
+        }
+      }
+
       await supabase
         .from("facturation")
         .update(factUpdates as any)
