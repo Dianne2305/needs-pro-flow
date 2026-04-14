@@ -133,11 +133,7 @@ export default function ListingClients() {
 
     // Status filter
     if (statusFilter !== "all") {
-      if (statusFilter === "prestation_effectuee") {
-        result = result.filter((d) => d.statut === "prestation_effectuee");
-      } else {
-        result = result.filter((d) => d.statut === statusFilter);
-      }
+      result = result.filter((d) => d.statut === statusFilter);
     }
 
     // Search
