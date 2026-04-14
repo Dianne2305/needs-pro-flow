@@ -53,7 +53,7 @@ export default function HistoriqueMissions() {
     queryKey: ["demandes", "for_facturation"],
     queryFn: async () => {
       const { data } = await supabase.from("demandes").select("id, num_demande, nom, ville, type_prestation, type_service, montant_total, date_prestation, mode_paiement, candidat_nom, telephone_direct")
-        .in("statut", ["confirmee", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee"]);
+        .in("statut", ["confirmee", "confirme", "confirme_intervention", "prestation_en_cours", "prestation_terminee", "paye", "facturation_annulee"]);
       return data || [];
     },
   });

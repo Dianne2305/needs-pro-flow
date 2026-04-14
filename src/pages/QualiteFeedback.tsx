@@ -69,7 +69,7 @@ export default function QualiteFeedback() {
       const { data: demandes, error: dErr } = await supabase
         .from("demandes")
         .select("id, nom, telephone_direct, ville, type_service, candidat_nom, date_prestation, profil_id:candidat_nom")
-        .eq("statut", "prestation_effectuee");
+        .eq("statut", "prestation_terminee");
       if (dErr) throw dErr;
 
       const { data: existingFeedbacks } = await supabase

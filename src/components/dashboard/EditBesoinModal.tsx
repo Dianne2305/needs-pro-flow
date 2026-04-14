@@ -26,9 +26,12 @@ type Demande = Tables<"demandes">;
 const MODES_PAIEMENT = ["Virement", "Par chèque", "À l'agence", "Sur place"] as const;
 
 const STATUTS_BESOIN_LIFECYCLE = [
+  { value: "en_attente", label: "En attente" },
   { value: "nouveau_besoin", label: "Nouveau besoin" },
+  { value: "confirme", label: "Confirmé" },
   { value: "confirme_intervention", label: "Confirmé intervention" },
-  { value: "prestation_effectuee", label: "Prestation effectuée" },
+  { value: "prestation_en_cours", label: "Pres. en cours" },
+  { value: "prestation_terminee", label: "Pres. terminée" },
   { value: "paye", label: "Payé" },
   { value: "facturation_annulee", label: "Facturation annulée" },
   { value: "standby", label: "Standby" },
@@ -158,7 +161,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     setFactAnnuleeRaison(demande.motif_annulation || "");
   }, [demande.id, demande.statut, demande.statut_paiement_commercial]);
 
-  const isReservation = ["confirme", "prestation_effectuee", "paye"].includes(statut);
+  const isReservation = ["confirme", "prestation_terminee", "paye"].includes(statut);
 
   // Fetch action history
   const { data: historique = [] } = useQuery({

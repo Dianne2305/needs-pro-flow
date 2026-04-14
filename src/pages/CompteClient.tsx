@@ -334,7 +334,7 @@ export default function CompteClient() {
   const s = STATUTS[demande.statut as keyof typeof STATUTS];
   const freq = FREQUENCES.find(f => f.value === demande.frequence);
   const statutCand = STATUT_CANDIDATURE_OPTIONS.find(sc => sc.value === d.statut_candidature);
-  const isReservation = ["confirme", "confirme_intervention", "prestation_effectuee", "paye"].includes(demande.statut);
+  const isReservation = ["confirme", "confirme_intervention", "prestation_terminee", "paye"].includes(demande.statut);
 
   const saveNotes = () => {
     updateMutation.mutate({ note_commercial: noteComm || null, note_operationnel: noteOpe || null });
