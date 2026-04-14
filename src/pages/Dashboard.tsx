@@ -715,6 +715,53 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Facturation annulée Dialog */}
+      <Dialog open={factAnnuleeOpen} onOpenChange={setFactAnnuleeOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Facturation annulée — #{selectedDemande?.num_demande}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Raison de l'annulation</Label>
+              <Textarea value={factAnnuleeRaison} onChange={(e) => setFactAnnuleeRaison(e.target.value)} rows={3} placeholder="Indiquer la raison..." />
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="text-sm">Le profil sera payé ?</Label>
+              <div className="flex gap-2">
+                <Button size="sm" variant={factAnnuleePayerProfil ? "default" : "outline"} onClick={() => setFactAnnuleePayerProfil(true)}>Oui</Button>
+                <Button size="sm" variant={!factAnnuleePayerProfil ? "default" : "outline"} onClick={() => setFactAnnuleePayerProfil(false)}>Non</Button>
+              </div>
+            </div>
+            {factAnnuleePayerProfil && (
+              <div>
+                <Label>Montant à payer au profil (MAD)</Label>
+                <Input type="number" value={factAnnuleeMontantProfil} onChange={(e) => setFactAnnuleeMontantProfil(e.target.value)} placeholder="0" />
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setFactAnnuleeOpen(false)}>Annuler</Button>
+            <Button
+              disabled={!factAnnuleeRaison || updateMutation.isPending}
+              onClick={() => {
+                if (!selectedDemande) return;
+                const updates: Record<string, unknown> = {
+                  statut: "facturation_annulee",
+                  motif_annulation: factAnnuleeRaison,
+                  montant_candidat: factAnnuleePayerProfil && factAnnuleeMontantProfil ? Number(factAnnuleeMontantProfil) : null,
+                };
+                updateMutation.mutate({ id: selectedDemande.id, updates }, {
+                  onSuccess: () => setFactAnnuleeOpen(false),
+                });
+              }}
+            >
+              Confirmer l'annulation
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Besoin Modal */}
       {selectedDemande && (
         <>
