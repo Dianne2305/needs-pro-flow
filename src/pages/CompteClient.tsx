@@ -240,7 +240,7 @@ export default function CompteClient() {
     createRenewalMutation.mutate({
       ...renewForm,
       services_optionnels: "[]",
-      statut: "en_cours",
+      statut: "nouveau_besoin",
     });
   };
 
