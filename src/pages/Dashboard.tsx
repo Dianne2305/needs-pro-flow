@@ -496,6 +496,7 @@ export default function Dashboard() {
                     if (sp === "agence_payee_client") return <Badge className="bg-blue-100 text-blue-800 text-[9px] px-1">Agence payée</Badge>;
                     if (sp === "profil_paye_client") return <Badge className="bg-orange-100 text-orange-800 text-[9px] px-1">Profil payé</Badge>;
                     if (sp === "paiement_partiel") return <Badge className="bg-amber-100 text-amber-800 text-[9px] px-1">Partiel</Badge>;
+                    if (sp === "facturation_annulee") return <Badge className="bg-rose-100 text-rose-800 text-[9px] px-1">Fact. annulée</Badge>;
                     return <Badge variant="outline" className="text-[9px] px-1">Non payé</Badge>;
                   })()}
                 </TableCell>
