@@ -65,8 +65,11 @@ export default function VueGlobale() {
   const nbMissions = missions.filter((m) => m.statut_mission === "confirmee" || m.statut_mission === "terminee").length;
   const ca = filtered.reduce((s, m) => s + (m.montant_paye_client || 0), 0);
   const commissionAgence = filtered.reduce((s, m) => {
-    const paye = m.montant_paye_client || 0;
-    return s + (paye > 0 ? partAgence(m) : 0);
+    // Commission based on paid statuses
+    if (m.statut_paiement === "paye" || m.statut_paiement === "agence_payee_client" || m.statut_paiement === "paiement_partiel") {
+      return s + partAgence(m);
+    }
+    return s;
   }, 0);
   const factAnnulee = filtered.filter((m) => m.statut_mission === "facturation_annulee").reduce((s, m) => s + (m.montant_total || 0), 0);
 
