@@ -483,7 +483,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         onChange={(e) => setMontantProfilDoit(e.target.value)}
                         placeholder="0"
                         className="border-red-300 text-red-700 font-semibold"
-                        disabled={statutPaiement === "paye"}
+                        disabled={false}
                       />
                     </div>
                   </div>
@@ -504,7 +504,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         onChange={(e) => setMontantAgenceDoit(e.target.value)}
                         placeholder="0"
                         className="border-orange-300 text-orange-700 font-semibold"
-                        disabled={statutPaiement === "paye"}
+                        disabled={false}
                       />
                     </div>
                   </div>
