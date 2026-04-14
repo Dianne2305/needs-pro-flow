@@ -85,9 +85,11 @@ export const MODES_PAIEMENT_COMMERCIAL = [
 ] as const;
 
 export const STATUTS_PAIEMENT_COMMERCIAL = [
-  { value: "non_paye", label: "Non payé" },
-  { value: "paiement_en_attente", label: "Paiement en attente" },
-  { value: "paiement_effectue", label: "Paiement effectué" },
+  { value: "non_paye", label: "Non payé / Client" },
+  { value: "agence_payee_client", label: "Agence payée / Client" },
+  { value: "profil_paye_client", label: "Profil payé / Client" },
+  { value: "paye", label: "Payé" },
+  { value: "paiement_partiel", label: "Paiement partiel" },
 ] as const;
 
 export const STATUT_CANDIDATURE_OPTIONS = [
