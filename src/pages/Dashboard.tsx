@@ -32,7 +32,8 @@ const STATUS_ROW_COLORS: Record<string, string> = {
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
   confirme_intervention: "bg-[hsl(170,45%,91%)]",
-  prestation_effectuee: "bg-[hsl(35,90%,93%)]",
+  prestation_en_cours: "bg-[hsl(240,60%,95%)]",
+  prestation_terminee: "bg-[hsl(35,90%,93%)]",
   facturation_en_cours: "bg-[hsl(100,60%,93%)]",
   facturation_partielle: "bg-[hsl(45,80%,93%)]",
   standby: "bg-[hsl(220,15%,93%)]",
@@ -79,7 +80,7 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["confirmee", "cloturee", "standby", "nouveau_besoin", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_effectuee", "facturation_en_cours", "facturation_partielle"])
+        .in("statut", ["confirmee", "cloturee", "standby", "nouveau_besoin", "en_attente_confirmation", "en_attente_profil", "confirme", "confirme_intervention", "prestation_en_cours", "prestation_terminee", "facturation_en_cours", "facturation_partielle"])
         .order("confirmed_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -124,8 +125,8 @@ export default function Dashboard() {
     const demande = allDemandes.find((d) => d.id === demandeId);
     if (!demande) return;
 
-    const statusesToCreate = ["confirmee", "nouveau_besoin", "confirme", "confirme_intervention", "prestation_effectuee", "paye", "facturation_en_cours", "facturation_partielle"];
-    const statusesToUpdate = ["confirme_intervention", "prestation_effectuee", "paye", "facturation_annulee", "facturation_en_cours", "facturation_partielle"];
+    const statusesToCreate = ["confirmee", "nouveau_besoin", "confirme", "confirme_intervention", "prestation_en_cours", "prestation_terminee", "paye", "facturation_en_cours", "facturation_partielle"];
+    const statusesToUpdate = ["confirme_intervention", "prestation_en_cours", "prestation_terminee", "paye", "facturation_annulee", "facturation_en_cours", "facturation_partielle"];
 
     // Check if facturation already exists for this demande
     const { data: existing } = await supabase
@@ -164,12 +165,12 @@ export default function Dashboard() {
         segment,
         encaisse_par: "agence",
         montant_encaisse_profil: 0,
-        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : "confirmee",
-        statut_paiement: newStatut === "paye" ? "paye" : "non_paye",
+        statut_mission: newStatut === "paye" ? "paye" : newStatut === "prestation_terminee" ? "terminee" : "confirmee",
+        statut_paiement: newStatut === "paye" ? "paye" : newStatut === "prestation_terminee" ? "non_paye" : "non_paye",
       });
     } else if (existing && statusesToUpdate.includes(newStatut)) {
       // Update existing facturation — ne pas écraser encaisse_par (modifiable uniquement manuellement)
-      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_effectuee" ? "terminee" : newStatut === "facturation_annulee" ? "facturation_annulee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee";
+      const missionStatus = newStatut === "paye" ? "paye" : newStatut === "prestation_terminee" ? "terminee" : newStatut === "facturation_annulee" ? "facturation_annulee" : newStatut === "facturation_en_cours" ? "confirmee" : newStatut === "facturation_partielle" ? "confirmee" : "confirmee";
       const updates: Record<string, unknown> = {
         statut_mission: missionStatus,
       };
@@ -354,7 +355,7 @@ export default function Dashboard() {
           setSelectedDemande(d);
           setConfirmOpeOpen(true);
         }}>
-          <CheckCircle className="h-4 w-4 mr-2" />Confirmation Opé
+          <CheckCircle className="h-4 w-4 mr-2" />Confirmation avant opération
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openCompteClient(d)}>
           <UserCheck className="h-4 w-4 mr-2" />Compte Client
@@ -381,8 +382,11 @@ export default function Dashboard() {
           <MessageSquare className="h-4 w-4 mr-2" />Note opérationnelle
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_effectuee" } })} className="text-sky-600">
-          <CheckCircle className="h-4 w-4 mr-2" />Prestation effectuée
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_en_cours" } })} className="text-indigo-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Pres. en cours
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "prestation_terminee", statut_paiement_commercial: "non_paye" } })} className="text-sky-600">
+          <CheckCircle className="h-4 w-4 mr-2" />Pres. terminée
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">

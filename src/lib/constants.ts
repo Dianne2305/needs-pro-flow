@@ -50,12 +50,14 @@ export const QUARTIERS_CASABLANCA = [
 ] as const;
 
 export const STATUTS = {
+  en_attente: { label: "En attente", color: "bg-gray-100 text-gray-800", hex: "#9ca3af" },
   nouveau_besoin: { label: "Nouveau besoin", color: "bg-blue-100 text-blue-800", hex: "#3b82f6" },
   en_attente_confirmation: { label: "En attente de confirmation", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
   en_attente_profil: { label: "En attente profil", color: "bg-amber-100 text-amber-800", hex: "#d9bf12" },
   confirme: { label: "Confirmé", color: "bg-cyan-100 text-cyan-800", hex: "#50bfcb" },
   confirme_intervention: { label: "Confirmé intervention", color: "bg-teal-100 text-teal-800", hex: "#3da89e" },
-  prestation_effectuee: { label: "Prestation effectuée", color: "bg-orange-100 text-orange-800", hex: "#faa31f" },
+  prestation_en_cours: { label: "Pres. en cours", color: "bg-indigo-100 text-indigo-800", hex: "#6366f1" },
+  prestation_terminee: { label: "Pres. terminée", color: "bg-orange-100 text-orange-800", hex: "#faa31f" },
   facturation_en_cours: { label: "Facturation en cours", color: "bg-green-100 text-green-800", hex: "#48bd00" },
   facturation_partielle: { label: "Facturation partielle", color: "bg-yellow-100 text-yellow-800", hex: "#e6a817" },
   paye: { label: "Payé", color: "bg-emerald-100 text-emerald-800", hex: "#1e7b34" },
@@ -73,7 +75,7 @@ export const SEGMENTS = [
 
 export const CONFIRMATION_OPE_OPTIONS = [
   { value: "confirme", label: "Confirmé", color: "bg-emerald-100 text-emerald-800" },
-  { value: "report", label: "Report", color: "bg-amber-100 text-amber-800" },
+  { value: "report", label: "Reporté", color: "bg-amber-100 text-amber-800" },
   { value: "annule", label: "Annulé", color: "bg-red-100 text-red-800" },
 ] as const;
 

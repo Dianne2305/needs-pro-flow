@@ -31,22 +31,27 @@ const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
 
 const STATUS_FILTER_TABS = [
   { value: "all", label: "Tout" },
+  { value: "en_attente", label: "En attente" },
+  { value: "nouveau_besoin", label: "Nouveau besoin" },
   { value: "confirme", label: "Confirmé" },
+  { value: "prestation_en_cours", label: "Pres. en cours" },
+  { value: "prestation_terminee", label: "Pres. terminée" },
   { value: "annulee", label: "Annulé" },
   { value: "paye", label: "Payé" },
   { value: "facturation_en_cours", label: "Facturation en cours" },
   { value: "facturation_partielle", label: "Facturation partielle" },
   { value: "facturation_annulee", label: "Facturation annulée" },
-  { value: "prestation_effectuee", label: "Facturation" },
 ] as const;
 
 const STATUS_ROW_COLORS: Record<string, string> = {
+  en_attente: "bg-[hsl(220,15%,95%)]",
   nouveau_besoin: "bg-[hsl(210,80%,95%)]",
   en_attente_confirmation: "bg-[hsl(50,80%,93%)]",
   en_attente_profil: "bg-[hsl(50,80%,93%)]",
   confirme: "bg-[hsl(185,50%,93%)]",
   confirme_intervention: "bg-[hsl(185,50%,90%)]",
-  prestation_effectuee: "bg-[hsl(35,90%,93%)]",
+  prestation_en_cours: "bg-[hsl(240,60%,95%)]",
+  prestation_terminee: "bg-[hsl(35,90%,93%)]",
   facturation_en_cours: "bg-[hsl(100,60%,93%)]",
   facturation_partielle: "bg-[hsl(45,80%,93%)]",
   paye: "bg-[hsl(140,50%,93%)]",
@@ -128,11 +133,7 @@ export default function ListingClients() {
 
     // Status filter
     if (statusFilter !== "all") {
-      if (statusFilter === "prestation_effectuee") {
-        result = result.filter((d) => d.statut === "prestation_effectuee");
-      } else {
-        result = result.filter((d) => d.statut === statusFilter);
-      }
+      result = result.filter((d) => d.statut === statusFilter);
     }
 
     // Search
