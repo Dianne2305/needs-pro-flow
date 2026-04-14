@@ -376,13 +376,27 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Statut du besoin</Label>
-                    <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 cursor-default">
-                      <span
-                        className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
-                        style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ccc" }}
-                      />
-                      <span className="text-sm">{STATUTS[statut as keyof typeof STATUTS]?.label || statut}</span>
-                    </div>
+                    <Select value={statut} onValueChange={setStatut}>
+                      <SelectTrigger>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
+                            style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ccc" }}
+                          />
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUTS_BESOIN_LIFECYCLE.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            <div className="flex items-center gap-2">
+                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUTS[s.value as keyof typeof STATUTS]?.hex || "#ccc" }} />
+                              {s.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label>Segment</Label>
