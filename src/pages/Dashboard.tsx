@@ -414,11 +414,12 @@ export default function Dashboard() {
             <TableHead className="text-xs px-2">Opt. sup.</TableHead>
             <TableHead className="text-xs px-2">CAO</TableHead>
             <TableHead className="text-xs px-2">Tarif</TableHead>
+            <TableHead className="text-xs px-2 w-8"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-           <TableRow><TableCell colSpan={13} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+           <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => {
             const rowColor = STATUS_ROW_COLORS[d.statut] || "";
             return (
@@ -484,6 +485,7 @@ export default function Dashboard() {
                 <TableCell className="text-xs px-2 font-medium">
                   {d.montant_total ? `${d.montant_total} MAD` : "—"}
                 </TableCell>
+                <TableCell className="px-2">{renderQuickMenu(d)}</TableCell>
               </TableRow>
             );
           })}
