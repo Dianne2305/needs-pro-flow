@@ -408,21 +408,18 @@ export default function Dashboard() {
         <TableHeader>
           <TableRow>
             <TableHead className="text-xs font-bold px-1 w-8 leading-tight"></TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Com</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Date</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut besoin</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Client</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px]">Lieu</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight max-w-[60px] truncate">Service</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Seg.</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Hrs</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Profil</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Opt. sup.</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">CAO</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Mode paie.</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut paie.</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight">Tarif</TableHead>
-            <TableHead className="text-xs font-bold px-1 w-6"></TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Com</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Date<br/>d'interv.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut<br/>besoin</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Nom<br/>du client</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal max-w-[70px]">Quartier<br/>/ Ville</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal max-w-[70px]">Type<br/>de service</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Seg.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Nb<br/>d'heures</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Profils<br/>envoyés</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Option<br/>sup.</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">CAO</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Tarif<br/>total</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
