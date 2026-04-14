@@ -192,10 +192,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     }
 
     // Sync statut_paiement to facturation table
-    if (statutPaiement !== (demande.statut_paiement_commercial || "non_paye")) {
+    {
       const factUpdates: Record<string, unknown> = {
         statut_paiement: statutPaiement,
         montant_paye_client: montantVerse ? Number(montantVerse) : null,
+        montant_total: montantHT ? Number(montantHT) : null,
       };
 
       // Set encaisse_par based on new status
@@ -205,11 +206,21 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         factUpdates.encaisse_par = "profil";
       }
 
+      // Store profil_doit / agence_doit amounts
+      if (statutPaiement === "profil_paye_client") {
+        factUpdates.montant_profil_doit = montantProfilDoit ? Number(montantProfilDoit) : null;
+        factUpdates.profil_nom = demande.candidat_nom || null;
+      } else if (statutPaiement === "agence_payee_client") {
+        factUpdates.montant_agence_doit = montantAgenceDoit ? Number(montantAgenceDoit) : null;
+        factUpdates.profil_nom = demande.candidat_nom || null;
+      }
+
       // If fully paid, mark settlement done
       if (statutPaiement === "paye") {
         factUpdates.part_agence_reversee = true;
         factUpdates.part_profil_versee = true;
         factUpdates.date_paiement_client = new Date().toISOString().split("T")[0];
+        factUpdates.statut_mission = "paye";
       }
 
       // If facturation annulée
