@@ -699,6 +699,32 @@ export default function CompteClient() {
           )}
         </Section>
 
+        {/* Historique des actions */}
+        <Section title="Historique des actions" icon={History} colorClass="bg-[#6366f1]" count={demandeHistorique.length}>
+          {demandeHistorique.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Détails</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {demandeHistorique.map((h: any) => (
+                  <TableRow key={h.id}>
+                    <TableCell className="text-xs whitespace-nowrap">{format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}</TableCell>
+                    <TableCell className="text-sm font-medium">{h.action}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[300px]">{h.details || "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">Aucune action enregistrée.</p>
+          )}
+        </Section>
+
         {/* Feedback Client */}
         <Section title="Feedback Client" icon={Star} colorClass="bg-[#E86C4F]" count={allClientFeedbacks.length}>
           {allClientFeedbacks.length > 0 ? (
