@@ -59,6 +59,10 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [factAnnuleePayerProfil, setFactAnnuleePayerProfil] = useState(false);
   const [factAnnuleeMontantProfil, setFactAnnuleeMontantProfil] = useState("");
 
+  // Profil doit / Agence doit fields
+  const [montantProfilDoit, setMontantProfilDoit] = useState("");
+  const [montantAgenceDoit, setMontantAgenceDoit] = useState("");
+
   // Facturation HT/TVA
   const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
   const [appliquerTVA, setAppliquerTVA] = useState(true);
@@ -188,10 +192,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     }
 
     // Sync statut_paiement to facturation table
-    if (statutPaiement !== (demande.statut_paiement_commercial || "non_paye")) {
+    {
       const factUpdates: Record<string, unknown> = {
         statut_paiement: statutPaiement,
         montant_paye_client: montantVerse ? Number(montantVerse) : null,
+        montant_total: montantHT ? Number(montantHT) : null,
       };
 
       // Set encaisse_par based on new status
@@ -201,11 +206,21 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         factUpdates.encaisse_par = "profil";
       }
 
+      // Store profil_doit / agence_doit amounts
+      if (statutPaiement === "profil_paye_client") {
+        factUpdates.montant_profil_doit = montantProfilDoit ? Number(montantProfilDoit) : null;
+        factUpdates.profil_nom = demande.candidat_nom || null;
+      } else if (statutPaiement === "agence_payee_client") {
+        factUpdates.montant_agence_doit = montantAgenceDoit ? Number(montantAgenceDoit) : null;
+        factUpdates.profil_nom = demande.candidat_nom || null;
+      }
+
       // If fully paid, mark settlement done
       if (statutPaiement === "paye") {
         factUpdates.part_agence_reversee = true;
         factUpdates.part_profil_versee = true;
         factUpdates.date_paiement_client = new Date().toISOString().split("T")[0];
+        factUpdates.statut_mission = "paye";
       }
 
       // If facturation annulée
@@ -227,7 +242,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     }
 
     onSave({
-      statut: statutPaiement === "facturation_annulee" ? "facturation_annulee" : statut,
+      statut: statutPaiement === "facturation_annulee" ? "facturation_annulee" : statutPaiement === "paye" ? "paye" : statut,
       motif_annulation: statutPaiement === "facturation_annulee" ? (factAnnuleeRaison || null) : (demande.motif_annulation || null),
       type_service: segment === "entreprise" ? "SPE" : "SPP",
       type_prestation: typePrestation,
@@ -435,7 +450,16 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   </div>
                   <div>
                     <Label>Statut de paiement</Label>
-                    <Select value={statutPaiement} onValueChange={setStatutPaiement}>
+                    <Select value={statutPaiement} onValueChange={(val) => {
+                      setStatutPaiement(val);
+                      // Auto-fill amounts when status changes
+                      if (val === "profil_paye_client") {
+                        setMontantProfilDoit(partAgence || "0");
+                      } else if (val === "agence_payee_client") {
+                        const totalProfilParts = profilParts.reduce((s, p) => s + (Number(p.part) || 0), 0);
+                        setMontantAgenceDoit(totalProfilParts > 0 ? String(totalProfilParts) : "0");
+                      }
+                    }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {STATUTS_PAIEMENT_COMMERCIAL.map((s) => (
@@ -454,6 +478,55 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     )}
                   </div>
                 </div>
+
+                {/* Profil doit (when profil_paye_client) */}
+                {statutPaiement === "profil_paye_client" && (
+                  <div className="mt-4 p-4 rounded-lg border border-red-200 bg-red-50 space-y-3">
+                    <h4 className="text-sm font-bold text-red-700">Profil doit</h4>
+                    {demande.candidat_nom && (
+                      <p className="text-sm text-red-600">Profil : <strong>{demande.candidat_nom}</strong></p>
+                    )}
+                    <div className="max-w-xs">
+                      <Label className="text-red-700">Montant (MAD)</Label>
+                      <Input
+                        type="number"
+                        value={montantProfilDoit}
+                        onChange={(e) => setMontantProfilDoit(e.target.value)}
+                        placeholder="0"
+                        className="border-red-300 text-red-700 font-semibold"
+                        disabled={false}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Agence doit (when agence_payee_client) */}
+                {statutPaiement === "agence_payee_client" && (
+                  <div className="mt-4 p-4 rounded-lg border border-orange-200 bg-orange-50 space-y-3">
+                    <h4 className="text-sm font-bold text-orange-700">Agence doit</h4>
+                    {demande.candidat_nom && (
+                      <p className="text-sm text-orange-600">Profil : <strong>{demande.candidat_nom}</strong></p>
+                    )}
+                    <div className="max-w-xs">
+                      <Label className="text-orange-700">Montant (MAD)</Label>
+                      <Input
+                        type="number"
+                        value={montantAgenceDoit}
+                        onChange={(e) => setMontantAgenceDoit(e.target.value)}
+                        placeholder="0"
+                        className="border-orange-300 text-orange-700 font-semibold"
+                        disabled={false}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Payé: info */}
+                {statutPaiement === "paye" && (
+                  <div className="mt-4 p-3 rounded-lg border border-emerald-200 bg-emerald-50">
+                    <p className="text-sm font-medium text-emerald-700">✓ Paiement complet — la demande sera retirée du tableau de bord</p>
+                  </div>
+                )}
 
                 {/* Bouton Facturation annulée */}
                 {statutPaiement !== "facturation_annulee" && (

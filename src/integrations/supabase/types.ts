@@ -262,8 +262,10 @@ export type Database = {
           justificatif_url: string | null
           mode_paiement_prevu: string | null
           mode_paiement_reel: string | null
+          montant_agence_doit: number | null
           montant_encaisse_profil: number | null
           montant_paye_client: number | null
+          montant_profil_doit: number | null
           montant_total: number
           nom_client: string
           num_mission: number
@@ -293,8 +295,10 @@ export type Database = {
           justificatif_url?: string | null
           mode_paiement_prevu?: string | null
           mode_paiement_reel?: string | null
+          montant_agence_doit?: number | null
           montant_encaisse_profil?: number | null
           montant_paye_client?: number | null
+          montant_profil_doit?: number | null
           montant_total?: number
           nom_client: string
           num_mission?: number
@@ -324,8 +328,10 @@ export type Database = {
           justificatif_url?: string | null
           mode_paiement_prevu?: string | null
           mode_paiement_reel?: string | null
+          montant_agence_doit?: number | null
           montant_encaisse_profil?: number | null
           montant_paye_client?: number | null
+          montant_profil_doit?: number | null
           montant_total?: number
           nom_client?: string
           num_mission?: number

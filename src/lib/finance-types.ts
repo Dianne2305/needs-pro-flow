@@ -27,6 +27,8 @@ export interface Facturation {
   commercial: string | null;
   commentaire: string | null;
   tva_pourcentage: number;
+  montant_profil_doit: number | null;
+  montant_agence_doit: number | null;
 }
 
 export function partAgence(f: Facturation): number {
