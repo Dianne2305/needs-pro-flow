@@ -272,9 +272,10 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
               {/* Sub-section: Besoin */}
               <div>
-                <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                  <ClipboardList className="h-5 w-5" /> Besoin
-                </h3>
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20 mb-3">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-bold text-primary">Besoin</h3>
+                </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Statut du besoin</Label>
@@ -313,9 +314,10 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
               {/* Sub-section: Facturation */}
               <div>
-                <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                  <Receipt className="h-5 w-5" /> Facturation
-                </h3>
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200 mb-3">
+                  <Receipt className="h-5 w-5 text-amber-600" />
+                  <h3 className="text-lg font-bold text-amber-700">Facturation</h3>
+                </div>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label>Montant HT (MAD)</Label>
