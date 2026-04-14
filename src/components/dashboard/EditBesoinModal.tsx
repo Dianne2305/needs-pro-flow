@@ -1,4 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,15 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
 import {
   STATUTS, SEGMENTS,
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   STATUTS_PAIEMENT_COMMERCIAL,
 } from "@/lib/constants";
-import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList } from "lucide-react";
+import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList, History, Receipt } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { ServiceFormFields } from "./ServiceFormFields";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 type Demande = Tables<"demandes">;
 
@@ -28,6 +33,7 @@ interface Props {
 }
 
 export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) {
+  const queryClient = useQueryClient();
   const [statut] = useState(demande.statut);
   const [segment, setSegment] = useState(
     demande.type_service === "SPE" ? "entreprise" : "particulier"
@@ -41,7 +47,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [ville, setVille] = useState(demande.ville);
   const [quartier, setQuartier] = useState(demande.quartier || "");
   const [adresse, setAdresse] = useState(demande.adresse || "");
-  const [montant, setMontant] = useState(String(demande.montant_total || ""));
   const [modePaiement, setModePaiement] = useState(demande.mode_paiement || "");
   const [statutPaiement, setStatutPaiement] = useState(demande.statut_paiement_commercial || "non_paye");
   const [montantVerse, setMontantVerse] = useState(String(demande.montant_verse_client || ""));
@@ -49,11 +54,25 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [noteCommercial, setNoteCommercial] = useState(demande.note_commercial || "");
   const [noteOperationnel, setNoteOperationnel] = useState(demande.note_operationnel || "");
 
+  // Facturation HT/TVA
+  const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
+  const [appliquerTVA, setAppliquerTVA] = useState(true);
+
+  const montantTTC = useMemo(() => {
+    const ht = Number(montantHT) || 0;
+    return appliquerTVA ? ht * 1.2 : ht;
+  }, [montantHT, appliquerTVA]);
+
+  const resteAPayer = useMemo(() => {
+    return montantTTC - (Number(montantVerse) || 0);
+  }, [montantTTC, montantVerse]);
+
   // Devis preview
   const [devisOpen, setDevisOpen] = useState(false);
 
   // Collapsible states
   const [formOpen, setFormOpen] = useState(false);
+  const [historiqueOpen, setHistoriqueOpen] = useState(true);
 
   // Service-specific fields
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
@@ -76,6 +95,21 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   const isReservation = ["confirme", "prestation_effectuee", "paye"].includes(statut);
 
+  // Fetch action history
+  const { data: historique = [] } = useQuery({
+    queryKey: ["demande_historique", demande.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("demande_historique")
+        .select("*")
+        .eq("demande_id", demande.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
   const prestationOptions = useMemo(() => {
     return segment === "entreprise"
       ? TYPES_PRESTATION_ENTREPRISE
@@ -90,7 +124,30 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     }
   };
 
-  const handleSave = () => {
+  const logAction = async (action: string, details?: string) => {
+    await supabase.from("demande_historique").insert({
+      demande_id: demande.id,
+      action,
+      details: details || null,
+      utilisateur: null,
+    });
+  };
+
+  const handleSave = async () => {
+    // Build change log
+    const changes: string[] = [];
+    if (segment !== (demande.type_service === "SPE" ? "entreprise" : "particulier")) changes.push(`Segment → ${segment}`);
+    if (typePrestation !== demande.type_prestation) changes.push(`Service → ${typePrestation}`);
+    if (Number(montantHT) !== (demande.montant_total || 0)) changes.push(`Montant HT → ${montantHT} MAD`);
+    if (modePaiement !== (demande.mode_paiement || "")) changes.push(`Mode paiement → ${modePaiement}`);
+    if (statutPaiement !== (demande.statut_paiement_commercial || "non_paye")) changes.push(`Statut paiement → ${statutPaiement}`);
+    if (noteCommercial !== (demande.note_commercial || "")) changes.push("Note commerciale modifiée");
+    if (noteOperationnel !== (demande.note_operationnel || "")) changes.push("Note opérationnelle modifiée");
+
+    if (changes.length > 0) {
+      await logAction("Modification du besoin", changes.join(" | "));
+    }
+
     onSave({
       statut,
       type_service: segment === "entreprise" ? "SPE" : "SPP",
@@ -107,7 +164,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       heure_prestation: heurePrestation || null,
       duree_heures: duree ? Number(duree) : null,
       nombre_intervenants: nbIntervenants ? Number(nbIntervenants) : 1,
-      montant_total: montant ? Number(montant) : null,
+      montant_total: montantHT ? Number(montantHT) : null,
       mode_paiement: modePaiement || null,
       statut_paiement_commercial: statutPaiement || "non_paye",
       montant_verse_client: montantVerse ? Number(montantVerse) : null,
@@ -128,6 +185,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         [avecProduit && "produit", avecTorchons && "torchons"].filter(Boolean)
       ),
     });
+    queryClient.invalidateQueries({ queryKey: ["demande_historique", demande.id] });
     onOpenChange(false);
   };
 
@@ -181,12 +239,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
               <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${formOpen ? "rotate-180" : ""}`} />
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-4 space-y-4">
-              {/* Dynamic form based on service type */}
               <div className="grid grid-cols-2 gap-4">
                 <ServiceFormFields typePrestation={typePrestation} segment={segment} fields={serviceFields} />
               </div>
-
-              {/* Client info */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 border-t pt-4">
                   <p className="text-sm font-semibold text-muted-foreground mb-3">
@@ -213,85 +268,109 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
               <Building2 className="h-4 w-4" />
               Espace agence
             </div>
-            <div className="pt-4 space-y-4">
-              {/* Row: Statut + Segment + Type de service */}
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>Statut du besoin</Label>
-                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 cursor-default">
-                    <span
-                      className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
-                      style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ffffff" }}
-                    />
-                    <span className="text-sm">{STATUTS[statut as keyof typeof STATUTS]?.label || statut}</span>
-                  </div>
-                </div>
-                <div>
-                  <Label>Segment</Label>
-                  <Select value={segment} onValueChange={handleSegmentChange}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {SEGMENTS.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Type de service</Label>
-                  <Select value={typePrestation} onValueChange={setTypePrestation}>
-                    <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
-                    <SelectContent>
-                      {prestationOptions.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div className="pt-4 space-y-5">
 
-              {/* Row: Mode paiement + Montant total + Statut paiement */}
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label>Mode de paiement</Label>
-                  <Select value={modePaiement} onValueChange={setModePaiement}>
-                    <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
-                    <SelectContent>
-                      {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Montant total (MAD)</Label>
-                  <Input type="number" value={montant} onChange={(e) => setMontant(e.target.value)} />
-                </div>
-                <div>
-                  <Label>Statut de paiement</Label>
-                  <Select value={statutPaiement} onValueChange={setStatutPaiement}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {STATUTS_PAIEMENT_COMMERCIAL.map((s) => (
-                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Montant versé (conditional) */}
-              {statutPaiement === "paiement_en_attente" && (
+              {/* Sub-section: Besoin */}
+              <div>
+                <p className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
+                  <ClipboardList className="h-3.5 w-3.5" /> Besoin
+                </p>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <Label>Montant versé par le client (MAD)</Label>
+                    <Label>Statut du besoin</Label>
+                    <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted/50 cursor-default">
+                      <span
+                        className="inline-block h-3 w-3 rounded-full shrink-0 border border-border"
+                        style={{ backgroundColor: STATUTS[statut as keyof typeof STATUTS]?.hex || "#ccc" }}
+                      />
+                      <span className="text-sm">{STATUTS[statut as keyof typeof STATUTS]?.label || statut}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Segment</Label>
+                    <Select value={segment} onValueChange={handleSegmentChange}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {SEGMENTS.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Type de service</Label>
+                    <Select value={typePrestation} onValueChange={setTypePrestation}>
+                      <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+                      <SelectContent>
+                        {prestationOptions.map((t) => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sub-section: Facturation */}
+              <div>
+                <p className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
+                  <Receipt className="h-3.5 w-3.5" /> Facturation
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label>Montant HT (MAD)</Label>
+                    <Input type="number" value={montantHT} onChange={(e) => setMontantHT(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label>TVA (20%)</Label>
+                    <div className="flex items-center gap-3 h-10">
+                      <Switch checked={appliquerTVA} onCheckedChange={setAppliquerTVA} />
+                      <span className="text-sm">{appliquerTVA ? "Oui" : "Non"}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Montant TTC (MAD)</Label>
+                    <div className="flex items-center h-10 px-3 rounded-md border bg-muted/50 cursor-default">
+                      <span className="text-sm font-semibold">{montantTTC.toFixed(2)}</span>
+                    </div>
+                    {!appliquerTVA && (
+                      <p className="text-xs text-destructive mt-1 font-medium">Montant sans TVA</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <Label>Mode de paiement</Label>
+                    <Select value={modePaiement} onValueChange={setModePaiement}>
+                      <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
+                      <SelectContent>
+                        {MODES_PAIEMENT.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Statut de paiement</Label>
+                    <Select value={statutPaiement} onValueChange={setStatutPaiement}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {STATUTS_PAIEMENT_COMMERCIAL.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Montant versé (MAD)</Label>
                     <Input type="number" value={montantVerse} onChange={(e) => setMontantVerse(e.target.value)} />
-                    {montant && montantVerse && (
-                      <p className="text-xs text-destructive mt-1">
-                        Reste à payer : {(Number(montant) - Number(montantVerse)).toFixed(0)} MAD
+                    {montantTTC > 0 && Number(montantVerse) > 0 && resteAPayer > 0 && (
+                      <p className="text-xs text-destructive mt-1 font-medium">
+                        Reste à payer : {resteAPayer.toFixed(0)} MAD
                       </p>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
 
               {/* Notes */}
               <div className="grid grid-cols-2 gap-4">
@@ -306,6 +385,36 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
               </div>
             </div>
           </div>
+
+          {/* ——— Section 3: Historique des actions ——— */}
+          <Collapsible open={historiqueOpen} onOpenChange={setHistoriqueOpen} className="mt-2">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 rounded-lg bg-muted font-medium text-sm hover:opacity-90 transition-opacity">
+              <div className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Historique des actions ({historique.length})
+              </div>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${historiqueOpen ? "rotate-180" : ""}`} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
+              {historique.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic px-2">Aucune action enregistrée.</p>
+              ) : (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {historique.map((h) => (
+                    <div key={h.id} className="flex items-start gap-2 px-3 py-2 bg-muted/30 rounded-lg text-sm">
+                      <div className="flex-1">
+                        <p className="font-medium">{h.action}</p>
+                        {h.details && <p className="text-xs text-muted-foreground mt-0.5">{h.details}</p>}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                        {format(new Date(h.created_at), "dd/MM/yy HH:mm", { locale: fr })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* ——— Actions ——— */}
           <div className="flex justify-between gap-2 pt-4 border-t mt-2">
