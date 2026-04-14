@@ -63,9 +63,12 @@ export default function VueGlobale() {
 
   // KPIs
   const nbMissions = missions.filter((m) => m.statut_mission === "confirmee" || m.statut_mission === "terminee").length;
-  const ca = filtered.reduce((s, m) => s + (m.montant_paye_client || 0), 0);
+  const ca = filtered.reduce((s, m) => {
+    if (m.statut_mission === "facturation_annulee") return s;
+    return s + (m.montant_paye_client || 0);
+  }, 0);
   const commissionAgence = filtered.reduce((s, m) => {
-    // Commission based on paid statuses
+    if (m.statut_mission === "facturation_annulee") return s;
     if (m.statut_paiement === "paye" || m.statut_paiement === "agence_payee_client" || m.statut_paiement === "paiement_partiel") {
       return s + partAgence(m);
     }
