@@ -74,6 +74,39 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [formOpen, setFormOpen] = useState(false);
   const [agenceOpen, setAgenceOpen] = useState(true);
   const [historiqueOpen, setHistoriqueOpen] = useState(true);
+  const [gestionPartsOpen, setGestionPartsOpen] = useState(true);
+
+  // Gestion des parts state
+  const [partAgence, setPartAgence] = useState("0");
+  const [profilParts, setProfilParts] = useState<{ profilId: string; part: string }[]>([
+    { profilId: "", part: "0" },
+  ]);
+
+  // Fetch profils for dropdown
+  const { data: profilsList = [] } = useQuery({
+    queryKey: ["profils_listing"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profils")
+        .select("id, nom, prenom, type_profil, statut_profil")
+        .order("prenom", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Gestion des parts calculations
+  const totalReparti = useMemo(() => {
+    const agence = Number(partAgence) || 0;
+    const profils = profilParts.reduce((sum, p) => sum + (Number(p.part) || 0), 0);
+    return agence + profils;
+  }, [partAgence, profilParts]);
+
+  const resteARepartir = useMemo(() => {
+    return montantTTC - totalReparti;
+  }, [montantTTC, totalReparti]);
+
+  const repartitionCorrecte = Math.abs(resteARepartir) < 0.01;
 
   // Service-specific fields
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
