@@ -54,6 +54,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [noteCommercial, setNoteCommercial] = useState(demande.note_commercial || "");
   const [noteOperationnel, setNoteOperationnel] = useState(demande.note_operationnel || "");
 
+  // Facturation annulée fields
+  const [factAnnuleeRaison, setFactAnnuleeRaison] = useState(demande.motif_annulation || "");
+  const [factAnnuleePayerProfil, setFactAnnuleePayerProfil] = useState(false);
+  const [factAnnuleeMontantProfil, setFactAnnuleeMontantProfil] = useState("");
+
   // Facturation HT/TVA
   const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
   const [appliquerTVA, setAppliquerTVA] = useState(true);
