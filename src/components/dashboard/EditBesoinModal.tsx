@@ -389,8 +389,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   <Textarea value={noteOperationnel} onChange={(e) => setNoteOperationnel(e.target.value)} rows={3} placeholder="Notes opérationnelles..." />
                 </div>
               </div>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* ——— Section 3: Historique des actions ——— */}
           <Collapsible open={historiqueOpen} onOpenChange={setHistoriqueOpen} className="mt-2">
