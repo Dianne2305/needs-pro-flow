@@ -15,7 +15,7 @@ import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
   FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
-  Ban
+  Ban, History
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -125,6 +125,22 @@ export default function CompteClient() {
     queryFn: async () => {
       if (!demandeId) return null;
       const { data } = await supabase.from("facturation").select("*").eq("demande_id", demandeId).maybeSingle();
+      return data;
+    },
+    enabled: !!demandeId,
+  });
+
+  // Historique des actions pour cette demande
+  const { data: demandeHistorique = [] } = useQuery({
+    queryKey: ["demande_historique", demandeId],
+    queryFn: async () => {
+      if (!demandeId) return [];
+      const { data, error } = await supabase
+        .from("demande_historique")
+        .select("*")
+        .eq("demande_id", demandeId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
       return data;
     },
     enabled: !!demandeId,
@@ -680,6 +696,32 @@ export default function CompteClient() {
               </div>
               <p className="text-sm text-muted-foreground">Aucune candidature proposée</p>
             </div>
+          )}
+        </Section>
+
+        {/* Historique des actions */}
+        <Section title="Historique des actions" icon={History} colorClass="bg-[#6366f1]" count={demandeHistorique.length}>
+          {demandeHistorique.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead>Détails</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {demandeHistorique.map((h: any) => (
+                  <TableRow key={h.id}>
+                    <TableCell className="text-xs whitespace-nowrap">{format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}</TableCell>
+                    <TableCell className="text-sm font-medium">{h.action}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground max-w-[300px]">{h.details || "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <p className="text-sm text-muted-foreground italic py-4 text-center">Aucune action enregistrée.</p>
           )}
         </Section>
 
