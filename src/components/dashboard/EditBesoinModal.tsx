@@ -146,6 +146,18 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [contactEntreprise, setContactEntreprise] = useState((demande as any).contact_entreprise || "");
   const [email, setEmail] = useState((demande as any).email || "");
 
+  // Sync state when demande prop changes (e.g. after menu actions)
+  useEffect(() => {
+    setStatut(demande.statut);
+    setStatutPaiement(demande.statut_paiement_commercial || "non_paye");
+    setMontantHT(String(demande.montant_total || ""));
+    setMontantVerse(String(demande.montant_verse_client || ""));
+    setNom(demande.nom);
+    setNoteCommercial(demande.note_commercial || "");
+    setNoteOperationnel(demande.note_operationnel || "");
+    setFactAnnuleeRaison(demande.motif_annulation || "");
+  }, [demande.id, demande.statut, demande.statut_paiement_commercial]);
+
   const isReservation = ["confirme", "prestation_effectuee", "paye"].includes(statut);
 
   // Fetch action history
