@@ -486,7 +486,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         );
                       })}
                     </div>
-                    </div>
 
                     {/* Répartition summary */}
                     <div className={`flex items-center justify-between px-4 py-3 rounded-lg border ${repartitionCorrecte ? "bg-emerald-50 border-emerald-200" : "bg-destructive/10 border-destructive/30"}`}>
