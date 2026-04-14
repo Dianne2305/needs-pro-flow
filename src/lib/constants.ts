@@ -90,6 +90,7 @@ export const STATUTS_PAIEMENT_COMMERCIAL = [
   { value: "profil_paye_client", label: "Profil payé / Client" },
   { value: "paye", label: "Payé" },
   { value: "paiement_partiel", label: "Paiement partiel" },
+  { value: "facturation_annulee", label: "Facturation annulée" },
 ] as const;
 
 export const STATUT_CANDIDATURE_OPTIONS = [
