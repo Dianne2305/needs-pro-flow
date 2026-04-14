@@ -20,8 +20,11 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const STATUT_FACTURE_OPTIONS = [
-  { value: "en_attente", label: "En Attente", color: "bg-amber-100 text-amber-800" },
-  { value: "payee", label: "Payée", color: "bg-green-100 text-green-800" },
+  { value: "non_paye", label: "Non payé / Client", color: "bg-red-100 text-red-800" },
+  { value: "agence_payee_client", label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
+  { value: "profil_paye_client", label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
+  { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
+  { value: "paiement_partiel", label: "Paiement partiel", color: "bg-amber-100 text-amber-800" },
 ] as const;
 
 export default function HistoriqueMissions() {
@@ -86,7 +89,7 @@ export default function HistoriqueMissions() {
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
   const commissionAgence = filtered.reduce((s, m) => s + partAgence(m), 0);
-  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paiement_effectue").length;
+  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement === "non_paye" || m.statut_paiement === "paiement_partiel").length;
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
   const updateMutation = useMutation({
@@ -117,9 +120,7 @@ export default function HistoriqueMissions() {
   const getStatutBadge = (statut: string) => {
     const opt = STATUT_FACTURE_OPTIONS.find((o) => o.value === statut);
     if (opt) return <Badge className={opt.color}>{opt.label}</Badge>;
-    // fallback
-    if (statut === "paiement_effectue" || statut === "paye") return <Badge className="bg-green-100 text-green-800">Payée</Badge>;
-    return <Badge className="bg-amber-100 text-amber-800">En Attente</Badge>;
+    return <Badge className="bg-red-100 text-red-800">Non payé / Client</Badge>;
   };
 
   const handleExportRapport = () => {
@@ -131,7 +132,7 @@ export default function HistoriqueMissions() {
       const montantTTC = montantHT + montantTVA;
       const paye = m.montant_paye_client || 0;
       const reste = montantTTC - paye;
-      const statutLabel = m.statut_paiement === "paiement_effectue" ? "Payée" : "En Attente";
+      const statutLabel = STATUT_FACTURE_OPTIONS.find((o) => o.value === m.statut_paiement)?.label || m.statut_paiement;
       return [
         m.commercial || "—",
         `FAC-${String(m.num_mission).padStart(6, "0")}`,
@@ -219,11 +220,12 @@ export default function HistoriqueMissions() {
           </div>
           <div className="flex gap-2 items-center flex-wrap">
             <Select value={filterStatut} onValueChange={setFilterStatut}>
-              <SelectTrigger className="w-40"><SelectValue placeholder="Statut" /></SelectTrigger>
+              <SelectTrigger className="w-48"><SelectValue placeholder="Statut" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="en_attente">En Attente</SelectItem>
-                <SelectItem value="payee">Payée</SelectItem>
+                {STATUT_FACTURE_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterSegment} onValueChange={setFilterSegment}>
@@ -302,7 +304,7 @@ export default function HistoriqueMissions() {
               const montantTTC = montantHT + montantTVA;
               const paye = m.montant_paye_client || 0;
               const reste = montantTTC - paye;
-              const isPayee = m.statut_paiement === "paiement_effectue" || reste <= 0;
+              const isPayee = m.statut_paiement === "paye" || reste <= 0;
 
               return (
                 <TableRow key={m.id} className="hover:bg-muted/30">
@@ -325,7 +327,7 @@ export default function HistoriqueMissions() {
                   <TableCell className="text-sm">{m.mode_paiement_prevu || "—"}</TableCell>
                   <TableCell className="text-emerald-700 font-medium">{fmt(paye)}</TableCell>
                   <TableCell className="text-amber-600 font-medium">{reste > 0 ? fmt(reste) : "0,00 DH"}</TableCell>
-                  <TableCell>{getStatutBadge(isPayee ? "payee" : "en_attente")}</TableCell>
+                  <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell className="text-sm">{m.date_paiement_client ? format(new Date(m.date_paiement_client), "dd/MM/yyyy") : "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{m.commentaire || "—"}</TableCell>
                   <TableCell>

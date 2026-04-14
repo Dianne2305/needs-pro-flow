@@ -37,10 +37,11 @@ export default function DebitTab() {
     },
   });
 
-  // Debit = profil encaissé, part agence non reversée
+  // Debit = profil payé par client (profil doit part agence)
   const debitMissions = useMemo(() => {
     return missions.filter((m) => {
-      if (m.encaisse_par !== "profil") return false;
+      // Only show missions where client paid the profil directly
+      if (m.statut_paiement !== "profil_paye_client") return false;
       // Filter by payment status
       if (filterPaiement === "non_paye" && m.part_agence_reversee) return false;
       if (filterPaiement === "paye" && !m.part_agence_reversee) return false;
