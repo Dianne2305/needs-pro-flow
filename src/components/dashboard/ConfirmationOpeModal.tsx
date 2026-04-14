@@ -38,6 +38,7 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
       updates.statut = "confirme_intervention";
     } else if (confirmation === "report") {
       updates.date_report = dateReport || null;
+      updates.statut = "nouveau_besoin";
     } else if (confirmation === "annule") {
       updates.motif_annulation = motif;
       updates.statut = "annulee";
@@ -85,7 +86,7 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Confirmation opérationnelle — #{demande.num_demande}</DialogTitle>
+          <DialogTitle>Confirmation avant opération — #{demande.num_demande}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
