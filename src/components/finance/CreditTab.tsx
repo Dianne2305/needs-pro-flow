@@ -88,7 +88,7 @@ export default function CreditTab() {
 
   const getMissionLabel = (m: Facturation) => {
     if (m.statut_mission === "facturation_annulee") return <Badge className="bg-red-100 text-red-800 text-xs">Facturation annulée</Badge>;
-    if (m.statut_paiement === "paiement_effectue" || (m.montant_paye_client && m.montant_paye_client > 0)) return <Badge className="bg-green-100 text-green-800 text-xs">Facturée</Badge>;
+    if (m.statut_paiement === "paye" || m.statut_paiement === "agence_payee_client") return <Badge className="bg-green-100 text-green-800 text-xs">Facturée</Badge>;
     return <Badge className="bg-gray-100 text-gray-800 text-xs">En attente</Badge>;
   };
 
