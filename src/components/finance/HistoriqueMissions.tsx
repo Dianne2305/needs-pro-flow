@@ -304,7 +304,7 @@ export default function HistoriqueMissions() {
               const montantTTC = montantHT + montantTVA;
               const paye = m.montant_paye_client || 0;
               const reste = montantTTC - paye;
-              const isPayee = m.statut_paiement === "paiement_effectue" || reste <= 0;
+              const isPayee = m.statut_paiement === "paye" || reste <= 0;
 
               return (
                 <TableRow key={m.id} className="hover:bg-muted/30">
@@ -327,7 +327,7 @@ export default function HistoriqueMissions() {
                   <TableCell className="text-sm">{m.mode_paiement_prevu || "—"}</TableCell>
                   <TableCell className="text-emerald-700 font-medium">{fmt(paye)}</TableCell>
                   <TableCell className="text-amber-600 font-medium">{reste > 0 ? fmt(reste) : "0,00 DH"}</TableCell>
-                  <TableCell>{getStatutBadge(isPayee ? "payee" : "en_attente")}</TableCell>
+                  <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell className="text-sm">{m.date_paiement_client ? format(new Date(m.date_paiement_client), "dd/MM/yyyy") : "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{m.commentaire || "—"}</TableCell>
                   <TableCell>
