@@ -20,8 +20,11 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const STATUT_FACTURE_OPTIONS = [
-  { value: "en_attente", label: "En Attente", color: "bg-amber-100 text-amber-800" },
-  { value: "payee", label: "Payée", color: "bg-green-100 text-green-800" },
+  { value: "non_paye", label: "Non payé / Client", color: "bg-red-100 text-red-800" },
+  { value: "agence_payee_client", label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
+  { value: "profil_paye_client", label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
+  { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
+  { value: "paiement_partiel", label: "Paiement partiel", color: "bg-amber-100 text-amber-800" },
 ] as const;
 
 export default function HistoriqueMissions() {
@@ -86,7 +89,7 @@ export default function HistoriqueMissions() {
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
   const commissionAgence = filtered.reduce((s, m) => s + partAgence(m), 0);
-  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paiement_effectue").length;
+  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement === "non_paye" || m.statut_paiement === "paiement_partiel").length;
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
   const updateMutation = useMutation({
@@ -117,9 +120,7 @@ export default function HistoriqueMissions() {
   const getStatutBadge = (statut: string) => {
     const opt = STATUT_FACTURE_OPTIONS.find((o) => o.value === statut);
     if (opt) return <Badge className={opt.color}>{opt.label}</Badge>;
-    // fallback
-    if (statut === "paiement_effectue" || statut === "paye") return <Badge className="bg-green-100 text-green-800">Payée</Badge>;
-    return <Badge className="bg-amber-100 text-amber-800">En Attente</Badge>;
+    return <Badge className="bg-red-100 text-red-800">Non payé / Client</Badge>;
   };
 
   const handleExportRapport = () => {
