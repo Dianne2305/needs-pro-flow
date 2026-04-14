@@ -332,7 +332,7 @@ export default function Dashboard() {
   const renderStatusBadge = (statut: string) => {
     const s = STATUTS[statut as keyof typeof STATUTS];
     return s ? (
-      <Badge variant="outline" className="border-0 font-medium text-xs" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
+      <Badge variant="outline" className="border-0 font-medium text-[10px] leading-tight whitespace-normal text-center max-w-[80px]" style={{ backgroundColor: s.hex, color: "#ffffff" }}>
         {s.label}
       </Badge>
     ) : <Badge variant="outline" className="text-xs">{statut}</Badge>;
