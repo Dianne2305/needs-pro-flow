@@ -545,22 +545,22 @@ export default function Dashboard() {
         <Card
           className="bg-gradient-to-br from-[#e8920a] to-[#fcc35c] border-0 cursor-pointer hover:opacity-90 transition-opacity"
           onClick={() => {
-            if (filterService === "all") setFilterService("SPP");
-            else if (filterService === "SPP") setFilterService("SPE");
-            else setFilterService("all");
+            setFilterService("all");
+            setFilterPrestation("all");
+            setSearch("");
           }}
         >
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-white">{filtered.length}</p>
+            <p className="text-3xl font-bold text-white">{allDemandes.filter(d => d.statut === "en_cours").length}</p>
             <p className="text-xs mt-1 text-white opacity-80">Demandes en cours</p>
             <p className="text-[10px] mt-0.5 text-white opacity-70">
-              {sppCount} particulier{sppCount > 1 ? "s" : ""} · {speCount} entreprise{speCount > 1 ? "s" : ""}
+              {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPP").length} particulier(s) · {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPE").length} entreprise(s)
             </p>
           </CardContent>
         </Card>
         <Card
           className="bg-gradient-to-br from-[#b8a20e] to-[#e8d84a] border-0 cursor-pointer hover:opacity-90 transition-opacity"
-          onClick={() => navigate("/pending-requests")}
+          onClick={() => navigate("/demandes")}
         >
           <CardContent className="p-4 text-center">
             <p className="text-3xl font-bold text-white">{pendingCount}</p>
