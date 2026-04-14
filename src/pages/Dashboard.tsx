@@ -551,9 +551,9 @@ export default function Dashboard() {
           }}
         >
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-white">{allDemandes.filter(d => d.statut === "en_cours").length}</p>
-            <p className="text-xs mt-1 text-white opacity-80">Demandes en cours</p>
-            <p className="text-[10px] mt-0.5 text-white opacity-70">
+            <p className="text-4xl font-bold text-white">{allDemandes.filter(d => d.statut === "en_cours").length}</p>
+            <p className="text-sm mt-1 text-white opacity-80">Demandes en cours</p>
+            <p className="text-xs mt-0.5 text-white opacity-70">
               {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPP").length} particulier(s) · {allDemandes.filter(d => d.statut === "en_cours" && d.type_service === "SPE").length} entreprise(s)
             </p>
           </CardContent>
@@ -563,8 +563,8 @@ export default function Dashboard() {
           onClick={() => navigate("/demandes")}
         >
           <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-white">{pendingCount}</p>
-            <p className="text-xs mt-1 text-white opacity-80">En attente</p>
+            <p className="text-4xl font-bold text-white">{pendingCount}</p>
+            <p className="text-sm mt-1 text-white opacity-80">En attente</p>
           </CardContent>
         </Card>
       </div>
