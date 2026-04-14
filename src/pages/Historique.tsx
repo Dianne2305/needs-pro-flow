@@ -20,7 +20,7 @@ export default function Historique() {
       const { data, error } = await supabase
         .from("demandes")
         .select("*")
-        .in("statut", ["annulee", "rejetee", "nrp", "facturation_annulee", "paye"])
+        .in("statut", ["annulee", "rejetee", "nrp", "facturation_annulee", "paye", "en_attente", "prestation_en_cours", "prestation_terminee", "nouveau_besoin", "confirme", "confirme_intervention"])
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as Demande[];
@@ -36,6 +36,12 @@ export default function Historique() {
 
   const statusLabel = (s: string) => {
     const map: Record<string, { label: string; color: string }> = {
+      en_attente: { label: "En attente", color: "bg-gray-100 text-gray-800" },
+      nouveau_besoin: { label: "Nouveau besoin", color: "bg-blue-100 text-blue-800" },
+      confirme: { label: "Confirmé", color: "bg-cyan-100 text-cyan-800" },
+      confirme_intervention: { label: "Confirmé intervention", color: "bg-teal-100 text-teal-800" },
+      prestation_en_cours: { label: "Pres. en cours", color: "bg-indigo-100 text-indigo-800" },
+      prestation_terminee: { label: "Pres. terminée", color: "bg-orange-100 text-orange-800" },
       annulee: { label: "Annulé", color: "bg-red-100 text-red-800" },
       rejetee: { label: "Rejeté", color: "bg-orange-100 text-orange-800" },
       nrp: { label: "NRP", color: "bg-gray-100 text-gray-800" },
