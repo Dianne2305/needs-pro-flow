@@ -182,6 +182,35 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       await logAction("Modification du besoin", changes.join(" | "));
     }
 
+    // Sync statut_paiement to facturation table
+    if (statutPaiement !== (demande.statut_paiement_commercial || "non_paye")) {
+      const factUpdates: Record<string, unknown> = {
+        statut_paiement: statutPaiement,
+        montant_paye_client: montantVerse ? Number(montantVerse) : null,
+      };
+
+      // Set encaisse_par based on new status
+      if (statutPaiement === "agence_payee_client" || statutPaiement === "paye") {
+        factUpdates.encaisse_par = "agence";
+      } else if (statutPaiement === "profil_paye_client") {
+        factUpdates.encaisse_par = "profil";
+      }
+
+      // If fully paid, mark settlement done
+      if (statutPaiement === "paye") {
+        factUpdates.part_agence_reversee = true;
+        factUpdates.part_profil_versee = true;
+        factUpdates.date_paiement_client = new Date().toISOString().split("T")[0];
+      }
+
+      await supabase
+        .from("facturation")
+        .update(factUpdates as any)
+        .eq("demande_id", demande.id);
+
+      queryClient.invalidateQueries({ queryKey: ["facturation"] });
+    }
+
     onSave({
       statut,
       type_service: segment === "entreprise" ? "SPE" : "SPP",
