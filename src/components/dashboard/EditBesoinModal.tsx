@@ -455,6 +455,21 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   </div>
                 </div>
 
+                {/* Bouton Facturation annulée */}
+                {statutPaiement !== "facturation_annulee" && (
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-rose-300 text-rose-700 hover:bg-rose-50 hover:text-rose-800 gap-2"
+                      onClick={() => setStatutPaiement("facturation_annulee")}
+                    >
+                      <X className="h-4 w-4" />
+                      Facturation annulée
+                    </Button>
+                  </div>
+                )}
+
                 {/* Facturation annulée block */}
                 {statutPaiement === "facturation_annulee" && (
                   <div className="mt-4 p-4 rounded-lg border border-rose-200 bg-rose-50 space-y-3">
