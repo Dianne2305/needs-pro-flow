@@ -227,7 +227,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     }
 
     onSave({
-      statut,
+      statut: statutPaiement === "facturation_annulee" ? "facturation_annulee" : statut,
+      motif_annulation: statutPaiement === "facturation_annulee" ? (factAnnuleeRaison || null) : (demande.motif_annulation || null),
       type_service: segment === "entreprise" ? "SPE" : "SPP",
       type_prestation: typePrestation,
       type_bien: typeBien || null,
