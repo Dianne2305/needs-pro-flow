@@ -91,7 +91,7 @@ export default function VueGlobale() {
       if (m.statut_paiement === "profil_paye_client" && !m.part_agence_reversee) {
         const key = m.profil_nom || "Inconnu";
         if (!map[key]) map[key] = { nom: key, montant: 0 };
-        map[key].montant += partAgence(m);
+        map[key].montant += (m.montant_profil_doit != null ? m.montant_profil_doit : partAgence(m));
       }
     });
     return Object.values(map).filter((v) => v.montant > 0);
@@ -104,7 +104,7 @@ export default function VueGlobale() {
       if (m.statut_paiement === "agence_payee_client" && !m.part_profil_versee) {
         const key = m.profil_nom || "Inconnu";
         if (!map[key]) map[key] = { nom: key, montant: 0 };
-        map[key].montant += partProfil(m);
+        map[key].montant += (m.montant_agence_doit != null ? m.montant_agence_doit : partProfil(m));
       }
     });
     return Object.values(map).filter((v) => v.montant > 0);
@@ -116,8 +116,12 @@ export default function VueGlobale() {
   // Debit/Credit table
   const debitCreditData = useMemo(() => {
     return filtered.map((m) => {
-      const debit = m.statut_paiement === "profil_paye_client" && !m.part_agence_reversee ? partAgence(m) : 0;
-      const credit = m.statut_paiement === "agence_payee_client" && !m.part_profil_versee ? partProfil(m) : 0;
+      const debit = m.statut_paiement === "profil_paye_client" && !m.part_agence_reversee
+        ? (m.montant_profil_doit != null ? m.montant_profil_doit : partAgence(m))
+        : 0;
+      const credit = m.statut_paiement === "agence_payee_client" && !m.part_profil_versee
+        ? (m.montant_agence_doit != null ? m.montant_agence_doit : partProfil(m))
+        : 0;
       const commission = partAgence(m);
       return { ...m, debit, credit, commission };
     }).filter((m) => m.debit > 0 || m.credit > 0);
