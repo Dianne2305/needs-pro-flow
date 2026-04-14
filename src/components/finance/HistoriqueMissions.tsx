@@ -20,7 +20,7 @@ import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 const STATUT_FACTURE_OPTIONS = [
-  { value: "non_paye", label: "Non payé / Client", color: "bg-red-100 text-red-800" },
+  { value: "non_paye", label: "Paiement en attente", color: "bg-red-100 text-red-800" },
   { value: "agence_payee_client", label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
   { value: "profil_paye_client", label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
   { value: "paye", label: "Payé", color: "bg-green-100 text-green-800" },
