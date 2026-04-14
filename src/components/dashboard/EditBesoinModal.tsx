@@ -59,6 +59,10 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [factAnnuleePayerProfil, setFactAnnuleePayerProfil] = useState(false);
   const [factAnnuleeMontantProfil, setFactAnnuleeMontantProfil] = useState("");
 
+  // Profil doit / Agence doit fields
+  const [montantProfilDoit, setMontantProfilDoit] = useState("");
+  const [montantAgenceDoit, setMontantAgenceDoit] = useState("");
+
   // Facturation HT/TVA
   const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
   const [appliquerTVA, setAppliquerTVA] = useState(true);
