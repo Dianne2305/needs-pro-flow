@@ -727,6 +727,42 @@ export default function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Rejeté / Annulé Dialog */}
+      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rejeté / Annulé — #{selectedDemande?.num_demande}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Motif du rejet / annulation *</Label>
+              <Textarea
+                value={rejectMotif}
+                onChange={(e) => setRejectMotif(e.target.value)}
+                placeholder="Saisissez la raison du rejet ou de l'annulation..."
+                rows={4}
+                className="mt-1"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setRejectOpen(false)}>Annuler</Button>
+              <Button
+                variant="destructive"
+                disabled={!rejectMotif.trim() || updateMutation.isPending}
+                onClick={() => {
+                  if (!selectedDemande) return;
+                  updateMutation.mutate({ id: selectedDemande.id, updates: { statut: "annulee", motif_annulation: rejectMotif.trim() } }, {
+                    onSuccess: () => setRejectOpen(false),
+                  });
+                }}
+              >
+                Confirmer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Facturation annulée Dialog */}
       <Dialog open={factAnnuleeOpen} onOpenChange={setFactAnnuleeOpen}>
         <DialogContent className="max-w-md">
