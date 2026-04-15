@@ -9,20 +9,20 @@ import ComptesProfils from "@/components/finance/ComptesProfils";
 export default function VueGlobalePage() {
   return (
     <Tabs defaultValue="vue-globale" className="space-y-4">
-      <TabsList className="flex w-full max-w-4xl h-12 bg-muted/60 p-1 rounded-lg">
-        <TabsTrigger value="vue-globale" className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold data-[state=active]:bg-[hsl(220,40%,20%)] data-[state=active]:text-white">
+      <TabsList className="flex w-full justify-center h-12 bg-muted/60 p-1 rounded-lg gap-1">
+        <TabsTrigger value="vue-globale" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
           <BarChart3 className="h-4 w-4" /> Vue globale
         </TabsTrigger>
-        <TabsTrigger value="debit" className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold data-[state=active]:bg-[hsl(220,40%,20%)] data-[state=active]:text-white">
+        <TabsTrigger value="debit" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-red-500 data-[state=active]:text-white">
           <ArrowDownLeft className="h-4 w-4" /> Débit
         </TabsTrigger>
-        <TabsTrigger value="credit" className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold data-[state=active]:bg-[hsl(220,40%,20%)] data-[state=active]:text-white">
+        <TabsTrigger value="credit" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white">
           <ArrowUpRight className="h-4 w-4" /> Crédit
         </TabsTrigger>
-        <TabsTrigger value="suivi-facturation" className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold data-[state=active]:bg-[hsl(220,40%,20%)] data-[state=active]:text-white">
+        <TabsTrigger value="suivi-facturation" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-white">
           <FileText className="h-4 w-4" /> Suivi Facturation
         </TabsTrigger>
-        <TabsTrigger value="comptes-profils" className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold data-[state=active]:bg-[hsl(220,40%,20%)] data-[state=active]:text-white">
+        <TabsTrigger value="comptes-profils" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-violet-600 data-[state=active]:text-white">
           <Users className="h-4 w-4" /> Comptes Profils
         </TabsTrigger>
       </TabsList>
