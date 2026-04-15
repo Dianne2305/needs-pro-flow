@@ -39,6 +39,22 @@ export default function HistoriqueMissions() {
   const [viewMission, setViewMission] = useState<Facturation | null>(null);
   const [editMission, setEditMission] = useState<Facturation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("facturation").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facturation"] });
+      toast({ title: "Facture supprimée" });
+      setDeleteId(null);
+    },
+    onError: () => {
+      toast({ title: "Erreur lors de la suppression", variant: "destructive" });
+    },
+  });
 
   const { data: missions = [] } = useQuery({
     queryKey: ["facturation", "all"],
