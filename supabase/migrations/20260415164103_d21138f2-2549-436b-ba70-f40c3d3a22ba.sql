@@ -1,0 +1,1 @@
+ALTER TABLE public.demandes ADD COLUMN commercial text DEFAULT NULL;
