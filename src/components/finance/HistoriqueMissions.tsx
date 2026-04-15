@@ -347,9 +347,12 @@ export default function HistoriqueMissions() {
                   <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell className="text-sm">{m.date_paiement_client ? format(new Date(m.date_paiement_client), "dd/MM/yyyy") : "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{m.commentaire || "—"}</TableCell>
-                  <TableCell>
+                  <TableCell className="flex gap-1">
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => setViewMission(m)}>
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteId(m.id)}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
