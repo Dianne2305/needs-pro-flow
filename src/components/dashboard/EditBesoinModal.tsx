@@ -61,7 +61,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [quartier, setQuartier] = useState(demande.quartier || "");
   const [adresse, setAdresse] = useState(demande.adresse || "");
   const [modePaiement, setModePaiement] = useState(demande.mode_paiement || "");
-  const [statutPaiement, setStatutPaiement] = useState(demande.statut_paiement_commercial || "non_paye");
+  const [statutPaiement, setStatutPaiement] = useState(demande.statut_paiement_commercial || "non_confirme");
   const [montantVerse, setMontantVerse] = useState(String(demande.montant_verse_client || ""));
   const [notesClient, setNotesClient] = useState(demande.notes_client || "");
   const [noteCommercial, setNoteCommercial] = useState(demande.note_commercial || "");
@@ -78,7 +78,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   // Facturation HT/TVA
   const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
-  const [appliquerTVA, setAppliquerTVA] = useState(true);
+  const [appliquerTVA, setAppliquerTVA] = useState(false);
 
   const montantTTC = useMemo(() => {
     const ht = Number(montantHT) || 0;
@@ -233,7 +233,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   // Sync state when demande prop changes (e.g. after menu actions)
   useEffect(() => {
     setStatut(demande.statut);
-    setStatutPaiement(demande.statut_paiement_commercial || "non_paye");
+    setStatutPaiement(demande.statut_paiement_commercial || "non_confirme");
     setMontantHT(String(demande.montant_total || ""));
     setMontantVerse(String(demande.montant_verse_client || ""));
     setNom(demande.nom);
