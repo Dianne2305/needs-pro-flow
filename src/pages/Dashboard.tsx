@@ -471,7 +471,21 @@ export default function Dashboard() {
                   {d.candidat_nom ? (
                     <button 
                       className="text-primary underline hover:text-primary/80 font-medium cursor-pointer text-[11px] truncate max-w-[70px] block"
-                      onClick={() => navigate(`/compte-profil?nom=${encodeURIComponent(d.candidat_nom!)}`)}
+                      onClick={async () => {
+                        const parts = d.candidat_nom!.trim().split(/\s+/);
+                        const lastName = parts[parts.length - 1];
+                        const { data: match } = await supabase
+                          .from("profils")
+                          .select("id")
+                          .ilike("nom", `%${lastName}%`)
+                          .limit(1)
+                          .maybeSingle();
+                        if (match) {
+                          navigate(`/compte-profil?id=${match.id}`);
+                        } else {
+                          toast({ title: "Profil introuvable", variant: "destructive" });
+                        }
+                      }}
                     >
                       {d.candidat_nom}
                     </button>
