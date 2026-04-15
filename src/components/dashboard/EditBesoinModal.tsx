@@ -103,6 +103,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [profilParts, setProfilParts] = useState<{ profilId: string; part: string }[]>([
     { profilId: "", part: "0" },
   ]);
+  const [partsInitialized, setPartsInitialized] = useState(false);
 
   // Fetch profils for dropdown
   const { data: profilsList = [] } = useQuery({
