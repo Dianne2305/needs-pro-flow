@@ -420,11 +420,12 @@ export default function Dashboard() {
             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Option<br/>sup.</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">CAO</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Tarif<br/>total</TableHead>
+            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut<br/>paie.</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-           <TableRow><TableCell colSpan={13} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+           <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => {
             const rowColor = STATUS_ROW_COLORS[d.statut] || "";
             return (
@@ -489,6 +490,22 @@ export default function Dashboard() {
                 </TableCell>
                 <TableCell className="text-[11px] px-1 font-medium whitespace-nowrap">
                   {d.montant_total ? `${d.montant_total} MAD` : "—"}
+                </TableCell>
+                <TableCell className="px-1">
+                  {(() => {
+                    const sp = d.statut_paiement_commercial;
+                    const paiementLabels: Record<string, { label: string; color: string }> = {
+                      non_paye: { label: "Paiement en attente", color: "bg-red-100 text-red-800" },
+                      agence_payee_client: { label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
+                      profil_paye_client: { label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
+                      paye: { label: "Payé", color: "bg-green-100 text-green-800" },
+                      paiement_partiel: { label: "Paiement partiel", color: "bg-amber-100 text-amber-800" },
+                      facturation_annulee: { label: "Fact. annulée", color: "bg-rose-100 text-rose-800" },
+                    };
+                    if (!sp) return <span className="text-muted-foreground text-[10px]">—</span>;
+                    const info = paiementLabels[sp] || { label: sp, color: "bg-gray-100 text-gray-800" };
+                    return <Badge className={`${info.color} text-[10px] whitespace-nowrap`}>{info.label}</Badge>;
+                  })()}
                 </TableCell>
               </TableRow>
             );
