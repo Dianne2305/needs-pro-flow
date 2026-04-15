@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon, Download } from "lucide-react";
+import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon, Download, Trash2 } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS, PROFIL_TYPE_OPTIONS } from "@/lib/finance-types";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
