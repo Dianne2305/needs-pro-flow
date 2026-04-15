@@ -118,6 +118,56 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     },
   });
 
+  // Fetch facturation for this demande to initialize parts
+  const { data: facturationData } = useQuery({
+    queryKey: ["facturation_demande", demande.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("facturation")
+        .select("*")
+        .eq("demande_id", demande.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  // Initialize gestion des parts from facturation data + candidat
+  useEffect(() => {
+    if (!open) {
+      setPartsInitialized(false);
+      return;
+    }
+    if (partsInitialized) return;
+
+    if (facturationData) {
+      const commission = facturationData.commission_pourcentage || 50;
+      const total = facturationData.montant_total || 0;
+      const agencePart = total * commission / 100;
+      const profilPartVal = total * (100 - commission) / 100;
+      setPartAgence(String(agencePart));
+
+      // Initialize profil with candidat or facturation profil
+      const profilId = facturationData.profil_id || "";
+      setProfilParts([{ profilId, part: String(profilPartVal) }]);
+
+      // Initialize debt fields
+      setMontantProfilDoit(facturationData.montant_profil_doit != null ? String(facturationData.montant_profil_doit) : "");
+      setMontantAgenceDoit(facturationData.montant_agence_doit != null ? String(facturationData.montant_agence_doit) : "");
+
+      setPartsInitialized(true);
+    } else if (facturationData === null) {
+      // No facturation row yet - auto-fill profil from candidat
+      const candidatProfil = demande.candidat_nom
+        ? profilsList.find(p => `${p.prenom} ${p.nom}` === demande.candidat_nom)
+        : null;
+      setProfilParts([{ profilId: candidatProfil?.id || "", part: "0" }]);
+      setPartAgence("0");
+      setPartsInitialized(true);
+    }
+  }, [open, facturationData, partsInitialized, demande.candidat_nom, profilsList]);
+
   // Gestion des parts calculations
   const totalReparti = useMemo(() => {
     const agence = Number(partAgence) || 0;
