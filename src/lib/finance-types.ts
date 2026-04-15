@@ -61,6 +61,7 @@ export const STATUT_MISSION_OPTIONS = [
 ] as const;
 
 export const STATUT_PAIEMENT_OPTIONS = [
+  { value: "non_confirme", label: "Non confirmé", color: "bg-gray-100 text-gray-800" },
   { value: "non_paye", label: "Paiement en attente", color: "bg-red-100 text-red-800" },
   { value: "agence_payee_client", label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
   { value: "profil_paye_client", label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
