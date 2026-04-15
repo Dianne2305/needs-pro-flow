@@ -194,7 +194,7 @@ export default function PendingRequests() {
 
   const assignMutation = useMutation({
     mutationFn: async ({ id, commercial }: { id: string; commercial: string }) => {
-      const { error } = await supabase.from("demandes").update({ note_commercial: commercial } as any).eq("id", id);
+      const { error } = await supabase.from("demandes").update({ commercial } as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_, { commercial }) => {
@@ -592,7 +592,7 @@ export default function PendingRequests() {
                         className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                       >
                         <UserCheck className="h-3.5 w-3.5 mr-1" />
-                        {d.note_commercial ? d.note_commercial : "Affecter"}
+                        {(d as any).commercial ? (d as any).commercial : "Affecter"}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>

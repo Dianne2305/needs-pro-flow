@@ -106,6 +106,7 @@ export type Database = {
           candidat_nom: string | null
           candidat_photo_url: string | null
           candidat_telephone: string | null
+          commercial: string | null
           confirmation_ope: string | null
           confirmed_at: string | null
           contact_entreprise: string | null
@@ -154,6 +155,7 @@ export type Database = {
           candidat_nom?: string | null
           candidat_photo_url?: string | null
           candidat_telephone?: string | null
+          commercial?: string | null
           confirmation_ope?: string | null
           confirmed_at?: string | null
           contact_entreprise?: string | null
@@ -202,6 +204,7 @@ export type Database = {
           candidat_nom?: string | null
           candidat_photo_url?: string | null
           candidat_telephone?: string | null
+          commercial?: string | null
           confirmation_ope?: string | null
           confirmed_at?: string | null
           contact_entreprise?: string | null
