@@ -1,0 +1,1 @@
+ALTER TABLE public.demandes ALTER COLUMN statut_paiement_commercial SET DEFAULT 'non_confirme';
