@@ -103,6 +103,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [profilParts, setProfilParts] = useState<{ profilId: string; part: string }[]>([
     { profilId: "", part: "0" },
   ]);
+  const [partsInitialized, setPartsInitialized] = useState(false);
 
   // Fetch profils for dropdown
   const { data: profilsList = [] } = useQuery({
@@ -117,6 +118,56 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     },
   });
 
+  // Fetch facturation for this demande to initialize parts
+  const { data: facturationData } = useQuery({
+    queryKey: ["facturation_demande", demande.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("facturation")
+        .select("*")
+        .eq("demande_id", demande.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  // Initialize gestion des parts from facturation data + candidat
+  useEffect(() => {
+    if (!open) {
+      setPartsInitialized(false);
+      return;
+    }
+    if (partsInitialized) return;
+
+    if (facturationData) {
+      const commission = facturationData.commission_pourcentage || 50;
+      const total = facturationData.montant_total || 0;
+      const agencePart = total * commission / 100;
+      const profilPartVal = total * (100 - commission) / 100;
+      setPartAgence(String(agencePart));
+
+      // Initialize profil with candidat or facturation profil
+      const profilId = facturationData.profil_id || "";
+      setProfilParts([{ profilId, part: String(profilPartVal) }]);
+
+      // Initialize debt fields
+      setMontantProfilDoit(facturationData.montant_profil_doit != null ? String(facturationData.montant_profil_doit) : "");
+      setMontantAgenceDoit(facturationData.montant_agence_doit != null ? String(facturationData.montant_agence_doit) : "");
+
+      setPartsInitialized(true);
+    } else if (facturationData === null) {
+      // No facturation row yet - auto-fill profil from candidat
+      const candidatProfil = demande.candidat_nom
+        ? profilsList.find(p => `${p.prenom} ${p.nom}` === demande.candidat_nom)
+        : null;
+      setProfilParts([{ profilId: candidatProfil?.id || "", part: "0" }]);
+      setPartAgence("0");
+      setPartsInitialized(true);
+    }
+  }, [open, facturationData, partsInitialized, demande.candidat_nom, profilsList]);
+
   // Gestion des parts calculations
   const totalReparti = useMemo(() => {
     const agence = Number(partAgence) || 0;
@@ -130,7 +181,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   const repartitionCorrecte = Math.abs(resteARepartir) < 0.01;
 
-  // Service-specific fields
+  // Auto-calculate profil part when partAgence or montantTTC changes
+  useEffect(() => {
+    if (!partsInitialized) return;
+    const agenceVal = Number(partAgence) || 0;
+    const profilPartCalc = montantTTC - agenceVal;
+    if (profilParts.length === 1 && profilPartCalc >= 0) {
+      setProfilParts(prev => [{...prev[0], part: String(profilPartCalc)}]);
+    }
+  }, [partAgence, montantTTC, partsInitialized]);
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
   const [superficie, setSuperficie] = useState(String((demande as any).superficie_m2 || ""));
   const [etatLogement, setEtatLogement] = useState((demande as any).etat_logement || "");
@@ -219,10 +278,27 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
     // Sync statut_paiement to facturation table
     {
+      // Calculate commission_pourcentage from gestion des parts
+      const agencePartNum = Number(partAgence) || 0;
+      const totalHT = Number(montantHT) || 0;
+      const commissionPct = totalHT > 0 ? (agencePartNum / montantTTC) * 100 : 50;
+
+      // Get profil info from gestion des parts
+      const firstProfil = profilParts[0];
+      const selectedProfil = firstProfil?.profilId
+        ? profilsList.find(p => p.id === firstProfil.profilId)
+        : null;
+      const profilNom = selectedProfil
+        ? `${selectedProfil.prenom} ${selectedProfil.nom}`
+        : demande.candidat_nom || null;
+
       const factUpdates: Record<string, unknown> = {
         statut_paiement: statutPaiement,
         montant_paye_client: montantVerse ? Number(montantVerse) : null,
         montant_total: montantHT ? Number(montantHT) : null,
+        commission_pourcentage: commissionPct,
+        profil_id: firstProfil?.profilId || null,
+        profil_nom: profilNom,
       };
 
       // Set encaisse_par based on new status
@@ -235,10 +311,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       // Store profil_doit / agence_doit amounts
       if (statutPaiement === "profil_paye_client") {
         factUpdates.montant_profil_doit = montantProfilDoit ? Number(montantProfilDoit) : null;
-        factUpdates.profil_nom = demande.candidat_nom || null;
       } else if (statutPaiement === "agence_payee_client") {
         factUpdates.montant_agence_doit = montantAgenceDoit ? Number(montantAgenceDoit) : null;
-        factUpdates.profil_nom = demande.candidat_nom || null;
       }
 
       // If fully paid, mark settlement done
@@ -265,6 +339,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         .eq("demande_id", demande.id);
 
       queryClient.invalidateQueries({ queryKey: ["facturation"] });
+      queryClient.invalidateQueries({ queryKey: ["facturation_demande", demande.id] });
     }
 
     onSave({
