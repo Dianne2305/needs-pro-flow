@@ -278,10 +278,27 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
     // Sync statut_paiement to facturation table
     {
+      // Calculate commission_pourcentage from gestion des parts
+      const agencePartNum = Number(partAgence) || 0;
+      const totalHT = Number(montantHT) || 0;
+      const commissionPct = totalHT > 0 ? (agencePartNum / montantTTC) * 100 : 50;
+
+      // Get profil info from gestion des parts
+      const firstProfil = profilParts[0];
+      const selectedProfil = firstProfil?.profilId
+        ? profilsList.find(p => p.id === firstProfil.profilId)
+        : null;
+      const profilNom = selectedProfil
+        ? `${selectedProfil.prenom} ${selectedProfil.nom}`
+        : demande.candidat_nom || null;
+
       const factUpdates: Record<string, unknown> = {
         statut_paiement: statutPaiement,
         montant_paye_client: montantVerse ? Number(montantVerse) : null,
         montant_total: montantHT ? Number(montantHT) : null,
+        commission_pourcentage: commissionPct,
+        profil_id: firstProfil?.profilId || null,
+        profil_nom: profilNom,
       };
 
       // Set encaisse_par based on new status
@@ -294,10 +311,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       // Store profil_doit / agence_doit amounts
       if (statutPaiement === "profil_paye_client") {
         factUpdates.montant_profil_doit = montantProfilDoit ? Number(montantProfilDoit) : null;
-        factUpdates.profil_nom = demande.candidat_nom || null;
       } else if (statutPaiement === "agence_payee_client") {
         factUpdates.montant_agence_doit = montantAgenceDoit ? Number(montantAgenceDoit) : null;
-        factUpdates.profil_nom = demande.candidat_nom || null;
       }
 
       // If fully paid, mark settlement done
@@ -324,6 +339,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         .eq("demande_id", demande.id);
 
       queryClient.invalidateQueries({ queryKey: ["facturation"] });
+      queryClient.invalidateQueries({ queryKey: ["facturation_demande", demande.id] });
     }
 
     onSave({
