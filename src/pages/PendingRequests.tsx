@@ -529,11 +529,24 @@ export default function PendingRequests() {
                     {d.mode_paiement && (
                       <div className="text-xs"><span className="font-semibold">Mode : </span>{d.mode_paiement}</div>
                     )}
-                    {(d as any).statut_paiement_commercial && (d as any).statut_paiement_commercial !== "non_paye" && (
-                      <div className="text-xs">
+                    {(d as any).statut_paiement_commercial && (
+                      <div className="text-xs flex items-center gap-1">
                         <span className="font-semibold">Paiement : </span>
-                        {STATUTS_PAIEMENT_COMMERCIAL.find(s => s.value === (d as any).statut_paiement_commercial)?.label}
-                        {(d as any).montant_verse_client ? ` — ${(d as any).montant_verse_client} MAD versés` : ""}
+                        {(() => {
+                          const sp = (d as any).statut_paiement_commercial;
+                          const paiementLabels: Record<string, { label: string; color: string }> = {
+                            non_confirme: { label: "Non confirmé", color: "bg-gray-100 text-gray-800" },
+                            non_paye: { label: "Paiement en attente", color: "bg-red-100 text-red-800" },
+                            agence_payee_client: { label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
+                            profil_paye_client: { label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
+                            paye: { label: "Payé", color: "bg-green-100 text-green-800" },
+                            paiement_partiel: { label: "Paiement partiel", color: "bg-amber-100 text-amber-800" },
+                            facturation_annulee: { label: "Fact. annulée", color: "bg-rose-100 text-rose-800" },
+                          };
+                          const info = paiementLabels[sp] || { label: sp, color: "bg-gray-100 text-gray-800" };
+                          return <Badge className={`${info.color} text-[10px]`}>{info.label}</Badge>;
+                        })()}
+                        {(d as any).montant_verse_client ? <span className="text-muted-foreground">— {(d as any).montant_verse_client} MAD versés</span> : ""}
                       </div>
                     )}
                   </div>
