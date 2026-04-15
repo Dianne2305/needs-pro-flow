@@ -572,6 +572,27 @@ export default function PendingRequests() {
                   >
                     Modifier
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <UserCheck className="h-3.5 w-3.5 mr-1" />
+                        {d.note_commercial ? d.note_commercial : "Affecter"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {COMMERCIAUX.map((com) => (
+                        <DropdownMenuItem
+                          key={com}
+                          onClick={() => assignMutation.mutate({ id: d.id, commercial: com })}
+                        >
+                          {com}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardContent>
             </Card>
