@@ -15,7 +15,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, ChevronDown, Save, Download } from "lucide-react";
+import { Search, CalendarIcon, ChevronDown, Save, Download, UserCheck } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
 import {
   TYPES_PRESTATION, TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA,
@@ -187,6 +190,18 @@ export default function PendingRequests() {
       };
       toast({ title: labels[statut] || "Statut mis à jour" });
     },
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: async ({ id, commercial }: { id: string; commercial: string }) => {
+      const { error } = await supabase.from("demandes").update({ note_commercial: commercial } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, { commercial }) => {
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: `Demande affectée à ${commercial}` });
+    },
+    onError: (e) => toast({ title: "Erreur", description: e.message, variant: "destructive" }),
   });
 
   const editMutation = useMutation({
@@ -557,6 +572,27 @@ export default function PendingRequests() {
                   >
                     Modifier
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <UserCheck className="h-3.5 w-3.5 mr-1" />
+                        {d.note_commercial ? d.note_commercial : "Affecter"}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {COMMERCIAUX.map((com) => (
+                        <DropdownMenuItem
+                          key={com}
+                          onClick={() => assignMutation.mutate({ id: d.id, commercial: com })}
+                        >
+                          {com}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardContent>
             </Card>
