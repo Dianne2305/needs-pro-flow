@@ -181,7 +181,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   const repartitionCorrecte = Math.abs(resteARepartir) < 0.01;
 
-  // Service-specific fields
+  // Auto-calculate profil part when partAgence or montantTTC changes
+  useEffect(() => {
+    if (!partsInitialized) return;
+    const agenceVal = Number(partAgence) || 0;
+    const profilPartCalc = montantTTC - agenceVal;
+    if (profilParts.length === 1 && profilPartCalc >= 0) {
+      setProfilParts(prev => [{...prev[0], part: String(profilPartCalc)}]);
+    }
+  }, [partAgence, montantTTC, partsInitialized]);
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
   const [superficie, setSuperficie] = useState(String((demande as any).superficie_m2 || ""));
   const [etatLogement, setEtatLogement] = useState((demande as any).etat_logement || "");
