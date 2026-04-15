@@ -122,7 +122,7 @@ export default function VueGlobale() {
       const credit = m.statut_paiement === "agence_payee_client" && !m.part_profil_versee
         ? (m.montant_agence_doit != null ? m.montant_agence_doit : partProfil(m))
         : 0;
-      const commission = partAgence(m);
+      const commission = m.montant_profil_doit != null ? m.montant_profil_doit : partAgence(m);
       return { ...m, debit, credit, commission };
     }).filter((m) => m.debit > 0 || m.credit > 0);
   }, [filtered]);
