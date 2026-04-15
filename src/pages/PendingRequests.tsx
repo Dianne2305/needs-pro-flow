@@ -204,6 +204,7 @@ export default function PendingRequests() {
     onError: (e) => toast({ title: "Erreur", description: e.message, variant: "destructive" }),
   });
 
+  const editMutation = useMutation({
     mutationFn: async () => {
       if (!editingDemande) return;
       const { error } = await supabase.from("demandes").update({
