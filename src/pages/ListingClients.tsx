@@ -543,6 +543,20 @@ export default function ListingClients() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteClientId} onOpenChange={(o) => !o && setDeleteClientId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteClientId(null)}>Annuler</Button>
+            <Button variant="destructive" onClick={() => deleteClientId && deleteClientMutation.mutate(deleteClientId)}>Supprimer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Besoin Modal */}
       {selectedDemande && (
         <EditBesoinModal
