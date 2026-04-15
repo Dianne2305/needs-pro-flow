@@ -393,6 +393,22 @@ export default function HistoriqueMissions() {
           onCreate={(data) => createMutation.mutate(data)}
         />
       )}
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent className="max-w-sm">
+          <div className="space-y-4 py-2">
+            <h3 className="text-lg font-semibold">Confirmer la suppression</h3>
+            <p className="text-sm text-muted-foreground">Voulez-vous vraiment supprimer cette facture ? Cette action est irréversible.</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>Annuler</Button>
+              <Button variant="destructive" onClick={() => deleteId && deleteMutation.mutate(deleteId)} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
