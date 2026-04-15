@@ -393,7 +393,7 @@ export default function Dashboard() {
           <CheckCircle className="h-4 w-4 mr-2" />Pres. terminée
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => updateMutation.mutate({ id: d.id, updates: { statut: "annulee" } })} className="text-destructive">
+        <DropdownMenuItem onClick={() => { setSelectedDemande(d); setRejectMotif(""); setRejectOpen(true); }} className="text-destructive">
           <XCircle className="h-4 w-4 mr-2" />Rejeté / Annulé
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => { setSelectedDemande(d); setFactAnnuleeRaison(""); setFactAnnuleePayerProfil(false); setFactAnnuleeMontantProfil(""); setFactAnnuleeOpen(true); }} className="text-orange-600">
