@@ -192,7 +192,18 @@ export default function PendingRequests() {
     },
   });
 
-  const editMutation = useMutation({
+  const assignMutation = useMutation({
+    mutationFn: async ({ id, commercial }: { id: string; commercial: string }) => {
+      const { error } = await supabase.from("demandes").update({ note_commercial: commercial } as any).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, { commercial }) => {
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: `Demande affectée à ${commercial}` });
+    },
+    onError: (e) => toast({ title: "Erreur", description: e.message, variant: "destructive" }),
+  });
+
     mutationFn: async () => {
       if (!editingDemande) return;
       const { error } = await supabase.from("demandes").update({
