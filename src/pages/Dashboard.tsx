@@ -500,6 +500,7 @@ export default function Dashboard() {
                   {(() => {
                     const sp = d.statut_paiement_commercial;
                     const paiementLabels: Record<string, { label: string; color: string }> = {
+                      non_confirme: { label: "Non confirmé", color: "bg-gray-100 text-gray-800" },
                       non_paye: { label: "Paiement en attente", color: "bg-red-100 text-red-800" },
                       agence_payee_client: { label: "Agence payée / Client", color: "bg-blue-100 text-blue-800" },
                       profil_paye_client: { label: "Profil payé / Client", color: "bg-orange-100 text-orange-800" },
