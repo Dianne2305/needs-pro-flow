@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CONFIRMATION_OPE_OPTIONS } from "@/lib/constants";
-import { CheckCircle, AlertTriangle, XCircle, Send, User, Phone, UserPlus } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Send, User, Phone, UserPlus, ExternalLink, Eye } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Demande = Tables<"demandes">;
@@ -156,6 +156,30 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
                     <span>🕐 {demande.heure_prestation || "—"}</span>
                     <span className="col-span-2">📍 {demande.quartier || demande.ville}</span>
                   </div>
+
+                  {/* Aperçu du message */}
+                  <div className="p-3 bg-muted/50 rounded-lg border border-dashed space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                      <Eye className="h-3 w-3" /> Aperçu du message
+                    </p>
+                    <div className="text-xs text-foreground whitespace-pre-line leading-relaxed">
+                      Bonjour {demande.nom || "Client"},{"\n\n"}
+                      Dans le cadre de votre réservation de ménage, nous avons le plaisir de vous transmettre le profil de la candidate qui assurera l'intervention chez vous. Nous vous invitons à cliquer sur le lien suivant pour consulter plus de détails.{"\n\n"}
+                      <a href="https://profile-creato.lovable.app" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">
+                        https://profile-creato.lovable.app
+                      </a>{"\n\n"}
+                      Cordialement,{"\n"}L'équipe Agence Ménage
+                    </div>
+                  </div>
+
+                  {/* Voir la fiche en ligne */}
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open("https://profile-creato.lovable.app", "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" /> Voir la fiche profil en ligne
+                  </Button>
 
                   {/* Envoyer candidature via WhatsApp */}
                   <Button onClick={handleSendCandidature} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">
