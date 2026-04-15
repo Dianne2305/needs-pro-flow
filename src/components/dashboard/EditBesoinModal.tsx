@@ -156,6 +156,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       setMontantProfilDoit(facturationData.montant_profil_doit != null ? String(facturationData.montant_profil_doit) : "");
       setMontantAgenceDoit(facturationData.montant_agence_doit != null ? String(facturationData.montant_agence_doit) : "");
 
+      // Initialize TVA from facturation
+      setAppliquerTVA(facturationData.tva_pourcentage > 0);
+
       setPartsInitialized(true);
     } else if (facturationData === null) {
       // No facturation row yet - auto-fill profil from candidat
