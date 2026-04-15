@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RefreshCw, Search, Plus, CalendarIcon, UserCheck } from "lucide-react";
+import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -21,12 +23,26 @@ const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
 
 export default function Profils() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [operateurFilter, setOperateurFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [addOpen, setAddOpen] = useState(false);
+  const [deleteProfilId, setDeleteProfilId] = useState<string | null>(null);
+
+  const deleteProfilMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("profils").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profils"] });
+      toast({ title: "Profil supprimé" });
+      setDeleteProfilId(null);
+    },
+  });
 
   const { data: profils = [], isLoading, refetch } = useQuery({
     queryKey: ["profils"],
@@ -217,9 +233,19 @@ export default function Profils() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => navigate(`/compte-profil?id=${p.id}`)}>
-                      <UserCheck className="h-3.5 w-3.5" /> Compte Profil
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => navigate(`/compte-profil?id=${p.id}`)}>
+                        <UserCheck className="h-3.5 w-3.5" /> Compte Profil
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteProfilId(p.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -229,6 +255,20 @@ export default function Profils() {
       </div>
 
       <AddProfilModal open={addOpen} onOpenChange={setAddOpen} onSuccess={() => refetch()} />
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteProfilId} onOpenChange={(o) => !o && setDeleteProfilId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Êtes-vous sûr de vouloir supprimer ce profil ? Cette action est irréversible.</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteProfilId(null)}>Annuler</Button>
+            <Button variant="destructive" onClick={() => deleteProfilId && deleteProfilMutation.mutate(deleteProfilId)}>Supprimer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

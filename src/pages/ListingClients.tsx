@@ -83,6 +83,7 @@ export default function ListingClients() {
   const [affectationCommercial, setAffectationCommercial] = useState("");
   const [gesteOpen, setGesteOpen] = useState(false);
   const [gesteMotif, setGesteMotif] = useState("");
+  const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
 
   // Fetch all demandes for listing
   const { data: allDemandes = [], isLoading, refetch } = useQuery({
@@ -124,6 +125,18 @@ export default function ListingClients() {
       setNoteOpen(false);
       setAffectationOpen(false);
       setGesteOpen(false);
+    },
+  });
+
+  const deleteClientMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("demandes").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Demande supprimée" });
+      setDeleteClientId(null);
     },
   });
 
@@ -419,19 +432,29 @@ export default function ListingClients() {
 
                   {/* Quick menu */}
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical className="h-4 w-4" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openCompteClient(d)}>
-                          <UserCheck className="h-4 w-4 mr-2" /> Voir le compte
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setSelectedDemande(d); setEditBesoinOpen(true); }}>
-                          <Pencil className="h-4 w-4 mr-2" /> Éditer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openCompteClient(d)}>
+                            <UserCheck className="h-4 w-4 mr-2" /> Voir le compte
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelectedDemande(d); setEditBesoinOpen(true); }}>
+                            <Pencil className="h-4 w-4 mr-2" /> Éditer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteClientId(d.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
@@ -516,6 +539,20 @@ export default function ListingClients() {
             >
               Confirmer
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <Dialog open={!!deleteClientId} onOpenChange={(o) => !o && setDeleteClientId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.</p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeleteClientId(null)}>Annuler</Button>
+            <Button variant="destructive" onClick={() => deleteClientId && deleteClientMutation.mutate(deleteClientId)}>Supprimer</Button>
           </div>
         </DialogContent>
       </Dialog>
