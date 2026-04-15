@@ -190,6 +190,25 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       setProfilParts(prev => [{...prev[0], part: String(profilPartCalc)}]);
     }
   }, [partAgence, montantTTC, partsInitialized]);
+
+  // Case 1: Profil payé/Client → montantProfilDoit drives partAgence
+  useEffect(() => {
+    if (!partsInitialized || statutPaiement !== "profil_paye_client") return;
+    const val = Number(montantProfilDoit);
+    if (!isNaN(val) && val > 0) {
+      setPartAgence(String(val));
+    }
+  }, [montantProfilDoit, statutPaiement, partsInitialized]);
+
+  // Case 2: Agence payée/Client → montantAgenceDoit drives partProfil
+  useEffect(() => {
+    if (!partsInitialized || statutPaiement !== "agence_payee_client") return;
+    const val = Number(montantAgenceDoit);
+    if (!isNaN(val) && val > 0 && profilParts.length === 1) {
+      setProfilParts(prev => [{ ...prev[0], part: String(val) }]);
+      setPartAgence(String(montantTTC - val));
+    }
+  }, [montantAgenceDoit, statutPaiement, partsInitialized, montantTTC]);
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
   const [superficie, setSuperficie] = useState(String((demande as any).superficie_m2 || ""));
   const [etatLogement, setEtatLogement] = useState((demande as any).etat_logement || "");
