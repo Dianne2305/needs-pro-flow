@@ -49,17 +49,13 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
   };
 
   const handleSendCandidature = () => {
-    // Build WhatsApp message with candidate info
-    const candidatNom = demande.candidat_nom || "Non assigné";
-    const candidatTel = demande.candidat_telephone || "";
+    const clientNom = demande.nom || "Client";
     const message = encodeURIComponent(
-      `Bonjour,\n\nSuite à votre demande #${demande.num_demande}, nous vous proposons le profil suivant :\n\n` +
-      `👤 Nom : ${candidatNom}\n` +
-      `📞 Téléphone : ${candidatTel}\n` +
-      `📅 Date : ${demande.date_prestation || "À définir"}\n` +
-      `🕐 Heure : ${demande.heure_prestation || "À définir"}\n` +
-      `📍 Lieu : ${demande.quartier || demande.ville}\n\n` +
-      `Cordialement,\nL'équipe opérationnelle`
+      `Bonjour ${clientNom},\n\n` +
+      `Dans le cadre de votre réservation de ménage, nous avons le plaisir de vous transmettre le profil de la candidate qui assurera l'intervention chez vous. ` +
+      `Nous vous invitons à cliquer sur le lien suivant pour consulter plus de détails.\n\n` +
+      `https://profile-creato.lovable.app\n\n` +
+      `Cordialement,\nL'équipe Agence Ménage`
     );
     const phoneNumber = (demande.telephone_whatsapp || demande.telephone_direct || "").replace(/\s/g, "");
     if (phoneNumber) {
