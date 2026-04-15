@@ -50,9 +50,10 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
 
   const handleSendCandidature = () => {
     const clientNom = demande.nom || "Client";
+    const candidateName = demande.candidat_nom || "la candidate";
     const message = encodeURIComponent(
       `Bonjour ${clientNom},\n\n` +
-      `Dans le cadre de votre réservation de ménage, nous avons le plaisir de vous transmettre le profil de la candidate qui assurera l'intervention chez vous. ` +
+      `Dans le cadre de votre réservation de ménage, nous avons le plaisir de vous transmettre le profil de *${candidateName}* qui assurera l'intervention chez vous. ` +
       `Nous vous invitons à cliquer sur le lien suivant pour consulter plus de détails.\n\n` +
       `https://profile-creato.lovable.app\n\n` +
       `Cordialement,\nL'équipe Agence Ménage`
@@ -164,7 +165,7 @@ export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Pr
                     </p>
                     <div className="text-xs text-foreground whitespace-pre-line leading-relaxed">
                       Bonjour {demande.nom || "Client"},{"\n\n"}
-                      Dans le cadre de votre réservation de ménage, nous avons le plaisir de vous transmettre le profil de la candidate qui assurera l'intervention chez vous. Nous vous invitons à cliquer sur le lien suivant pour consulter plus de détails.{"\n\n"}
+                      Dans le cadre de votre réservation de ménage, nous avons le plaisir de vous transmettre le profil de <strong>{demande.candidat_nom || "la candidate"}</strong> qui assurera l'intervention chez vous. Nous vous invitons à cliquer sur le lien suivant pour consulter plus de détails.{"\n\n"}
                       <a href="https://profile-creato.lovable.app" target="_blank" rel="noopener noreferrer" className="text-primary underline font-medium">
                         https://profile-creato.lovable.app
                       </a>{"\n\n"}
