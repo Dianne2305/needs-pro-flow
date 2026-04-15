@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon, Download } from "lucide-react";
+import { Search, Plus, Eye, FileText, TrendingUp, Clock, Users, X, Building2, CreditCard, UserCircle, Printer, CalendarIcon, Download, Trash2 } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_MISSION_OPTIONS, STATUT_PAIEMENT_OPTIONS, MODE_PAIEMENT_OPTIONS, PROFIL_TYPE_OPTIONS } from "@/lib/finance-types";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -39,6 +39,22 @@ export default function HistoriqueMissions() {
   const [viewMission, setViewMission] = useState<Facturation | null>(null);
   const [editMission, setEditMission] = useState<Facturation | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("facturation").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facturation"] });
+      toast({ title: "Facture supprimée" });
+      setDeleteId(null);
+    },
+    onError: () => {
+      toast({ title: "Erreur lors de la suppression", variant: "destructive" });
+    },
+  });
 
   const { data: missions = [] } = useQuery({
     queryKey: ["facturation", "all"],
@@ -331,9 +347,12 @@ export default function HistoriqueMissions() {
                   <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell className="text-sm">{m.date_paiement_client ? format(new Date(m.date_paiement_client), "dd/MM/yyyy") : "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-[150px] truncate">{m.commentaire || "—"}</TableCell>
-                  <TableCell>
+                  <TableCell className="flex gap-1">
                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => setViewMission(m)}>
                       <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => setDeleteId(m.id)}>
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -374,6 +393,22 @@ export default function HistoriqueMissions() {
           onCreate={(data) => createMutation.mutate(data)}
         />
       )}
+
+      {/* Delete confirmation */}
+      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent className="max-w-sm">
+          <div className="space-y-4 py-2">
+            <h3 className="text-lg font-semibold">Confirmer la suppression</h3>
+            <p className="text-sm text-muted-foreground">Voulez-vous vraiment supprimer cette facture ? Cette action est irréversible.</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDeleteId(null)}>Annuler</Button>
+              <Button variant="destructive" onClick={() => deleteId && deleteMutation.mutate(deleteId)} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? "Suppression..." : "Supprimer"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
