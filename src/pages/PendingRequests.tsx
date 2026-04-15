@@ -153,7 +153,7 @@ export default function PendingRequests() {
         email: form.email || null,
         avec_produit: form.avec_produit,
         mode_paiement: form.mode_paiement || null,
-        statut_paiement_commercial: form.statut_paiement_commercial || "non_paye",
+        statut_paiement_commercial: form.statut_paiement_commercial || "non_confirme",
         montant_verse_client: form.montant_verse_client ? Number(form.montant_verse_client) : null,
         services_optionnels: JSON.stringify(
           [form.avec_produit && "produit", form.avec_torchons && "torchons"].filter(Boolean)
@@ -236,7 +236,7 @@ export default function PendingRequests() {
         email: editForm.email || null,
         avec_produit: editForm.avec_produit,
         mode_paiement: editForm.mode_paiement || null,
-        statut_paiement_commercial: editForm.statut_paiement_commercial || "non_paye",
+        statut_paiement_commercial: editForm.statut_paiement_commercial || "non_confirme",
         montant_verse_client: editForm.montant_verse_client ? Number(editForm.montant_verse_client) : null,
         services_optionnels: JSON.stringify(
           [editForm.avec_produit && "produit", editForm.avec_torchons && "torchons"].filter(Boolean)
@@ -292,7 +292,7 @@ export default function PendingRequests() {
       avec_produit: d.avec_produit || false,
       avec_torchons: false,
       mode_paiement: d.mode_paiement || "",
-      statut_paiement_commercial: (d as any).statut_paiement_commercial || "non_paye",
+      statut_paiement_commercial: (d as any).statut_paiement_commercial || "non_confirme",
       montant_verse_client: (d as any).montant_verse_client ? String((d as any).montant_verse_client) : "",
     });
     setEditDialogOpen(true);
