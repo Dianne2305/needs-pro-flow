@@ -74,6 +74,10 @@ export default function Dashboard() {
   const [factAnnuleePayerProfil, setFactAnnuleePayerProfil] = useState(false);
   const [factAnnuleeMontantProfil, setFactAnnuleeMontantProfil] = useState("");
 
+  // Rejeté/Annulé modal
+  const [rejectOpen, setRejectOpen] = useState(false);
+  const [rejectMotif, setRejectMotif] = useState("");
+
   const { data: allDemandes = [], isLoading, refetch } = useQuery({
     queryKey: ["demandes", "confirmed"],
     queryFn: async () => {
