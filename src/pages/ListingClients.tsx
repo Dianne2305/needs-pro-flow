@@ -83,6 +83,7 @@ export default function ListingClients() {
   const [affectationCommercial, setAffectationCommercial] = useState("");
   const [gesteOpen, setGesteOpen] = useState(false);
   const [gesteMotif, setGesteMotif] = useState("");
+  const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
 
   // Fetch all demandes for listing
   const { data: allDemandes = [], isLoading, refetch } = useQuery({
