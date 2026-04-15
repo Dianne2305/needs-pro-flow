@@ -436,7 +436,7 @@ export default function Dashboard() {
             return (
               <TableRow key={d.id} className={rowColor}>
                 <TableCell className="px-1">{renderActionButtons(d)}</TableCell>
-                <TableCell className="text-[11px] px-1">{d.note_commercial ? "Mehdi" : "Kaoutar"}</TableCell>
+                <TableCell className="text-[11px] px-1">{(d as any).commercial || "—"}</TableCell>
                 <TableCell className="text-[11px] px-1 whitespace-nowrap">
                   {d.date_prestation ? format(new Date(d.date_prestation + "T00:00:00"), "dd/MM/yy", { locale: fr }) : "—"}
                   {d.heure_prestation && <span className="text-muted-foreground ml-1">{d.heure_prestation.slice(0,5)}</span>}
