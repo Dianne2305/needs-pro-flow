@@ -420,12 +420,13 @@ export default function Dashboard() {
             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Option<br/>sup.</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">CAO</TableHead>
             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Tarif<br/>total</TableHead>
-            <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut<br/>paie.</TableHead>
+             <TableHead className="text-xs font-bold px-1 leading-tight whitespace-normal">Statut<br/>paie.</TableHead>
+             <TableHead className="text-xs font-bold px-1 w-8 leading-tight"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-           <TableRow><TableCell colSpan={14} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
+           <TableRow><TableCell colSpan={15} className="text-center text-muted-foreground py-8">Aucune demande</TableCell></TableRow>
           ) : data.map((d) => {
             const rowColor = STATUS_ROW_COLORS[d.statut] || "";
             return (
@@ -507,6 +508,7 @@ export default function Dashboard() {
                     return <Badge className={`${info.color} text-[10px] whitespace-nowrap`}>{info.label}</Badge>;
                   })()}
                 </TableCell>
+                <TableCell className="px-1">{renderQuickMenu(d)}</TableCell>
               </TableRow>
             );
           })}
