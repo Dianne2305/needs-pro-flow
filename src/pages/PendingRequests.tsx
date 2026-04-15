@@ -15,7 +15,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, ChevronDown, Save, Download } from "lucide-react";
+import { Search, CalendarIcon, ChevronDown, Save, Download, UserCheck } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
 import {
   TYPES_PRESTATION, TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   TYPES_BIEN, FREQUENCES, QUARTIERS_CASABLANCA,
