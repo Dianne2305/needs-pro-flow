@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CONFIRMATION_OPE_OPTIONS } from "@/lib/constants";
-import { CheckCircle, AlertTriangle, XCircle, Send, User, Phone, UserPlus } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Send, User, Phone, UserPlus, ExternalLink, Eye } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Demande = Tables<"demandes">;
