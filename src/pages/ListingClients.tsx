@@ -127,6 +127,18 @@ export default function ListingClients() {
     },
   });
 
+  const deleteClientMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("demandes").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Demande supprimée" });
+      setDeleteClientId(null);
+    },
+  });
+
   // Apply filters
   const filtered = useMemo(() => {
     let result = allDemandes;
@@ -419,19 +431,29 @@ export default function ListingClients() {
 
                   {/* Quick menu */}
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical className="h-4 w-4" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openCompteClient(d)}>
-                          <UserCheck className="h-4 w-4 mr-2" /> Voir le compte
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setSelectedDemande(d); setEditBesoinOpen(true); }}>
-                          <Pencil className="h-4 w-4 mr-2" /> Éditer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openCompteClient(d)}>
+                            <UserCheck className="h-4 w-4 mr-2" /> Voir le compte
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => { setSelectedDemande(d); setEditBesoinOpen(true); }}>
+                            <Pencil className="h-4 w-4 mr-2" /> Éditer
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteClientId(d.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
