@@ -17,6 +17,13 @@ import { Tables } from "@/integrations/supabase/types";
 
 type Demande = Tables<"demandes">;
 
+/**
+ * Props du modal de gestion de candidature.
+ * @property demande      - Demande à laquelle un profil candidat est rattaché.
+ * @property open         - État ouvert/fermé du modal.
+ * @property onOpenChange - Callback ouverture/fermeture.
+ * @property onSave       - Callback persistant le candidat (nom/téléphone/statut/notes).
+ */
 interface Props {
   demande: Demande;
   open: boolean;
@@ -24,6 +31,11 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
+/**
+ * Modal d'attribution / gestion d'une candidature pour une demande.
+ * Permet de saisir le profil candidat, son statut, les notes opérationnelles,
+ * et propose des actions futures d'envoi via WhatsApp (candidature/contact).
+ */
 export function CandidatureModal({ demande, open, onOpenChange, onSave }: Props) {
   const d = demande as any;
   const [candidatNom, setCandidatNom] = useState(d.candidat_nom || "");

@@ -17,6 +17,10 @@ import { Button } from "@/components/ui/button";
 import { Facturation, partAgence, partProfil, soldeProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
 
+/**
+ * Données financières agrégées d'un profil intervenant.
+ * Construite côté front en croisant `profils` et `facturation`.
+ */
 interface ProfilFinance {
   id: string;
   nom: string;
@@ -24,8 +28,11 @@ interface ProfilFinance {
   telephone: string | null;
   ville: string | null;
   quartier: string | null;
+  /** Toutes les missions liées au profil. */
   missions: Facturation[];
+  /** Missions où le profil a été payé par le client → il doit reverser la part agence. */
   missionsProfilDoit: Facturation[];
+  /** Missions où l'agence a encaissé → elle doit verser la part profil. */
   missionsAgenceDoit: Facturation[];
   totalMissions: number;
   totalCA: number;
@@ -33,13 +40,23 @@ interface ProfilFinance {
   totalPartProfil: number;
   totalVerseAuProfil: number;
   totalRecuDuProfil: number;
-  montantProfilDoit: number;  // profile owes the agency
-  montantAgenceDoit: number;  // agency owes the profile
+  /** Montant total que le profil doit à l'agence. */
+  montantProfilDoit: number;
+  /** Montant total que l'agence doit au profil. */
+  montantAgenceDoit: number;
+  /** Solde net (positif = agence doit au profil, négatif = inverse). */
   solde: number;
+  /** Total des paiements client encore en attente. */
   enAttente: number;
+  /** Somme des montants des facturations annulées (perte). */
   totalFactAnnulee: number;
 }
 
+/**
+ * Onglet "Comptes Profils" de la Gestion Financière.
+ * Affiche soit en cartes soit en tableau les soldes financiers de chaque profil
+ * (CA, parts agence/profil, dettes croisées, en attente, total perte).
+ */
 export default function ComptesProfils() {
   const [search, setSearch] = useState("");
   const [selectedProfil, setSelectedProfil] = useState<ProfilFinance | null>(null);

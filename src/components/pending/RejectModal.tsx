@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
+/**
+ * Props du modal de rejet d'une demande.
+ * @property open         - État ouvert/fermé.
+ * @property onOpenChange - Callback ouverture/fermeture.
+ * @property onConfirm    - Callback appelé avec le motif saisi à la confirmation.
+ * @property numDemande   - Numéro de la demande affiché dans le titre.
+ */
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -15,6 +22,10 @@ interface Props {
   numDemande?: number;
 }
 
+/**
+ * Modal de rejet d'une demande en attente.
+ * Le motif est obligatoire (bouton désactivé tant que vide).
+ */
 export function RejectModal({ open, onOpenChange, onConfirm, numDemande }: Props) {
   const [motif, setMotif] = useState("");
 

@@ -6,6 +6,10 @@ import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+/**
+ * Données nécessaires à la génération d'un devis ou récapitulatif.
+ * Construit via `devisDataFromDemande(demande)` à partir d'une row Supabase `demandes`.
+ */
 interface DevisData {
   numDemande: number;
   nom: string;
@@ -39,6 +43,12 @@ const AGENCE_INFO = {
   ice: "00XXXXXXXXXX",
 };
 
+/**
+ * Génère un devis PDF (jsPDF) avec en-tête agence, infos client, détail prestation et pied de page.
+ * Utilisé pour les prestations sur mesure / entreprise (sans prix fixe).
+ * @param data - Données du devis (issues de `devisDataFromDemande`).
+ * @returns instance jsPDF prête à être `.save()`, `.output("blob")`, etc.
+ */
 export function generateDevisPDF(data: DevisData): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();

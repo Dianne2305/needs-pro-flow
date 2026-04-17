@@ -12,6 +12,13 @@ import { toast } from "@/hooks/use-toast";
 
 type Demande = Tables<"demandes">;
 
+/**
+ * Props du modal d'aperçu devis/récapitulatif.
+ * @property demande              - Demande source (null = pas de rendu).
+ * @property open                 - État ouvert/fermé.
+ * @property onOpenChange         - Callback ouverture/fermeture.
+ * @property onDocumentGenerated  - Callback déclenché après génération (utilisé pour journaliser dans l'historique des documents).
+ */
 interface Props {
   demande: Demande | null;
   open: boolean;
@@ -19,6 +26,12 @@ interface Props {
   onDocumentGenerated?: (docType: string, docName: string) => void;
 }
 
+/**
+ * Modal d'aperçu et téléchargement d'un document client.
+ * Choisit automatiquement le format selon le type de prestation :
+ *  - PNG (récapitulatif réservation) pour les prestations à prix fixe.
+ *  - PDF (devis) pour les prestations sur mesure / entreprise.
+ */
 export function DevisPreviewModal({ demande, open, onOpenChange, onDocumentGenerated }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [docType, setDocType] = useState<"pdf" | "png">("pdf");

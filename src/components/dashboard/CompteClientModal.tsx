@@ -16,6 +16,13 @@ import { fr } from "date-fns/locale";
 
 type Demande = Tables<"demandes">;
 
+/**
+ * Props du modal CompteClient (aperçu rapide depuis le dashboard).
+ * @property demande      - Demande dont on veut afficher le compte client lié.
+ * @property open         - État ouvert/fermé du modal.
+ * @property onOpenChange - Callback ouverture/fermeture.
+ * @property onSave       - Callback de sauvegarde des notes commerciales/opérationnelles.
+ */
 interface Props {
   demande: Demande;
   open: boolean;
@@ -23,6 +30,10 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
+/**
+ * Section pliable interne au modal compte client (titre coloré + chevron + contenu).
+ * Utilisée pour regrouper Profil, Historique, Paiement, Candidatures, etc.
+ */
 function Section({ title, icon: Icon, color, defaultOpen = false, children }: {
   title: string; icon: any; color: string; defaultOpen?: boolean; children: React.ReactNode;
 }) {
