@@ -1,0 +1,1 @@
+UPDATE public.facturation SET statut_paiement = 'paye', date_paiement_client = CURRENT_DATE WHERE id = 'fc19960b-d0ff-4ba5-9924-ee1e526b18b9';
