@@ -548,8 +548,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   <div>
                     <Label>TVA (20%)</Label>
                     <div className="flex items-center gap-3 h-10">
-                      <Switch checked={appliquerTVA} onCheckedChange={setAppliquerTVA} />
-                      <span className="text-sm">{appliquerTVA ? "Oui" : "Non"}</span>
+                      <Switch checked={false} disabled />
+                      <span className="text-sm">Non</span>
                     </div>
                   </div>
                   <div>
