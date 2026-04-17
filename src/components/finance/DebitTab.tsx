@@ -212,7 +212,7 @@ export default function DebitTab() {
           </TableHeader>
           <TableBody>
             {debitMissions.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">Aucune donnée</TableCell></TableRow>
+              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Aucune donnée</TableCell></TableRow>
             ) : debitMissions.map((m) => (
               <TableRow key={m.id} className={m.part_agence_reversee ? "opacity-60 bg-muted/20" : ""}>
                 <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
@@ -240,7 +240,7 @@ export default function DebitTab() {
                   </Badge>
                 </TableCell>
                 <TableCell className="font-medium">{fmt(m.montant_paye_client || m.montant_total)}</TableCell>
-                <TableCell><MontantSummary m={m} amount={partAgence(m)} color="text-red-600" /></TableCell>
+                <TableCell className="font-bold text-red-600">{fmt(partAgence(m))}</TableCell>
                 <TableCell className="font-medium">{fmt(partProfil(m))}</TableCell>
                 <TableCell>
                   <Select
@@ -256,6 +256,7 @@ export default function DebitTab() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell><RecapEye m={m} /></TableCell>
               </TableRow>
             ))}
           </TableBody>
