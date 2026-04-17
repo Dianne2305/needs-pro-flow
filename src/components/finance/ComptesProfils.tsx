@@ -1,12 +1,14 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Eye, TrendingUp, Building2, Users, CheckCircle, AlertCircle, LayoutGrid, List } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Search, Eye, TrendingUp, Building2, Users, CheckCircle, AlertCircle, LayoutGrid, List, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Facturation, partAgence, partProfil, soldeProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
