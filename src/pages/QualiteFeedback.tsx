@@ -411,11 +411,9 @@ export default function QualiteFeedback() {
                       <Send className="h-3 w-3 mr-1" /> Envoyer
                     </Button>
                   )}
-                  {f.submitted_at && (
-                    <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
+                  <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
+                    <Eye className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -480,11 +478,9 @@ export default function QualiteFeedback() {
                             <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
                           </Button>
                         )}
-                        {f.submitted_at && (
-                          <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                        <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -502,30 +498,38 @@ export default function QualiteFeedback() {
             <DialogTitle>Détail feedback — {detailFeedback?.nom_client}</DialogTitle>
           </DialogHeader>
           {detailFeedback && (
-            <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <div><span className="text-muted-foreground">Satisfaction :</span> <strong>{detailFeedback.satisfaction}</strong></div>
-                <div><span className="text-muted-foreground">Qualité ménage :</span> <strong>{detailFeedback.qualite_menage}</strong></div>
-                <div><span className="text-muted-foreground">Professionnel :</span> <strong>{detailFeedback.professionnel}</strong></div>
-                <div><span className="text-muted-foreground">Recommande profil :</span> <strong>{detailFeedback.recommande_profil ? "Oui" : "Non"}</strong></div>
-                <div><span className="text-muted-foreground">Recommande agence :</span> <strong>{detailFeedback.recommande_agence ? "Oui" : "Non"}</strong></div>
-                <div>
-                  <span className="text-muted-foreground">Note agence :</span>{" "}
-                  <span className="inline-flex items-center gap-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`h-3.5 w-3.5 ${i < (detailFeedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
-                    ))}
-                  </span>
+            detailFeedback.submitted_at ? (
+              <div className="space-y-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div><span className="text-muted-foreground">Satisfaction :</span> <strong>{detailFeedback.satisfaction || "—"}</strong></div>
+                  <div><span className="text-muted-foreground">Qualité ménage :</span> <strong>{detailFeedback.qualite_menage || "—"}</strong></div>
+                  <div><span className="text-muted-foreground">Professionnel :</span> <strong>{detailFeedback.professionnel || "—"}</strong></div>
+                  <div><span className="text-muted-foreground">Recommande profil :</span> <strong>{detailFeedback.recommande_profil ? "Oui" : "Non"}</strong></div>
+                  <div><span className="text-muted-foreground">Recommande agence :</span> <strong>{detailFeedback.recommande_agence ? "Oui" : "Non"}</strong></div>
+                  <div>
+                    <span className="text-muted-foreground">Note agence :</span>{" "}
+                    <span className="inline-flex items-center gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={`h-3.5 w-3.5 ${i < (detailFeedback.note_agence || 0) ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/30"}`} />
+                      ))}
+                    </span>
+                  </div>
                 </div>
+                {detailFeedback.commentaire && (
+                  <div className="bg-muted p-3 rounded-lg">
+                    <p className="text-muted-foreground text-xs mb-1">Commentaire</p>
+                    <p>{detailFeedback.commentaire}</p>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">Soumis le {new Date(detailFeedback.submitted_at).toLocaleDateString("fr-FR")}</p>
               </div>
-              {detailFeedback.commentaire && (
-                <div className="bg-muted p-3 rounded-lg">
-                  <p className="text-muted-foreground text-xs mb-1">Commentaire</p>
-                  <p>{detailFeedback.commentaire}</p>
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">Soumis le {new Date(detailFeedback.submitted_at!).toLocaleDateString("fr-FR")}</p>
-            </div>
+            ) : (
+              <div className="py-8 text-center space-y-2">
+                <Clock className="h-10 w-10 mx-auto text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">Le client n'a pas encore rempli le formulaire.</p>
+                <p className="text-xs text-muted-foreground">Statut : {STATUT_FEEDBACK[detailFeedback.statut as keyof typeof STATUT_FEEDBACK]?.label || detailFeedback.statut}</p>
+              </div>
+            )
           )}
         </DialogContent>
       </Dialog>
