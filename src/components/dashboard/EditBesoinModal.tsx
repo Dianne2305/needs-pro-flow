@@ -165,7 +165,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       const candidatProfil = demande.candidat_nom
         ? profilsList.find(p => `${p.prenom} ${p.nom}` === demande.candidat_nom)
         : null;
-      setProfilParts([{ profilId: candidatProfil?.id || "", part: "0" }]);
+      setProfilParts([{ profilId: candidatProfil?.id || "", part: "0", delegue: true }]);
       setPartAgence("0");
       setPartsInitialized(true);
     }
