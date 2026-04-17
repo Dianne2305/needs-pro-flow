@@ -88,12 +88,14 @@ export default function DebitTab() {
     navigate(`/compte-client?id=${demandeId}&from=/gestion-financiere`);
   };
 
-  const MontantSummary = ({ m, amount, color }: { m: Facturation; amount: number; color: string }) => (
+  const RecapEye = ({ m }: { m: Facturation }) => (
     <Popover>
       <PopoverTrigger asChild>
-        <button className={cn("font-bold hover:underline cursor-pointer", color)}>{fmt(amount)}</button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir récap">
+          <Eye className="h-4 w-4" />
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
+      <PopoverContent className="w-72 text-sm space-y-1.5" align="end">
         <p className="font-semibold border-b pb-1.5 mb-1">Mission #{m.num_mission}</p>
         <div className="flex justify-between"><span className="text-muted-foreground">Client :</span><span className="font-medium">{m.nom_client}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Profil :</span><span className="font-medium">{m.profil_nom || "—"}</span></div>
