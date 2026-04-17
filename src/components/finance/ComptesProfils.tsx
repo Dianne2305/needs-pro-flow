@@ -319,54 +319,57 @@ function DebtItem({
   kind: "profil_doit" | "agence_doit";
 }) {
   const isZero = amount === 0;
-  return (
-    <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2.5">
+
+  const block = (
+    <div
+      className={`bg-orange-50 border border-orange-200 rounded-lg px-3 py-2.5 w-full text-left ${
+        !isZero ? "cursor-pointer hover:bg-orange-100 hover:border-orange-300 transition-colors" : ""
+      }`}
+    >
       <p className="text-[11px] text-orange-700 font-medium leading-tight uppercase tracking-wide">{label}</p>
       <div className="flex items-center gap-2 mt-1">
-        {!isZero && (
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="text-orange-600 hover:text-orange-800 transition-colors shrink-0"
-                aria-label="Voir les demandes liées"
-              >
-                <AlertTriangle className="h-4 w-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="start">
-              <div className="px-3 py-2 border-b bg-muted/40">
-                <p className="text-xs font-semibold">{label}</p>
-                <p className="text-[11px] text-muted-foreground">{missions.length} demande{missions.length > 1 ? "s" : ""} liée{missions.length > 1 ? "s" : ""}</p>
-              </div>
-              <div className="max-h-64 overflow-y-auto divide-y">
-                {missions.map((m) => {
-                  const part = kind === "profil_doit" ? partAgence(m) : partProfil(m);
-                  return (
-                    <div key={m.id} className="px-3 py-2 text-xs hover:bg-muted/30">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="min-w-0">
-                          <p className="font-mono text-[10px] text-muted-foreground">M-{m.num_mission}</p>
-                          <p className="font-medium truncate">{m.nom_client}</p>
-                          <p className="text-muted-foreground text-[11px]">
-                            {m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}
-                            {m.type_service ? ` • ${m.type_service}` : ""}
-                          </p>
-                        </div>
-                        <p className="font-bold text-orange-700 shrink-0">{fmt(part)}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </PopoverContent>
-          </Popover>
-        )}
+        {!isZero && <AlertTriangle className="h-4 w-4 text-orange-600 shrink-0" />}
         <p className={`font-bold text-lg ${isZero ? "text-muted-foreground" : "text-orange-700"}`}>
           {isZero ? "—" : fmt(amount)}
         </p>
       </div>
     </div>
+  );
+
+  if (isZero) return block;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" aria-label={`Voir les demandes : ${label}`}>{block}</button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <div className="px-3 py-2 border-b bg-muted/40">
+          <p className="text-xs font-semibold">{label}</p>
+          <p className="text-[11px] text-muted-foreground">{missions.length} demande{missions.length > 1 ? "s" : ""} liée{missions.length > 1 ? "s" : ""}</p>
+        </div>
+        <div className="max-h-64 overflow-y-auto divide-y">
+          {missions.map((m) => {
+            const part = kind === "profil_doit" ? partAgence(m) : partProfil(m);
+            return (
+              <div key={m.id} className="px-3 py-2 text-xs hover:bg-muted/30">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0">
+                    <p className="font-mono text-[10px] text-muted-foreground">M-{m.num_mission}</p>
+                    <p className="font-medium truncate">{m.nom_client}</p>
+                    <p className="text-muted-foreground text-[11px]">
+                      {m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}
+                      {m.type_service ? ` • ${m.type_service}` : ""}
+                    </p>
+                  </div>
+                  <p className="font-bold text-orange-700 shrink-0">{fmt(part)}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
