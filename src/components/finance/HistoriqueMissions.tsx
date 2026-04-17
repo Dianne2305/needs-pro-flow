@@ -115,6 +115,11 @@ export default function HistoriqueMissions() {
 
   const totalMissions = filtered.length;
   const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
+  const totalTTC = filtered.reduce((s, m) => {
+    const ht = m.montant_total || 0;
+    const tva = m.tva_pourcentage || 20;
+    return s + ht + (ht * tva / 100);
+  }, 0);
   const commissionAgence = filtered.reduce((s, m) => s + partAgence(m), 0) - soldeCaisse;
   const paiementsEnAttente = filtered.filter((m) => m.statut_paiement === "non_paye" || m.statut_paiement === "paiement_partiel").length;
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
@@ -370,7 +375,7 @@ export default function HistoriqueMissions() {
         {filtered.length > 0 && (
           <div className="flex justify-between items-center px-4 py-3 border-t text-sm text-muted-foreground">
             <span className="text-primary font-medium">{filtered.length} facture(s) affichée(s)</span>
-            <span>Total affiché : <strong className="text-foreground">{fmt(totalCA)}</strong></span>
+            <span>Total TTC : <strong className="text-foreground">{fmt(totalTTC)}</strong></span>
           </div>
         )}
       </div>
