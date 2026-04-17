@@ -14,7 +14,8 @@ import {
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   STATUTS_PAIEMENT_COMMERCIAL,
 } from "@/lib/constants";
-import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList, History, Receipt, Users, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList, History, Receipt, Users, Plus, Trash2, Crown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/integrations/supabase/types";
 import { ServiceFormFields } from "./ServiceFormFields";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
