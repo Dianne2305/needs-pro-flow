@@ -43,7 +43,7 @@ export default function ComptesProfils() {
   const { data: profils = [] } = useQuery({
     queryKey: ["profils", "all_finance"],
     queryFn: async () => {
-      const { data } = await supabase.from("profils").select("id, nom, prenom, telephone, ville");
+      const { data } = await supabase.from("profils").select("id, nom, prenom, telephone, ville, quartier");
       return data || [];
     },
   });
@@ -75,13 +75,25 @@ export default function ComptesProfils() {
       const totalPP = ms.reduce((s, m) => s + partProfil(m), 0);
       const totalVerse = ms.filter((m) => m.encaisse_par === "agence" && m.part_profil_versee).reduce((s, m) => s + partProfil(m), 0);
       const totalRecu = ms.filter((m) => m.encaisse_par === "profil" && m.part_agence_reversee).reduce((s, m) => s + partAgence(m), 0);
+
+      // Profile owes the agency: profile collected and hasn't reversed agency share
+      const missionsProfilDoit = ms.filter((m) => m.encaisse_par === "profil" && !m.part_agence_reversee);
+      const montantProfilDoit = missionsProfilDoit.reduce((s, m) => s + partAgence(m), 0);
+
+      // Agency owes the profile: agency collected and hasn't paid profile share
+      const missionsAgenceDoit = ms.filter((m) => m.encaisse_par === "agence" && !m.part_profil_versee);
+      const montantAgenceDoit = missionsAgenceDoit.reduce((s, m) => s + partProfil(m), 0);
+
       const solde = soldeProfil(ms);
       const enAttente = Math.abs(solde);
 
       return {
-        id: p.id, nom: p.nom, prenom: p.prenom, telephone: p.telephone, ville: (p as any).ville || null,
-        missions: ms, totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
+        id: p.id, nom: p.nom, prenom: p.prenom, telephone: p.telephone,
+        ville: (p as any).ville || null, quartier: (p as any).quartier || null,
+        missions: ms, missionsProfilDoit, missionsAgenceDoit,
+        totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
         totalPartProfil: totalPP, totalVerseAuProfil: totalVerse, totalRecuDuProfil: totalRecu,
+        montantProfilDoit, montantAgenceDoit,
         solde, enAttente,
       };
     }).filter((p) => p.totalMissions > 0 || search);
