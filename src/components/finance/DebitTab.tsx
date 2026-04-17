@@ -207,6 +207,7 @@ export default function DebitTab() {
               <TableHead className="uppercase text-xs text-red-600">Doit à l'agence</TableHead>
               <TableHead className="uppercase text-xs">Part du profil</TableHead>
               <TableHead className="uppercase text-xs">Statut paiement</TableHead>
+              <TableHead className="uppercase text-xs w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
