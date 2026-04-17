@@ -82,6 +82,16 @@ export default function HistoriqueMissions() {
     },
   });
 
+  const { data: caisseOps = [] } = useQuery({
+    queryKey: ["operations_caisse", "all"],
+    queryFn: async () => {
+      const { data } = await supabase.from("operations_caisse").select("type_operation, montant");
+      return (data || []) as { type_operation: string; montant: number }[];
+    },
+  });
+
+  const soldeCaisse = caisseOps.reduce((s, o) => s + (o.type_operation === "entree" ? o.montant : -o.montant), 0);
+
   const filtered = useMemo(() => {
     return missions.filter((m) => {
       if (filterStatut !== "all" && m.statut_paiement !== filterStatut) return false;
