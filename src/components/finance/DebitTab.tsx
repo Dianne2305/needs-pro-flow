@@ -81,9 +81,32 @@ export default function DebitTab() {
 
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
-  const goToProfil = (profilId: string | null, profilNom: string | null) => {
-    if (profilId) navigate(`/profils/${profilId}`);
+  const goToProfil = (profilId: string | null) => {
+    if (profilId) navigate(`/compte-profil?id=${profilId}&from=/gestion-financiere`);
   };
+  const goToClient = (demandeId: string) => {
+    navigate(`/compte-client?id=${demandeId}&from=/gestion-financiere`);
+  };
+
+  const MontantSummary = ({ m, amount, color }: { m: Facturation; amount: number; color: string }) => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className={cn("font-bold hover:underline cursor-pointer", color)}>{fmt(amount)}</button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
+        <p className="font-semibold border-b pb-1.5 mb-1">Mission #{m.num_mission}</p>
+        <div className="flex justify-between"><span className="text-muted-foreground">Client :</span><span className="font-medium">{m.nom_client}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Profil :</span><span className="font-medium">{m.profil_nom || "—"}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Service :</span><span className="font-medium">{m.type_service || "—"}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Date :</span><span className="font-medium">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Ville :</span><span className="font-medium">{m.ville || "—"}</span></div>
+        <div className="flex justify-between border-t pt-1.5 mt-1"><span className="text-muted-foreground">Total client :</span><span className="font-medium">{fmt(m.montant_paye_client || m.montant_total)}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Part agence :</span><span className="font-semibold text-red-600">{fmt(partAgence(m))}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Part profil :</span><span className="font-semibold text-blue-600">{fmt(partProfil(m))}</span></div>
+        {m.commentaire && <div className="border-t pt-1.5 mt-1 text-xs text-muted-foreground italic">{m.commentaire}</div>}
+      </PopoverContent>
+    </Popover>
+  );
 
   return (
     <div className="space-y-5">
