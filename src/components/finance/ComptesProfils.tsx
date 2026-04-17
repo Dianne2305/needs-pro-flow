@@ -299,11 +299,17 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
           <MetricItem icon={<Users className="h-4 w-4 text-muted-foreground" />} label="Part profil cumulée" value={fmt(profil.totalPartProfil)} />
           <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Total à verser au profil" value={fmt(montantAgenceDoit)} />
           <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="Total à recevoir du profil" value={fmt(montantProfilDoit)} />
-          <div className="bg-muted/40 rounded-lg px-3 py-2.5 flex items-center justify-center">
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={onView}>
-              <Eye className="h-3.5 w-3.5" /> Voir détails
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={onView}
+            className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 flex items-start gap-2 text-left hover:bg-red-100 hover:border-red-300 transition-colors"
+          >
+            <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-red-700 font-medium leading-tight uppercase tracking-wide">Total fact. annulée</p>
+              <p className="font-bold text-sm text-red-700">{fmt(profil.totalFactAnnulee)}</p>
+            </div>
+          </button>
         </div>
       </CardContent>
     </Card>
