@@ -70,32 +70,50 @@ export default function Historique() {
           <TableHeader>
             <TableRow>
               <TableHead>Réf</TableHead>
+              <TableHead>Date création</TableHead>
               <TableHead>Nom client</TableHead>
               <TableHead>Type de service</TableHead>
               <TableHead>Segment</TableHead>
-              <TableHead>Date création</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead>Profil</TableHead>
+              <TableHead>Statut besoin</TableHead>
+              <TableHead>Statut paiement</TableHead>
               <TableHead>Motif</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Chargement...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Chargement...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Aucun historique</TableCell></TableRow>
-            ) : filtered.map((d) => (
+              <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Aucun historique</TableCell></TableRow>
+            ) : filtered.map((d) => {
+              const paiementMap: Record<string, { label: string; color: string }> = {
+                paye: { label: "Payé", color: "bg-emerald-100 text-emerald-800" },
+                non_paye: { label: "Non payé", color: "bg-gray-100 text-gray-800" },
+                partiel: { label: "Partiel", color: "bg-yellow-100 text-yellow-800" },
+                non_confirme: { label: "Non confirmé", color: "bg-gray-100 text-gray-800" },
+              };
+              const pStatut = d.statut === "paye" ? "paye" : (d.statut_paiement_commercial || "non_confirme");
+              const p = paiementMap[pStatut] || { label: pStatut, color: "bg-gray-100 text-gray-800" };
+              return (
               <TableRow key={d.id}>
                 <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
-                <TableCell className="font-medium text-sm">{d.nom}</TableCell>
+                <TableCell className="text-xs">{format(new Date(d.created_at), "dd/MM/yyyy", { locale: fr })}</TableCell>
+                <TableCell className="font-medium text-sm">
+                  <Link to={`/compte-client/${encodeURIComponent(d.telephone_whatsapp || d.telephone_direct || d.nom)}`} className="text-primary hover:underline">
+                    {d.nom}
+                  </Link>
+                </TableCell>
                 <TableCell className="text-sm">{d.type_prestation}</TableCell>
                 <TableCell>
                   <Badge className={d.type_service === "SPP" ? "bg-primary text-primary-foreground" : "bg-spe text-spe-foreground"}>{d.type_service}</Badge>
                 </TableCell>
-                <TableCell className="text-xs">{format(new Date(d.created_at), "dd/MM/yyyy", { locale: fr })}</TableCell>
+                <TableCell className="text-sm">{d.candidat_nom || "—"}</TableCell>
                 <TableCell>{statusLabel(d.statut)}</TableCell>
+                <TableCell><Badge className={`${p.color} text-xs`}>{p.label}</Badge></TableCell>
                 <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{d.motif_annulation || "—"}</TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </div>
