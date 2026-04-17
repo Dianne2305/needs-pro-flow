@@ -277,16 +277,14 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
           <DebtItem
             label="Profil doit à l'agence"
             amount={montantProfilDoit}
-            missions={profil.missionsProfilDoit}
+            onClick={onView}
             fmt={fmt}
-            kind="profil_doit"
           />
           <DebtItem
             label="Agence doit au profil"
             amount={montantAgenceDoit}
-            missions={profil.missionsAgenceDoit}
+            onClick={onView}
             fmt={fmt}
-            kind="agence_doit"
           />
         </div>
 
@@ -308,23 +306,26 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
   );
 }
 
-/* ===== DEBT ITEM with popover ===== */
+/* ===== DEBT ITEM (clickable, opens detail modal) ===== */
 function DebtItem({
-  label, amount, missions, fmt, kind,
+  label, amount, onClick, fmt,
 }: {
   label: string;
   amount: number;
-  missions: Facturation[];
+  onClick: () => void;
   fmt: (n: number) => string;
-  kind: "profil_doit" | "agence_doit";
 }) {
   const isZero = amount === 0;
 
-  const block = (
-    <div
+  return (
+    <button
+      type="button"
+      onClick={isZero ? undefined : onClick}
+      disabled={isZero}
       className={`bg-orange-50 border border-orange-200 rounded-lg px-3 py-2.5 w-full text-left ${
-        !isZero ? "cursor-pointer hover:bg-orange-100 hover:border-orange-300 transition-colors" : ""
+        !isZero ? "cursor-pointer hover:bg-orange-100 hover:border-orange-300 transition-colors" : "cursor-default"
       }`}
+      aria-label={isZero ? label : `${label} : voir les demandes liées`}
     >
       <p className="text-[11px] text-orange-700 font-medium leading-tight uppercase tracking-wide">{label}</p>
       <div className="flex items-center gap-2 mt-1">
@@ -333,43 +334,7 @@ function DebtItem({
           {isZero ? "—" : fmt(amount)}
         </p>
       </div>
-    </div>
-  );
-
-  if (isZero) return block;
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button type="button" aria-label={`Voir les demandes : ${label}`}>{block}</button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
-        <div className="px-3 py-2 border-b bg-muted/40">
-          <p className="text-xs font-semibold">{label}</p>
-          <p className="text-[11px] text-muted-foreground">{missions.length} demande{missions.length > 1 ? "s" : ""} liée{missions.length > 1 ? "s" : ""}</p>
-        </div>
-        <div className="max-h-64 overflow-y-auto divide-y">
-          {missions.map((m) => {
-            const part = kind === "profil_doit" ? partAgence(m) : partProfil(m);
-            return (
-              <div key={m.id} className="px-3 py-2 text-xs hover:bg-muted/30">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="min-w-0">
-                    <p className="font-mono text-[10px] text-muted-foreground">M-{m.num_mission}</p>
-                    <p className="font-medium truncate">{m.nom_client}</p>
-                    <p className="text-muted-foreground text-[11px]">
-                      {m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}
-                      {m.type_service ? ` • ${m.type_service}` : ""}
-                    </p>
-                  </div>
-                  <p className="font-bold text-orange-700 shrink-0">{fmt(part)}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </PopoverContent>
-    </Popover>
+    </button>
   );
 }
 
