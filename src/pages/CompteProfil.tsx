@@ -479,6 +479,11 @@ export default function CompteProfil() {
                   <p className="text-2xl font-bold text-sky-700">{fmt(agenceDoitProfil)}</p>
                   <p className="text-[11px] text-muted-foreground mt-1">Part profil non versée</p>
                 </div>
+                <div className="rounded-lg border border-red-300/50 bg-red-50/50 p-4 text-center">
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-1">Total perte</p>
+                  <p className="text-2xl font-bold text-red-700">{fmt(factAnnulee)}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">{nbFactAnnulee} facturation(s) annulée(s)</p>
+                </div>
               </div>
             </Section>
           );
