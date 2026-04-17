@@ -277,16 +277,14 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
           <DebtItem
             label="Profil doit à l'agence"
             amount={montantProfilDoit}
-            missions={profil.missionsProfilDoit}
+            onClick={onView}
             fmt={fmt}
-            kind="profil_doit"
           />
           <DebtItem
             label="Agence doit au profil"
             amount={montantAgenceDoit}
-            missions={profil.missionsAgenceDoit}
+            onClick={onView}
             fmt={fmt}
-            kind="agence_doit"
           />
         </div>
 
