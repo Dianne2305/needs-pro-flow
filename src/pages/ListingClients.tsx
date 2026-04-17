@@ -405,7 +405,12 @@ export default function ListingClients() {
                   {/* Nom client */}
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{d.nom}</span>
+                      <button
+                        onClick={() => openCompteClient(d)}
+                        className="font-medium text-sm text-primary hover:underline text-left"
+                      >
+                        {d.nom}
+                      </button>
                       <span className="text-[10px] text-muted-foreground font-mono">#{d.num_demande}</span>
                     </div>
                   </TableCell>
