@@ -755,8 +755,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     {/* Profil lines */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-semibold">Profils intervenants</Label>
-                        <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0" }])}>
+                        <div className="flex items-center gap-2">
+                          <Label className="text-sm font-semibold">Profils intervenants</Label>
+                          {profilParts.length > 1 && (
+                            <span className="text-xs text-muted-foreground">
+                              (Le délégué récupère la part de l'agence)
+                            </span>
+                          )}
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0", delegue: false }])}>
                           <Plus className="h-4 w-4 mr-1" />
                           Ajouter un autre profil
                         </Button>
@@ -764,10 +771,19 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                       {profilParts.map((pp, index) => {
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
+                        const showDelegate = profilParts.length > 1;
                         return (
                           <div key={index} className="flex items-end gap-3">
                             <div className="flex-1">
-                              <Label className="text-xs">Nom du profil</Label>
+                              <Label className="text-xs flex items-center gap-2">
+                                Nom du profil
+                                {pp.delegue && showDelegate && (
+                                  <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-300 gap-1 px-1.5 py-0 text-[10px]">
+                                    <Crown className="h-2.5 w-2.5" />
+                                    Délégué
+                                  </Badge>
+                                )}
+                              </Label>
                               <Select value={pp.profilId} onValueChange={(val) => {
                                 const updated = [...profilParts];
                                 updated[index] = { ...updated[index], profilId: val };
@@ -791,9 +807,29 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 setProfilParts(updated);
                               }} />
                             </div>
+                            {showDelegate && (
+                              <Button
+                                type="button"
+                                variant={pp.delegue ? "default" : "outline"}
+                                size="sm"
+                                className={`h-10 gap-1 ${pp.delegue ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}
+                                onClick={() => {
+                                  setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
+                                }}
+                                title="Désigner comme délégué"
+                              >
+                                <Crown className="h-4 w-4" />
+                                {pp.delegue ? "Délégué" : "Désigner"}
+                              </Button>
+                            )}
                             {profilParts.length > 1 && (
                               <Button variant="ghost" size="icon" className="text-destructive h-10 w-10" onClick={() => {
-                                setProfilParts(profilParts.filter((_, i) => i !== index));
+                                const filtered = profilParts.filter((_, i) => i !== index);
+                                // Ensure at least one delegate remains
+                                if (!filtered.some(p => p.delegue) && filtered.length > 0) {
+                                  filtered[0] = { ...filtered[0], delegue: true };
+                                }
+                                setProfilParts(filtered);
                               }}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
