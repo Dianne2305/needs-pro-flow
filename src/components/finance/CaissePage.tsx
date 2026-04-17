@@ -62,6 +62,15 @@ export default function CaissePage() {
     },
   });
 
+  const { data: missions = [] } = useQuery({
+    queryKey: ["facturation", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("facturation").select("*");
+      if (error) throw error;
+      return (data || []) as unknown as Facturation[];
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("operations_caisse").delete().eq("id", id);
