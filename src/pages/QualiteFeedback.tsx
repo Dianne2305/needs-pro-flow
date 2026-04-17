@@ -411,11 +411,9 @@ export default function QualiteFeedback() {
                       <Send className="h-3 w-3 mr-1" /> Envoyer
                     </Button>
                   )}
-                  {f.submitted_at && (
-                    <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
-                      <Eye className="h-3.5 w-3.5" />
-                    </Button>
-                  )}
+                  <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
+                    <Eye className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -480,11 +478,9 @@ export default function QualiteFeedback() {
                             <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
                           </Button>
                         )}
-                        {f.submitted_at && (
-                          <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)}>
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
+                        <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
