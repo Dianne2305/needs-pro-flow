@@ -1,3 +1,7 @@
+/**
+ * PendingRequests.tsx
+ * Page Demandes en attente : cartes pliables avec actions NRP/Reject/Confirm/Edit.
+ */
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

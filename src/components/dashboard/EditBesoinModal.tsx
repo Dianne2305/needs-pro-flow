@@ -1,3 +1,7 @@
+/**
+ * EditBesoinModal.tsx
+ * Modal d'édition d'une demande (sections Besoin + Facturation, TVA 20%, split revenus profil/agence).
+ */
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

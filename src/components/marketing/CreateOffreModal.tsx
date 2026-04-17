@@ -1,3 +1,7 @@
+/**
+ * CreateOffreModal.tsx
+ * Modal de création d'une offre/promo marketing (code promo, % ou montant, période).
+ */
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

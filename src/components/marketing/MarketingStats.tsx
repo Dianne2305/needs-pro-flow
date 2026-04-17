@@ -1,3 +1,7 @@
+/**
+ * MarketingStats.tsx
+ * Cartes KPI marketing en haut de la page Marketing (offres actives, gestes, etc.).
+ */
 import { Card, CardContent } from "@/components/ui/card";
 import { Ticket, TrendingUp, Users, BarChart3 } from "lucide-react";
 

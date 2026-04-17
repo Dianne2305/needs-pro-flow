@@ -1,3 +1,7 @@
+/**
+ * use-mobile.tsx
+ * Hook utilitaire : détecte si le viewport est en mode mobile (< breakpoint md).
+ */
 import * as React from "react";
 
 const MOBILE_BREAKPOINT = 768;

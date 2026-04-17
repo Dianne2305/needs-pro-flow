@@ -1,3 +1,7 @@
+/**
+ * VueGlobalePage.tsx
+ * Onglet Vue globale : KPIs financiers (CA, commissions, pertes) et graphiques.
+ */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, ArrowDownLeft, ArrowUpRight, FileText, Users } from "lucide-react";
 import VueGlobale from "@/components/finance/VueGlobale";

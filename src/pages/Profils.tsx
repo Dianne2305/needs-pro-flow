@@ -1,3 +1,7 @@
+/**
+ * Profils.tsx
+ * Page Profils : listing candidats avec filtres, recherche, et actions (ajout/édition/postuler).
+ */
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

@@ -1,3 +1,7 @@
+/**
+ * NotFound.tsx
+ * Page 404 affichée pour toute route inconnue.
+ */
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 

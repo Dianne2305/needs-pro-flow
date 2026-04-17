@@ -1,3 +1,7 @@
+/**
+ * Parametres.tsx
+ * Page Paramètres utilisateur : avatar (Supabase storage), display name, mot de passe.
+ */
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 

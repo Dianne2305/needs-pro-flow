@@ -1,3 +1,7 @@
+/**
+ * QualiteFeedback.tsx
+ * Page Qualité & Feedback : dashboard graphiques + table des feedbacks reçus (icône œil pour voir détails).
+ */
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

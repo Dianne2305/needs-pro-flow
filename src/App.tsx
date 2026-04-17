@@ -1,3 +1,7 @@
+/**
+ * App.tsx
+ * Racine de l'application : providers (React Query, Tooltip, Toaster) et configuration du routeur (toutes les routes de pages).
+ */
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";

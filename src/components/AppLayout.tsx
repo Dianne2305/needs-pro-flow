@@ -1,3 +1,7 @@
+/**
+ * AppLayout.tsx
+ * Layout principal avec SidebarProvider : englobe la sidebar et le contenu des pages (header + <Outlet/>).
+ */
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Bell } from "lucide-react";

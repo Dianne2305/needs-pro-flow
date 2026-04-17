@@ -1,3 +1,7 @@
+/**
+ * CreateGesteModal.tsx
+ * Modal de création d'un geste commercial (réduction, dédommagement) lié à un client.
+ */
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

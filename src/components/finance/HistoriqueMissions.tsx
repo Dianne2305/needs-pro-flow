@@ -1,3 +1,7 @@
+/**
+ * HistoriqueMissions.tsx
+ * Onglet Suivi Facturation : historique missions avec HT/TVA/TTC, reste à payer, export CSV.
+ */
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

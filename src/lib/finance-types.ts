@@ -1,3 +1,7 @@
+/**
+ * finance-types.ts
+ * Types TypeScript dédiés au module Gestion Financière (mission, profil finance, etc.).
+ */
 export interface Facturation {
   id: string;
   num_mission: number;

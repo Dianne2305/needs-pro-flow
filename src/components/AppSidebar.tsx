@@ -1,3 +1,7 @@
+/**
+ * AppSidebar.tsx
+ * Barre latérale de navigation (thème noir/teal). Liens vers Dashboard, Pending, Listing, Profils, Finance, Marketing, Qualité, Paramètres. Badge rouge pour demandes en attente.
+ */
 import {
   LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown,
 } from "lucide-react";

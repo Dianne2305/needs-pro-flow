@@ -1,3 +1,7 @@
+/**
+ * GestesCommerciaux.tsx
+ * Section Gestes commerciaux : tableau des gestes accordés aux clients.
+ */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

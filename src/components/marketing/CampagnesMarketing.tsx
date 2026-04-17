@@ -1,3 +1,7 @@
+/**
+ * CampagnesMarketing.tsx
+ * Section Campagnes marketing : tableau des campagnes multi-canal avec création et marquage envoyée.
+ */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

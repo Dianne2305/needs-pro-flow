@@ -1,3 +1,7 @@
+/**
+ * AddProfilModal.tsx
+ * Modal de création d'un nouveau profil candidat (multi-étapes).
+ */
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,7 @@
+/**
+ * DebitTab.tsx
+ * Onglet Débit : argent que l'agence doit (versements profils, dépenses).
+ */
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

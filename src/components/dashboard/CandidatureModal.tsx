@@ -1,3 +1,7 @@
+/**
+ * CandidatureModal.tsx
+ * Modal de gestion de candidature pour une demande : assignation profil, statut, logistique RDV, envoi candidature/contact.
+ */
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

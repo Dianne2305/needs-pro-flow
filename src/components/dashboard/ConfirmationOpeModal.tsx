@@ -1,3 +1,7 @@
+/**
+ * ConfirmationOpeModal.tsx
+ * Modal de confirmation opérationnelle d'une demande : Confirmer / Reporter / Annuler. Déclenche le passage à 'nouveau_besoin'.
+ */
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

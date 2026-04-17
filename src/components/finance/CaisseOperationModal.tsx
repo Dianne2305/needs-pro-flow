@@ -1,3 +1,7 @@
+/**
+ * CaisseOperationModal.tsx
+ * Modal d'ajout d'un mouvement de caisse (entrée/sortie) avec justificatif et utilisateur auto.
+ */
 import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

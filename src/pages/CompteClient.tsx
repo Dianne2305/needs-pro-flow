@@ -1,3 +1,7 @@
+/**
+ * CompteClient.tsx
+ * Page Compte Client : historique fidélité, candidats proposés, blacklist, historique actions.
+ */
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
