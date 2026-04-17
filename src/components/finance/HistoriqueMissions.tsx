@@ -190,9 +190,6 @@ export default function HistoriqueMissions() {
           <Button onClick={handleExportRapport} variant="outline" className="bg-transparent border-white/30 text-white hover:bg-white/10 gap-1.5">
             <Download className="h-4 w-4" /> Exporter Rapport
           </Button>
-          <Button onClick={() => setShowCreate(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5">
-            <Plus className="h-4 w-4" /> Nouvelle Facture
-          </Button>
         </div>
       </div>
 
