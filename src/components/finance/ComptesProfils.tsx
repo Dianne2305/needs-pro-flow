@@ -70,6 +70,9 @@ export default function ComptesProfils() {
           m.profil_nom.toLowerCase().includes(p.nom.toLowerCase())
         ))
       );
+      const totalFactAnnulee = ms
+        .filter((m) => (m as any).statut_mission === "facturation_annulee")
+        .reduce((s, m) => s + (Number(m.montant_total) || 0), 0);
       const totalCA = ms.reduce((s, m) => s + (m.montant_total || 0), 0);
       const totalPA = ms.reduce((s, m) => s + partAgence(m), 0);
       const totalPP = ms.reduce((s, m) => s + partProfil(m), 0);
