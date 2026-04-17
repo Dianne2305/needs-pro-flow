@@ -222,7 +222,12 @@ export default function CreditTab() {
               <TableRow key={m.id} className={m.part_profil_versee ? "opacity-60 bg-muted/20" : ""}>
                 <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
                 <TableCell>
-                  <div className="text-sm font-medium">{m.nom_client}</div>
+                  <button
+                    className="text-sm font-medium text-primary hover:underline cursor-pointer text-left"
+                    onClick={() => goToClient(m.demande_id)}
+                  >
+                    {m.nom_client}
+                  </button>
                   <div className="text-xs text-muted-foreground">{m.ville || ""}</div>
                 </TableCell>
                 <TableCell>
