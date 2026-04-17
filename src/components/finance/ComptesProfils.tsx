@@ -33,6 +33,7 @@ interface ProfilFinance {
   montantAgenceDoit: number;  // agency owes the profile
   solde: number;
   enAttente: number;
+  totalFactAnnulee: number;
 }
 
 export default function ComptesProfils() {
