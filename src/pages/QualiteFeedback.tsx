@@ -62,22 +62,29 @@ export default function QualiteFeedback() {
     },
   });
 
-  // Create feedback from completed missions
+  // Create feedback from completed missions OR paid invoicing
   const createFeedbackMutation = useMutation({
     mutationFn: async () => {
-      // Get completed missions without feedback
+      // 1) Demandes "prestation_terminee"
       const { data: demandes, error: dErr } = await supabase
         .from("demandes")
-        .select("id, nom, telephone_direct, ville, type_service, candidat_nom, date_prestation, profil_id:candidat_nom")
+        .select("id, nom, telephone_direct, ville, type_service, candidat_nom, date_prestation")
         .eq("statut", "prestation_terminee");
       if (dErr) throw dErr;
+
+      // 2) Facturation avec statut_paiement "paye" (Listing Clients - statut Payé)
+      const { data: facturations, error: fErr } = await supabase
+        .from("facturation")
+        .select("demande_id, nom_client, ville, type_service, profil_nom, date_intervention, demandes:demande_id(telephone_direct)")
+        .eq("statut_paiement", "paye");
+      if (fErr) throw fErr;
 
       const { data: existingFeedbacks } = await supabase
         .from("feedbacks")
         .select("demande_id");
       const existingIds = new Set((existingFeedbacks || []).map((f: any) => f.demande_id));
 
-      const newFeedbacks = (demandes || [])
+      const fromDemandes = (demandes || [])
         .filter((d) => !existingIds.has(d.id))
         .map((d) => ({
           demande_id: d.id,
@@ -89,6 +96,23 @@ export default function QualiteFeedback() {
           date_prestation: d.date_prestation,
         }));
 
+      const seen = new Set([...existingIds, ...fromDemandes.map((f) => f.demande_id)]);
+      const fromFacturation = (facturations || [])
+        .filter((f: any) => f.demande_id && !seen.has(f.demande_id))
+        .map((f: any) => {
+          seen.add(f.demande_id);
+          return {
+            demande_id: f.demande_id,
+            nom_client: f.nom_client,
+            telephone_client: f.demandes?.telephone_direct ?? null,
+            ville: f.ville,
+            type_service: f.type_service,
+            profil_nom: f.profil_nom,
+            date_prestation: f.date_intervention,
+          };
+        });
+
+      const newFeedbacks = [...fromDemandes, ...fromFacturation];
       if (newFeedbacks.length === 0) return 0;
       const { error } = await supabase.from("feedbacks").insert(newFeedbacks);
       if (error) throw error;
