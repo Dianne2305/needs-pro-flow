@@ -101,8 +101,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   // Gestion des parts state
   const [partAgence, setPartAgence] = useState("0");
-  const [profilParts, setProfilParts] = useState<{ profilId: string; part: string }[]>([
-    { profilId: "", part: "0" },
+  const [profilParts, setProfilParts] = useState<{ profilId: string; part: string; delegue: boolean }[]>([
+    { profilId: "", part: "0", delegue: true },
   ]);
   const [partsInitialized, setPartsInitialized] = useState(false);
 
