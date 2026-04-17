@@ -1,3 +1,7 @@
+/**
+ * Marketing.tsx
+ * Page Marketing : KPIs + onglets Offres, Gestes, Campagnes, Segments Clients.
+ */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MarketingStats } from "@/components/marketing/MarketingStats";
 import { OffresTable } from "@/components/marketing/OffresTable";

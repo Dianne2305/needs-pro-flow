@@ -1,3 +1,7 @@
+/**
+ * devis-generator.ts
+ * Générateur de documents : récap PNG (prix fixe) et devis PDF (sur mesure) via jsPDF/html2canvas.
+ */
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";

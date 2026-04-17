@@ -1,3 +1,7 @@
+/**
+ * ComptesProfils.tsx
+ * Onglet Comptes Profils : cartes/tableau des soldes profils + total perte (facturations annulées).
+ */
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";

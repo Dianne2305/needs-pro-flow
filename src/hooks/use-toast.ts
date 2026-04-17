@@ -1,3 +1,7 @@
+/**
+ * use-toast.ts
+ * Hook toast (shadcn) pour afficher des notifications éphémères.
+ */
 import * as React from "react";
 
 import type { ToastActionElement, ToastProps } from "@/components/ui/toast";

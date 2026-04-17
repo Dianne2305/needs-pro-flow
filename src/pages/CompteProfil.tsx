@@ -1,3 +1,7 @@
+/**
+ * CompteProfil.tsx
+ * Page Compte Profil : recherche multi-pattern (Nom/ID), évaluations, blacklist, historique.
+ */
 import { useState, useRef, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

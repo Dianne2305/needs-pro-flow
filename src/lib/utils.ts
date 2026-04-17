@@ -1,3 +1,7 @@
+/**
+ * utils.ts
+ * Helpers utilitaires (cn pour merge Tailwind classes, formatters).
+ */
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 

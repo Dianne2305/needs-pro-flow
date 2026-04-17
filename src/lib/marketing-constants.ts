@@ -1,3 +1,7 @@
+/**
+ * marketing-constants.ts
+ * Constantes marketing : segments clients, canaux campagne, types de gestes, couleurs statuts.
+ */
 export const TYPES_REDUCTION = [
   { value: "pourcentage", label: "Pourcentage (%)" },
   { value: "montant_fixe", label: "Montant fixe (MAD)" },

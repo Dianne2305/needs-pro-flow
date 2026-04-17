@@ -1,3 +1,7 @@
+/**
+ * profil-constants.ts
+ * Constantes profils : niveaux d'étude, langues, sexes, statuts profil, etc.
+ */
 export const LANGUES = [
   "Arabe", "Français", "Anglais", "Espagnol", "Amazigh", "Autre",
 ] as const;

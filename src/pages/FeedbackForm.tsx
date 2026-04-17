@@ -1,3 +1,7 @@
+/**
+ * FeedbackForm.tsx
+ * Formulaire public de feedback client (7 critères) accessible via token.
+ */
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";

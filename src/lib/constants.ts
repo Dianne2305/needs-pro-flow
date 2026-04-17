@@ -1,3 +1,7 @@
+/**
+ * constants.ts
+ * Constantes globales : statuts demandes, candidatures, options de prestations, villes, etc.
+ */
 export const TYPES_PRESTATION_PARTICULIER = [
   "Ménage standard",
   "Grand ménage",

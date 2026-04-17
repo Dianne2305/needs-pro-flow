@@ -1,3 +1,7 @@
+/**
+ * DocumentHistory.tsx
+ * Historique des documents (devis/récap) générés pour une demande.
+ */
 import { Button } from "@/components/ui/button";
 import { Eye, Download, FileText, Image } from "lucide-react";
 

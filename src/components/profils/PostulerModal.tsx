@@ -1,3 +1,7 @@
+/**
+ * PostulerModal.tsx
+ * Modal 'Postuler' : assigner un profil à une mission active (en_cours/nouveau_besoin).
+ */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

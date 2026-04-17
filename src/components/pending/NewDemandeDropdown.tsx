@@ -1,3 +1,7 @@
+/**
+ * NewDemandeDropdown.tsx
+ * Dropdown 'Nouvelle demande' (Particulier / Entreprise) sur la page Pending.
+ */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";

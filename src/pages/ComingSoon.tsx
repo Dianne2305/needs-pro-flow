@@ -1,3 +1,7 @@
+/**
+ * ComingSoon.tsx
+ * Page placeholder 'Bientôt disponible' pour les sections en cours de développement.
+ */
 import { Construction } from "lucide-react";
 
 const ComingSoon = () => (
