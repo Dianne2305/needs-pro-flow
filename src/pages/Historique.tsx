@@ -5,15 +5,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Archive } from "lucide-react";
+import { Search, Archive, CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 type Demande = Tables<"demandes">;
 
 export default function Historique() {
   const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const { data: demandes = [], isLoading } = useQuery({
     queryKey: ["demandes", "historique"],
@@ -28,12 +34,22 @@ export default function Historique() {
     },
   });
 
-  const filtered = search
-    ? demandes.filter((d) => {
-        const q = search.toLowerCase();
-        return d.nom.toLowerCase().includes(q) || d.type_prestation.toLowerCase().includes(q) || String(d.num_demande).includes(q);
-      })
-    : demandes;
+  const filtered = demandes.filter((d) => {
+    if (search) {
+      const q = search.toLowerCase();
+      if (!(d.nom.toLowerCase().includes(q) || d.type_prestation.toLowerCase().includes(q) || String(d.num_demande).includes(q))) {
+        return false;
+      }
+    }
+    if (dateRange?.from) {
+      const created = new Date(d.created_at);
+      const from = new Date(dateRange.from); from.setHours(0, 0, 0, 0);
+      const to = dateRange.to ? new Date(dateRange.to) : new Date(dateRange.from);
+      to.setHours(23, 59, 59, 999);
+      if (created < from || created > to) return false;
+    }
+    return true;
+  });
 
   const statusLabel = (s: string) => {
     const map: Record<string, { label: string; color: string }> = {
@@ -60,9 +76,43 @@ export default function Historique() {
         <h1 className="text-2xl font-bold text-foreground">Historique</h1>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-sm flex-1 min-w-[220px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Rechercher..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("justify-start text-left font-normal min-w-[240px]", !dateRange && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>{format(dateRange.from, "dd/MM/yyyy", { locale: fr })} → {format(dateRange.to, "dd/MM/yyyy", { locale: fr })}</>
+                ) : (
+                  format(dateRange.from, "dd/MM/yyyy", { locale: fr })
+                )
+              ) : (
+                <span>Filtrer par date</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={dateRange}
+              onSelect={setDateRange}
+              numberOfMonths={2}
+              initialFocus
+              locale={fr}
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+        {dateRange && (
+          <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
+            <X className="h-4 w-4 mr-1" /> Réinitialiser
+          </Button>
+        )}
       </div>
 
       <div className="border rounded-lg overflow-x-auto">
