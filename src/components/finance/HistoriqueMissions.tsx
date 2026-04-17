@@ -509,7 +509,7 @@ function MissionViewModal({ mission, onClose, onEdit, fmt }: { mission: Facturat
                   <p className="font-semibold text-lg text-amber-600">{fmt(montantTTC - (mission.montant_paye_client || 0))}</p>
                 </div>
                 <div className="bg-muted/50 rounded-lg p-4">
-                  <p className="text-xs text-muted-foreground">Mode de paiement réel</p>
+                  <p className="text-xs text-muted-foreground">Mode paiement</p>
                   <p className="font-semibold text-sm">{mission.mode_paiement_reel || "—"}</p>
                 </div>
                 <div className="bg-muted/50 rounded-lg p-4">
