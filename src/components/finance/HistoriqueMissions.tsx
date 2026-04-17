@@ -375,7 +375,7 @@ export default function HistoriqueMissions() {
         {filtered.length > 0 && (
           <div className="flex justify-between items-center px-4 py-3 border-t text-sm text-muted-foreground">
             <span className="text-primary font-medium">{filtered.length} facture(s) affichée(s)</span>
-            <span>Total affiché : <strong className="text-foreground">{fmt(totalCA)}</strong></span>
+            <span>Total TTC : <strong className="text-foreground">{fmt(totalTTC)}</strong></span>
           </div>
         )}
       </div>
