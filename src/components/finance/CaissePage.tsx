@@ -191,10 +191,11 @@ export default function CaissePage() {
           <CardContent className="pt-5 pb-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">Solde du jour</p>
-                <p className={`text-3xl font-bold mt-1 ${soldeJour >= 0 ? "text-foreground" : "text-destructive"}`}>{fmt(soldeJour)}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">Commission agence</p>
+                <p className={`text-3xl font-bold mt-1 ${commissionAgenceNet >= 0 ? "text-foreground" : "text-destructive"}`}>{fmt(commissionAgenceNet)}</p>
+                <p className="text-xs text-muted-foreground mt-1">commissions − solde caisse</p>
               </div>
-              <CalendarDays className="h-5 w-5 text-amber-500" />
+              <TrendingUp className="h-5 w-5 text-amber-500" />
             </div>
           </CardContent>
         </Card>
