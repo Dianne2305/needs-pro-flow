@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X } from "lucide-react";
+import { Search, CalendarIcon, X, Eye } from "lucide-react";
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -95,12 +95,14 @@ export default function CreditTab() {
     return <Badge className="bg-gray-100 text-gray-800 text-xs">En attente</Badge>;
   };
 
-  const MontantSummary = ({ m, amount, color }: { m: Facturation; amount: number; color: string }) => (
+  const RecapEye = ({ m }: { m: Facturation }) => (
     <Popover>
       <PopoverTrigger asChild>
-        <button className={cn("font-bold hover:underline cursor-pointer", color)}>{fmt(amount)}</button>
+        <Button variant="ghost" size="icon" className="h-7 w-7" title="Voir récap">
+          <Eye className="h-4 w-4" />
+        </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 text-sm space-y-1.5" align="start">
+      <PopoverContent className="w-72 text-sm space-y-1.5" align="end">
         <p className="font-semibold border-b pb-1.5 mb-1">Mission #{m.num_mission}</p>
         <div className="flex justify-between"><span className="text-muted-foreground">Client :</span><span className="font-medium">{m.nom_client}</span></div>
         <div className="flex justify-between"><span className="text-muted-foreground">Profil :</span><span className="font-medium">{m.profil_nom || "—"}</span></div>
@@ -213,11 +215,12 @@ export default function CreditTab() {
               <TableHead className="uppercase text-xs">Part de l'agence</TableHead>
               <TableHead className="uppercase text-xs text-blue-600">Doit au profil</TableHead>
               <TableHead className="uppercase text-xs">Statut paiement</TableHead>
+              <TableHead className="uppercase text-xs w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {creditMissions.length === 0 ? (
-              <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-8">Aucune donnée</TableCell></TableRow>
+              <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-8">Aucune donnée</TableCell></TableRow>
             ) : creditMissions.map((m) => (
               <TableRow key={m.id} className={m.part_profil_versee ? "opacity-60 bg-muted/20" : ""}>
                 <TableCell className="text-sm">{m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}</TableCell>
@@ -247,7 +250,7 @@ export default function CreditTab() {
                 </TableCell>
                 <TableCell className="font-medium">{fmt(m.montant_paye_client || m.montant_total)}</TableCell>
                 <TableCell className="font-medium text-emerald-700">{fmt(partAgence(m))}</TableCell>
-                <TableCell><MontantSummary m={m} amount={partProfil(m)} color="text-blue-600" /></TableCell>
+                <TableCell className="font-bold text-blue-600">{fmt(partProfil(m))}</TableCell>
                 <TableCell>
                   <Select
                     value={m.part_profil_versee ? "paye" : "non_paye"}
@@ -262,6 +265,7 @@ export default function CreditTab() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell><RecapEye m={m} /></TableCell>
               </TableRow>
             ))}
           </TableBody>
