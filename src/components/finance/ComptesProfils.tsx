@@ -97,7 +97,7 @@ export default function ComptesProfils() {
         totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
         totalPartProfil: totalPP, totalVerseAuProfil: totalVerse, totalRecuDuProfil: totalRecu,
         montantProfilDoit, montantAgenceDoit,
-        solde, enAttente,
+        solde, enAttente, totalFactAnnulee,
       };
     }).filter((p) => p.totalMissions > 0 || search);
   }, [profils, missions, search]);
