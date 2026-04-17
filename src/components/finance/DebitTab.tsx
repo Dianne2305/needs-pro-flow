@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X, Users } from "lucide-react";
+import { Search, CalendarIcon, X, Users, Eye } from "lucide-react";
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
