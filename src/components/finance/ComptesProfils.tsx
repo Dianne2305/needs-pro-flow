@@ -19,13 +19,18 @@ interface ProfilFinance {
   prenom: string;
   telephone: string | null;
   ville: string | null;
+  quartier: string | null;
   missions: Facturation[];
+  missionsProfilDoit: Facturation[];
+  missionsAgenceDoit: Facturation[];
   totalMissions: number;
   totalCA: number;
   totalPartAgence: number;
   totalPartProfil: number;
   totalVerseAuProfil: number;
   totalRecuDuProfil: number;
+  montantProfilDoit: number;  // profile owes the agency
+  montantAgenceDoit: number;  // agency owes the profile
   solde: number;
   enAttente: number;
 }
