@@ -121,7 +121,8 @@ export default function HistoriqueMissions() {
     return s + ht + (ht * tva / 100);
   }, 0);
   const commissionAgence = filtered.reduce((s, m) => s + partAgence(m), 0) - soldeCaisse;
-  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement === "non_paye" || m.statut_paiement === "paiement_partiel").length;
+  // Paiements en attente : tout statut sauf "paye" et "non_confirme"
+  const paiementsEnAttente = filtered.filter((m) => m.statut_paiement !== "paye" && m.statut_paiement !== "non_confirme").length;
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
   const updateMutation = useMutation({
