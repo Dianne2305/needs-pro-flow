@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Wallet, ArrowDownLeft, ArrowUpRight, CalendarDays, Plus, Pencil, Trash2, Download } from "lucide-react";
+import { Wallet, ArrowDownLeft, ArrowUpRight, TrendingUp, Plus, Pencil, Trash2, Download } from "lucide-react";
 import { format, isToday } from "date-fns";
+import { partAgence, Facturation } from "@/lib/finance-types";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import CaisseOperationModal from "./CaisseOperationModal";
@@ -61,6 +62,15 @@ export default function CaissePage() {
     },
   });
 
+  const { data: missions = [] } = useQuery({
+    queryKey: ["facturation", "all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("facturation").select("*");
+      if (error) throw error;
+      return (data || []) as unknown as Facturation[];
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("operations_caisse").delete().eq("id", id);
@@ -87,9 +97,11 @@ export default function CaissePage() {
   const totalEntrees = operations.filter((o) => o.type_operation === "entree").reduce((s, o) => s + o.montant, 0);
   const totalSorties = operations.filter((o) => o.type_operation === "sortie").reduce((s, o) => s + o.montant, 0);
   const solde = totalEntrees - totalSorties;
-  const entreesJour = operations.filter((o) => o.type_operation === "entree" && isToday(new Date(o.date_operation))).reduce((s, o) => s + o.montant, 0);
-  const sortiesJour = operations.filter((o) => o.type_operation === "sortie" && isToday(new Date(o.date_operation))).reduce((s, o) => s + o.montant, 0);
-  const soldeJour = entreesJour - sortiesJour;
+  const totalCommissionsBrut = missions.reduce((s, m) => {
+    if (m.statut_mission === "facturation_annulee") return s;
+    return s + partAgence(m);
+  }, 0);
+  const commissionAgenceNet = totalCommissionsBrut - solde;
 
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
@@ -179,10 +191,11 @@ export default function CaissePage() {
           <CardContent className="pt-5 pb-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">Solde du jour</p>
-                <p className={`text-3xl font-bold mt-1 ${soldeJour >= 0 ? "text-foreground" : "text-destructive"}`}>{fmt(soldeJour)}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">Commission agence</p>
+                <p className={`text-3xl font-bold mt-1 ${commissionAgenceNet >= 0 ? "text-foreground" : "text-destructive"}`}>{fmt(commissionAgenceNet)}</p>
+                <p className="text-xs text-muted-foreground mt-1">commissions − solde caisse</p>
               </div>
-              <CalendarDays className="h-5 w-5 text-amber-500" />
+              <TrendingUp className="h-5 w-5 text-amber-500" />
             </div>
           </CardContent>
         </Card>

@@ -42,6 +42,16 @@ export default function VueGlobale() {
     },
   });
 
+  const { data: caisseOps = [] } = useQuery({
+    queryKey: ["operations_caisse", "all"],
+    queryFn: async () => {
+      const { data } = await supabase.from("operations_caisse").select("type_operation, montant");
+      return (data || []) as { type_operation: string; montant: number }[];
+    },
+  });
+
+  const soldeCaisse = caisseOps.reduce((s, o) => s + (o.type_operation === "entree" ? o.montant : -o.montant), 0);
+
   const filtered = useMemo(() => {
     return missions.filter((m) => {
       if (dateFrom && m.date_intervention) {
@@ -67,13 +77,14 @@ export default function VueGlobale() {
     if (m.statut_mission === "facturation_annulee") return s;
     return s + (m.montant_paye_client || 0);
   }, 0);
-  const commissionAgence = filtered.reduce((s, m) => {
+  const commissionAgenceBrut = filtered.reduce((s, m) => {
     if (m.statut_mission === "facturation_annulee") return s;
     if (m.statut_paiement === "paye" || m.statut_paiement === "agence_payee_client" || m.statut_paiement === "paiement_partiel") {
       return s + partAgence(m);
     }
     return s;
   }, 0);
+  const commissionAgence = commissionAgenceBrut - soldeCaisse;
   const factAnnulee = filtered.filter((m) => m.statut_mission === "facturation_annulee").reduce((s, m) => s + (m.montant_total || 0), 0);
 
   // Pie chart: particuliers vs entreprises
