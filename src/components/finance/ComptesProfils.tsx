@@ -1,12 +1,14 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Search, Eye, TrendingUp, Building2, Users, CheckCircle, AlertCircle, LayoutGrid, List } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Search, Eye, TrendingUp, Building2, Users, CheckCircle, AlertCircle, LayoutGrid, List, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Facturation, partAgence, partProfil, soldeProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format } from "date-fns";
@@ -17,13 +19,18 @@ interface ProfilFinance {
   prenom: string;
   telephone: string | null;
   ville: string | null;
+  quartier: string | null;
   missions: Facturation[];
+  missionsProfilDoit: Facturation[];
+  missionsAgenceDoit: Facturation[];
   totalMissions: number;
   totalCA: number;
   totalPartAgence: number;
   totalPartProfil: number;
   totalVerseAuProfil: number;
   totalRecuDuProfil: number;
+  montantProfilDoit: number;  // profile owes the agency
+  montantAgenceDoit: number;  // agency owes the profile
   solde: number;
   enAttente: number;
 }
@@ -36,7 +43,7 @@ export default function ComptesProfils() {
   const { data: profils = [] } = useQuery({
     queryKey: ["profils", "all_finance"],
     queryFn: async () => {
-      const { data } = await supabase.from("profils").select("id, nom, prenom, telephone, ville");
+      const { data } = await supabase.from("profils").select("id, nom, prenom, telephone, ville, quartier");
       return data || [];
     },
   });
@@ -68,13 +75,25 @@ export default function ComptesProfils() {
       const totalPP = ms.reduce((s, m) => s + partProfil(m), 0);
       const totalVerse = ms.filter((m) => m.encaisse_par === "agence" && m.part_profil_versee).reduce((s, m) => s + partProfil(m), 0);
       const totalRecu = ms.filter((m) => m.encaisse_par === "profil" && m.part_agence_reversee).reduce((s, m) => s + partAgence(m), 0);
+
+      // Profile owes the agency: profile collected and hasn't reversed agency share
+      const missionsProfilDoit = ms.filter((m) => m.encaisse_par === "profil" && !m.part_agence_reversee);
+      const montantProfilDoit = missionsProfilDoit.reduce((s, m) => s + partAgence(m), 0);
+
+      // Agency owes the profile: agency collected and hasn't paid profile share
+      const missionsAgenceDoit = ms.filter((m) => m.encaisse_par === "agence" && !m.part_profil_versee);
+      const montantAgenceDoit = missionsAgenceDoit.reduce((s, m) => s + partProfil(m), 0);
+
       const solde = soldeProfil(ms);
       const enAttente = Math.abs(solde);
 
       return {
-        id: p.id, nom: p.nom, prenom: p.prenom, telephone: p.telephone, ville: (p as any).ville || null,
-        missions: ms, totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
+        id: p.id, nom: p.nom, prenom: p.prenom, telephone: p.telephone,
+        ville: (p as any).ville || null, quartier: (p as any).quartier || null,
+        missions: ms, missionsProfilDoit, missionsAgenceDoit,
+        totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
         totalPartProfil: totalPP, totalVerseAuProfil: totalVerse, totalRecuDuProfil: totalRecu,
+        montantProfilDoit, montantAgenceDoit,
         solde, enAttente,
       };
     }).filter((p) => p.totalMissions > 0 || search);
@@ -227,41 +246,48 @@ export default function ComptesProfils() {
 
 /* ===== PROFIL CARD ===== */
 function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: number) => string; onView: () => void }) {
-  const { solde } = profil;
-  // solde > 0 = profil doit à l'agence (red), solde < 0 = agence doit au profil (blue), 0 = equilibré (green)
-  const borderColor = solde > 0 ? "border-l-red-500" : solde < 0 ? "border-l-blue-500" : "border-l-green-500";
-  const soldeLabel = solde > 0 ? "PROFIL DOIT À L'AGENCE" : solde < 0 ? "AGENCE DOIT AU PROFIL" : "SITUATION ÉQUILIBRÉE";
-  const soldeLabelColor = solde > 0 ? "text-red-600" : solde < 0 ? "text-blue-600" : "text-muted-foreground";
-  const soldeValueColor = solde > 0 ? "text-red-700" : solde < 0 ? "text-blue-700" : "text-muted-foreground";
-  const SoldeIcon = solde === 0 ? CheckCircle : AlertCircle;
-  const soldeIconColor = solde === 0 ? "text-green-500" : solde > 0 ? "text-red-400" : "text-blue-400";
+  const { montantProfilDoit, montantAgenceDoit } = profil;
+  const hasDebt = montantProfilDoit > 0 || montantAgenceDoit > 0;
+  const borderColor = hasDebt ? "border-l-orange-500" : "border-l-green-500";
+  const localisation = [profil.ville, profil.quartier].filter(Boolean).join(" / ") || "—";
 
   return (
-    <Card className={`border-l-4 ${borderColor} overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer`} onClick={onView}>
+    <Card className={`border-l-4 ${borderColor} overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
       {/* Header */}
       <div className="bg-[hsl(220,40%,20%)] text-white px-5 py-4 flex items-center justify-between">
-        <div>
-          <h3 className="font-bold text-lg">{profil.prenom} {profil.nom}</h3>
-          <p className="text-sm text-white/70">
-            {profil.ville || "—"} {profil.telephone ? `– ${profil.telephone}` : ""}
-          </p>
+        <div className="min-w-0">
+          <Link
+            to={`/compte-profil?id=${profil.id}`}
+            className="font-bold text-lg hover:underline block truncate"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {profil.prenom} {profil.nom}
+          </Link>
+          <p className="text-sm text-white/70 truncate">{localisation}</p>
         </div>
-        <div className="bg-white/20 rounded-md px-3 py-1.5 text-center">
+        <div className="bg-white/20 rounded-md px-3 py-1.5 text-center shrink-0 ml-2">
           <p className="text-[10px] uppercase tracking-wider text-white/80">Missions</p>
           <p className="text-xl font-bold">{profil.totalMissions}</p>
         </div>
       </div>
 
       <CardContent className="pt-4 pb-5 space-y-4">
-        {/* Solde Banner */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className={`text-xs font-bold uppercase tracking-wide ${soldeLabelColor}`}>{soldeLabel}</p>
-            <p className={`text-3xl font-bold ${soldeValueColor}`}>
-              {solde === 0 ? "—" : fmt(Math.abs(solde))}
-            </p>
-          </div>
-          <SoldeIcon className={`h-8 w-8 ${soldeIconColor}`} />
+        {/* Dettes en orange avec popover */}
+        <div className="grid grid-cols-2 gap-3">
+          <DebtItem
+            label="Profil doit à l'agence"
+            amount={montantProfilDoit}
+            missions={profil.missionsProfilDoit}
+            fmt={fmt}
+            kind="profil_doit"
+          />
+          <DebtItem
+            label="Agence doit au profil"
+            amount={montantAgenceDoit}
+            missions={profil.missionsAgenceDoit}
+            fmt={fmt}
+            kind="agence_doit"
+          />
         </div>
 
         {/* Metrics Grid */}
@@ -269,12 +295,78 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
           <MetricItem icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />} label="CA total généré" value={fmt(profil.totalCA)} />
           <MetricItem icon={<Building2 className="h-4 w-4 text-muted-foreground" />} label="Part agence cumulée" value={fmt(profil.totalPartAgence)} />
           <MetricItem icon={<Users className="h-4 w-4 text-muted-foreground" />} label="Part profil cumulée" value={fmt(profil.totalPartProfil)} />
-          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Versé au profil" value={fmt(profil.totalVerseAuProfil)} />
-          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Reçu du profil" value={fmt(profil.totalRecuDuProfil)} />
-          <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="En attente (total)" value={fmt(profil.enAttente)} />
+          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Total à verser au profil" value={fmt(montantAgenceDoit)} />
+          <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="Total à recevoir du profil" value={fmt(montantProfilDoit)} />
+          <div className="bg-muted/40 rounded-lg px-3 py-2.5 flex items-center justify-center">
+            <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={onView}>
+              <Eye className="h-3.5 w-3.5" /> Voir détails
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/* ===== DEBT ITEM with popover ===== */
+function DebtItem({
+  label, amount, missions, fmt, kind,
+}: {
+  label: string;
+  amount: number;
+  missions: Facturation[];
+  fmt: (n: number) => string;
+  kind: "profil_doit" | "agence_doit";
+}) {
+  const isZero = amount === 0;
+  return (
+    <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2.5">
+      <p className="text-[11px] text-orange-700 font-medium leading-tight uppercase tracking-wide">{label}</p>
+      <div className="flex items-center gap-2 mt-1">
+        {!isZero && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="text-orange-600 hover:text-orange-800 transition-colors shrink-0"
+                aria-label="Voir les demandes liées"
+              >
+                <AlertTriangle className="h-4 w-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="start">
+              <div className="px-3 py-2 border-b bg-muted/40">
+                <p className="text-xs font-semibold">{label}</p>
+                <p className="text-[11px] text-muted-foreground">{missions.length} demande{missions.length > 1 ? "s" : ""} liée{missions.length > 1 ? "s" : ""}</p>
+              </div>
+              <div className="max-h-64 overflow-y-auto divide-y">
+                {missions.map((m) => {
+                  const part = kind === "profil_doit" ? partAgence(m) : partProfil(m);
+                  return (
+                    <div key={m.id} className="px-3 py-2 text-xs hover:bg-muted/30">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="min-w-0">
+                          <p className="font-mono text-[10px] text-muted-foreground">M-{m.num_mission}</p>
+                          <p className="font-medium truncate">{m.nom_client}</p>
+                          <p className="text-muted-foreground text-[11px]">
+                            {m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}
+                            {m.type_service ? ` • ${m.type_service}` : ""}
+                          </p>
+                        </div>
+                        <p className="font-bold text-orange-700 shrink-0">{fmt(part)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+        <p className={`font-bold text-lg ${isZero ? "text-muted-foreground" : "text-orange-700"}`}>
+          {isZero ? "—" : fmt(amount)}
+        </p>
+      </div>
+    </div>
   );
 }
 
