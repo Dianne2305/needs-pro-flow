@@ -33,6 +33,7 @@ interface ProfilFinance {
   montantAgenceDoit: number;  // agency owes the profile
   solde: number;
   enAttente: number;
+  totalFactAnnulee: number;
 }
 
 export default function ComptesProfils() {
@@ -70,6 +71,9 @@ export default function ComptesProfils() {
           m.profil_nom.toLowerCase().includes(p.nom.toLowerCase())
         ))
       );
+      const totalFactAnnulee = ms
+        .filter((m) => (m as any).statut_mission === "facturation_annulee")
+        .reduce((s, m) => s + (Number(m.montant_total) || 0), 0);
       const totalCA = ms.reduce((s, m) => s + (m.montant_total || 0), 0);
       const totalPA = ms.reduce((s, m) => s + partAgence(m), 0);
       const totalPP = ms.reduce((s, m) => s + partProfil(m), 0);
@@ -94,7 +98,7 @@ export default function ComptesProfils() {
         totalMissions: ms.length, totalCA, totalPartAgence: totalPA,
         totalPartProfil: totalPP, totalVerseAuProfil: totalVerse, totalRecuDuProfil: totalRecu,
         montantProfilDoit, montantAgenceDoit,
-        solde, enAttente,
+        solde, enAttente, totalFactAnnulee,
       };
     }).filter((p) => p.totalMissions > 0 || search);
   }, [profils, missions, search]);
@@ -295,11 +299,17 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
           <MetricItem icon={<Users className="h-4 w-4 text-muted-foreground" />} label="Part profil cumulée" value={fmt(profil.totalPartProfil)} />
           <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Total à verser au profil" value={fmt(montantAgenceDoit)} />
           <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="Total à recevoir du profil" value={fmt(montantProfilDoit)} />
-          <div className="bg-muted/40 rounded-lg px-3 py-2.5 flex items-center justify-center">
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={onView}>
-              <Eye className="h-3.5 w-3.5" /> Voir détails
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={onView}
+            className="bg-red-50 border border-red-200 rounded-lg px-3 py-2.5 flex items-start gap-2 text-left hover:bg-red-100 hover:border-red-300 transition-colors"
+          >
+            <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-red-700 font-medium leading-tight uppercase tracking-wide">Total fact. annulée</p>
+              <p className="font-bold text-sm text-red-700">{fmt(profil.totalFactAnnulee)}</p>
+            </div>
+          </button>
         </div>
       </CardContent>
     </Card>
