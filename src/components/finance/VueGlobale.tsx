@@ -77,13 +77,14 @@ export default function VueGlobale() {
     if (m.statut_mission === "facturation_annulee") return s;
     return s + (m.montant_paye_client || 0);
   }, 0);
-  const commissionAgence = filtered.reduce((s, m) => {
+  const commissionAgenceBrut = filtered.reduce((s, m) => {
     if (m.statut_mission === "facturation_annulee") return s;
     if (m.statut_paiement === "paye" || m.statut_paiement === "agence_payee_client" || m.statut_paiement === "paiement_partiel") {
       return s + partAgence(m);
     }
     return s;
   }, 0);
+  const commissionAgence = commissionAgenceBrut - soldeCaisse;
   const factAnnulee = filtered.filter((m) => m.statut_mission === "facturation_annulee").reduce((s, m) => s + (m.montant_total || 0), 0);
 
   // Pie chart: particuliers vs entreprises
