@@ -149,7 +149,7 @@ export default function Historique() {
                 <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
                 <TableCell className="text-xs">{format(new Date(d.created_at), "dd/MM/yyyy", { locale: fr })}</TableCell>
                 <TableCell className="font-medium text-sm">
-                  <Link to={`/compte-client/${encodeURIComponent(d.telephone_whatsapp || d.telephone_direct || d.nom)}`} className="text-primary hover:underline">
+                  <Link to={`/compte-client?id=${d.id}&from=/historique`} className="text-primary hover:underline">
                     {d.nom}
                   </Link>
                 </TableCell>
