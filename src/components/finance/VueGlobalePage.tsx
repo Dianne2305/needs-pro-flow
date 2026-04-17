@@ -14,10 +14,10 @@ export default function VueGlobalePage() {
           <BarChart3 className="h-4 w-4" /> Vue globale
         </TabsTrigger>
         <TabsTrigger value="debit" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-red-500 data-[state=active]:text-white">
-          <ArrowDownLeft className="h-4 w-4" /> Débit
+          <ArrowDownLeft className="h-4 w-4" /> Débit (Profil doit à l'Agence)
         </TabsTrigger>
         <TabsTrigger value="credit" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-          <ArrowUpRight className="h-4 w-4" /> Crédit
+          <ArrowUpRight className="h-4 w-4" /> Crédit (L'Agence doit au Profil)
         </TabsTrigger>
         <TabsTrigger value="suivi-facturation" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-white">
           <FileText className="h-4 w-4" /> Suivi Facturation
