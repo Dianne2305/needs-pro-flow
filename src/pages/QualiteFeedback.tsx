@@ -62,6 +62,57 @@ export default function QualiteFeedback() {
     },
   });
 
+  // Auto-envoi WhatsApp dès qu'un nouveau feedback "en_attente" apparaît (créé par trigger Payé)
+  const autoSentRef = useRef<Set<string>>(new Set());
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!feedbacks.length) return;
+    // Au 1er chargement, on marque tous les feedbacks existants comme "déjà vus"
+    // pour ne traiter QUE les nouveaux qui arrivent par la suite.
+    if (!initializedRef.current) {
+      feedbacks.forEach((f) => autoSentRef.current.add(f.id));
+      initializedRef.current = true;
+      return;
+    }
+
+    feedbacks.forEach((f) => {
+      if (autoSentRef.current.has(f.id)) return;
+      autoSentRef.current.add(f.id);
+      if (f.statut !== "en_attente" || !f.telephone_client) return;
+
+      const link = `${window.location.origin}/feedback/${f.token}`;
+      const msg = `Bonjour,\nMerci d'avoir fait appel à notre service de ménage.\nVotre avis est très important pour nous.\nMerci de répondre à ce court questionnaire :\n${link}`;
+      const phone = f.telephone_client.replace(/\s/g, "");
+      const waPhone = phone.startsWith("+") ? phone.slice(1) : "212" + phone;
+      window.open(`https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`, "_blank");
+
+      supabase
+        .from("feedbacks")
+        .update({ statut: "lien_envoye", lien_envoye_at: new Date().toISOString() })
+        .eq("id", f.id)
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["feedbacks"] });
+        });
+      toast({ title: "Lien WhatsApp envoyé automatiquement", description: f.nom_client });
+    });
+  }, [feedbacks, queryClient]);
+
+  // Realtime: rafraîchit la liste dès qu'un feedback est créé/modifié
+  useEffect(() => {
+    const channel = supabase
+      .channel("feedbacks-auto")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "feedbacks" },
+        () => queryClient.invalidateQueries({ queryKey: ["feedbacks"] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   // Create feedback from completed missions OR paid invoicing
   const createFeedbackMutation = useMutation({
     mutationFn: async () => {
