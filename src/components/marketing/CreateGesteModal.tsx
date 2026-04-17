@@ -14,11 +14,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { TYPES_GESTE } from "@/lib/marketing-constants";
 
+/**
+ * Props du modal de création d'un geste commercial.
+ * @property open    - État ouvert/fermé.
+ * @property onClose - Callback de fermeture.
+ */
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
+/**
+ * Modal de création d'un geste commercial accordé à un client
+ * (réduction sur prochaine prestation, dédommagement, etc.).
+ * Insère dans `gestes_commerciaux` avec montant ou pourcentage et raison.
+ */
 export function CreateGesteModal({ open, onClose }: Props) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({

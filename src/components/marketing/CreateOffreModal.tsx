@@ -14,11 +14,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { TYPES_REDUCTION, SEGMENTS_CLIENT, SERVICES_MARKETING } from "@/lib/marketing-constants";
 
+/**
+ * Props du modal de création d'offre marketing.
+ * @property open    - État ouvert/fermé.
+ * @property onClose - Callback de fermeture.
+ */
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
+/**
+ * Modal de création d'une offre / promo marketing.
+ * Insère dans `offres_marketing` (code promo, type de réduction %/montant,
+ * segment client ciblé, services concernés, période de validité, limite).
+ */
 export function CreateOffreModal({ open, onClose }: Props) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({

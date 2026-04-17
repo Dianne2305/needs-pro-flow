@@ -14,11 +14,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { SEGMENTS_CLIENT, CANAUX_CAMPAGNE } from "@/lib/marketing-constants";
 
+/**
+ * Props du modal de création de campagne marketing.
+ * @property open    - État ouvert/fermé.
+ * @property onClose - Callback de fermeture.
+ */
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
+/**
+ * Modal de création d'une campagne marketing multi-canal (WhatsApp/Email/SMS).
+ * Insère dans `campagnes_marketing` avec segment ciblé, message et destinataires estimés.
+ */
 export function CreateCampagneModal({ open, onClose }: Props) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({

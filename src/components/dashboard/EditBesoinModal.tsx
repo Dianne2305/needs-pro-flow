@@ -43,6 +43,13 @@ const STATUTS_BESOIN_LIFECYCLE = [
   { value: "annulee", label: "Annulée" },
 ] as const;
 
+/**
+ * Props du composant EditBesoinModal.
+ * @property demande      - Demande à éditer (row Supabase `demandes`).
+ * @property open         - État ouvert/fermé du modal.
+ * @property onOpenChange - Callback déclenché à l'ouverture/fermeture.
+ * @property onSave       - Callback appelé avec les champs modifiés à persister en base.
+ */
 interface Props {
   demande: Demande;
   open: boolean;
@@ -50,6 +57,12 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
+/**
+ * Modal d'édition complète d'une demande/besoin.
+ * Affiche deux sections collapsibles : "Besoin" (détails service) et "Facturation"
+ * (montants HT/TVA 20%/TTC, répartition profil/agence, mode de paiement).
+ * À la sauvegarde, propage les changements via `onSave` (le parent gère la mutation Supabase).
+ */
 export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) {
   const queryClient = useQueryClient();
   const [statut, setStatut] = useState(demande.statut);

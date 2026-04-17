@@ -17,6 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import type { OperationCaisse } from "./CaissePage";
 
+/**
+ * Props du modal d'opération de caisse.
+ * @property open         - État ouvert/fermé.
+ * @property onOpenChange - Callback ouverture/fermeture.
+ * @property operation    - Opération existante en mode édition, sinon `null` (création).
+ * @property defaultType  - Type par défaut quand on crée : "entree" ou "sortie".
+ */
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,6 +31,13 @@ interface Props {
   defaultType: "entree" | "sortie";
 }
 
+/**
+ * Modal unifié d'ajout/édition d'un mouvement de caisse.
+ * - Auto-remplit l'utilisateur connecté (display_name de la table `profiles`).
+ * - Permet l'upload d'un justificatif (Supabase Storage).
+ * - Propose une recherche client pour lier l'opération à une demande existante.
+ * - La suppression manuelle d'une opération est désactivée (intégrité comptable).
+ */
 export default function CaisseOperationModal({ open, onOpenChange, operation, defaultType }: Props) {
   const queryClient = useQueryClient();
   const isEdit = !!operation;

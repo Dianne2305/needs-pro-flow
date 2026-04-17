@@ -17,6 +17,13 @@ import { Tables } from "@/integrations/supabase/types";
 
 type Demande = Tables<"demandes">;
 
+/**
+ * Props du modal de confirmation opérationnelle.
+ * @property demande      - Demande concernée par la confirmation/report/annulation.
+ * @property open         - État ouvert/fermé.
+ * @property onOpenChange - Callback ouverture/fermeture.
+ * @property onSave       - Callback persistant les nouveaux statuts en base.
+ */
 interface Props {
   demande: Demande;
   open: boolean;
@@ -24,6 +31,13 @@ interface Props {
   onSave: (updates: Record<string, unknown>) => void;
 }
 
+/**
+ * Modal de confirmation opérationnelle d'une demande.
+ * Trois actions possibles :
+ *  - "Confirmer"  → statut = `confirme_intervention` (déverrouille Postuler / WhatsApp).
+ *  - "Reporter"   → enregistre `date_report`, statut repasse à `nouveau_besoin`.
+ *  - "Annuler"    → motif obligatoire, statut = `annulee`.
+ */
 export function ConfirmationOpeModal({ demande, open, onOpenChange, onSave }: Props) {
   const d = demande as any;
   const [confirmation, setConfirmation] = useState(d.confirmation_ope || "");

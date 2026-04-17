@@ -16,12 +16,23 @@ import { toast } from "@/hooks/use-toast";
 import { Search, Send, ArrowLeft, Eye, User, MapPin, Calendar, Phone } from "lucide-react";
 import { format } from "date-fns";
 
+/**
+ * Props du modal "Postuler".
+ * @property open         - État ouvert/fermé.
+ * @property onOpenChange - Callback ouverture/fermeture.
+ * @property profil       - Profil candidat qui postule à une mission active.
+ */
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   profil: any;
 }
 
+/**
+ * Modal "Postuler" : permet à un profil candidat de se proposer sur une mission active.
+ * Filtre les demandes éligibles (statuts en_attente, nouveau_besoin, confirme...).
+ * Workflow en 2 étapes : liste des missions → preview avant envoi.
+ */
 export function PostulerModal({ open, onOpenChange, profil }: Props) {
   const [search, setSearch] = useState("");
   const [selectedDemande, setSelectedDemande] = useState<any>(null);
