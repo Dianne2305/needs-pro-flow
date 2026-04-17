@@ -97,9 +97,11 @@ export default function CaissePage() {
   const totalEntrees = operations.filter((o) => o.type_operation === "entree").reduce((s, o) => s + o.montant, 0);
   const totalSorties = operations.filter((o) => o.type_operation === "sortie").reduce((s, o) => s + o.montant, 0);
   const solde = totalEntrees - totalSorties;
-  const entreesJour = operations.filter((o) => o.type_operation === "entree" && isToday(new Date(o.date_operation))).reduce((s, o) => s + o.montant, 0);
-  const sortiesJour = operations.filter((o) => o.type_operation === "sortie" && isToday(new Date(o.date_operation))).reduce((s, o) => s + o.montant, 0);
-  const soldeJour = entreesJour - sortiesJour;
+  const totalCommissionsBrut = missions.reduce((s, m) => {
+    if (m.statut_mission === "facturation_annulee") return s;
+    return s + partAgence(m);
+  }, 0);
+  const commissionAgenceNet = totalCommissionsBrut - solde;
 
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
