@@ -247,7 +247,7 @@ export default function CreditTab() {
                 </TableCell>
                 <TableCell className="font-medium">{fmt(m.montant_paye_client || m.montant_total)}</TableCell>
                 <TableCell className="font-medium text-emerald-700">{fmt(partAgence(m))}</TableCell>
-                <TableCell className="font-bold text-blue-600">{fmt(partProfil(m))}</TableCell>
+                <TableCell><MontantSummary m={m} amount={partProfil(m)} color="text-blue-600" /></TableCell>
                 <TableCell>
                   <Select
                     value={m.part_profil_versee ? "paye" : "non_paye"}
