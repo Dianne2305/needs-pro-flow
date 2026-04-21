@@ -417,6 +417,9 @@ export default function QualiteFeedback() {
                       <Send className="h-3 w-3 mr-1" /> Envoyer
                     </Button>
                   )}
+                  <Button size="sm" variant="ghost" onClick={() => setEditFeedback(f)} title="Modifier le feedback">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
                     <Eye className="h-3.5 w-3.5" />
                   </Button>
@@ -484,6 +487,9 @@ export default function QualiteFeedback() {
                             <Send className="h-3.5 w-3.5 mr-1" /> Envoyer
                           </Button>
                         )}
+                        <Button size="sm" variant="ghost" onClick={() => setEditFeedback(f)} title="Modifier">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
                         <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
