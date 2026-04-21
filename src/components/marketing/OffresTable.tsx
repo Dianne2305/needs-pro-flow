@@ -8,15 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Copy } from "lucide-react";
+import { Plus, Trash2, Copy, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { STATUT_OFFRE_COLORS, SEGMENTS_CLIENT } from "@/lib/marketing-constants";
 import { CreateOffreModal } from "./CreateOffreModal";
+import { EditOffreModal } from "./EditOffreModal";
 
 export function OffresTable() {
   const [showModal, setShowModal] = useState(false);
+  const [editOffre, setEditOffre] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: offres = [], isLoading } = useQuery({
@@ -106,9 +108,14 @@ export function OffresTable() {
                       <Badge className={statutInfo.color}>{statutInfo.label}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(o.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setEditOffre(o)} title="Modifier">
+                          <Pencil className="h-4 w-4 text-primary" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(o.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -119,6 +126,7 @@ export function OffresTable() {
       </div>
 
       <CreateOffreModal open={showModal} onClose={() => setShowModal(false)} />
+      <EditOffreModal offre={editOffre} onClose={() => setEditOffre(null)} />
     </div>
   );
 }
