@@ -548,3 +548,4 @@ export default function QualiteFeedback() {
       <EditFeedbackModal feedback={editFeedback} onClose={() => setEditFeedback(null)} />
     </div>
   );
+}
