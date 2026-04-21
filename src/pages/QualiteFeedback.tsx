@@ -12,8 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { ClipboardCheck, ThumbsUp, ThumbsDown, Clock, Send, Star, BarChart3, PieChart, Eye } from "lucide-react";
+import { ClipboardCheck, ThumbsUp, ThumbsDown, Clock, Send, Star, BarChart3, PieChart, Eye, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EditFeedbackModal } from "@/components/feedback/EditFeedbackModal";
 import { PieChart as RechartsPie, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const STATUT_FEEDBACK = {
@@ -53,6 +54,7 @@ export default function QualiteFeedback() {
   const [statutFilter, setStatutFilter] = useState("tous");
   const [villeFilter, setVilleFilter] = useState("toutes");
   const [detailFeedback, setDetailFeedback] = useState<Feedback | null>(null);
+  const [editFeedback, setEditFeedback] = useState<Feedback | null>(null);
 
   const { data: feedbacks = [], isLoading } = useQuery({
     queryKey: ["feedbacks"],
