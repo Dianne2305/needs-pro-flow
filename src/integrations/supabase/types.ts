@@ -455,43 +455,100 @@ export type Database = {
       }
       gestes_commerciaux: {
         Row: {
+          archivee: boolean
+          canal_diffusion: Json | null
           client_nom: string
           client_telephone: string | null
           commentaire: string | null
+          commercial: string | null
           created_at: string
           cree_par: string | null
+          date_geste: string | null
           demande_id: string | null
+          envoyer_message: boolean
           id: string
+          message_client: string | null
           montant: number | null
+          montant_ht: number | null
+          montant_ttc: number | null
+          motif: string | null
+          part_agence: number | null
+          part_profil: number | null
           pourcentage: number | null
+          quartier: string | null
           raison: string | null
+          reduction_type: string | null
+          reduction_valeur: number | null
+          statut_geste: string
+          total_a_payer: number | null
+          tva_active: boolean
+          tva_montant: number | null
           type_geste: string
+          ville: string | null
         }
         Insert: {
+          archivee?: boolean
+          canal_diffusion?: Json | null
           client_nom: string
           client_telephone?: string | null
           commentaire?: string | null
+          commercial?: string | null
           created_at?: string
           cree_par?: string | null
+          date_geste?: string | null
           demande_id?: string | null
+          envoyer_message?: boolean
           id?: string
+          message_client?: string | null
           montant?: number | null
+          montant_ht?: number | null
+          montant_ttc?: number | null
+          motif?: string | null
+          part_agence?: number | null
+          part_profil?: number | null
           pourcentage?: number | null
+          quartier?: string | null
           raison?: string | null
+          reduction_type?: string | null
+          reduction_valeur?: number | null
+          statut_geste?: string
+          total_a_payer?: number | null
+          tva_active?: boolean
+          tva_montant?: number | null
           type_geste: string
+          ville?: string | null
         }
         Update: {
+          archivee?: boolean
+          canal_diffusion?: Json | null
           client_nom?: string
           client_telephone?: string | null
           commentaire?: string | null
+          commercial?: string | null
           created_at?: string
           cree_par?: string | null
+          date_geste?: string | null
           demande_id?: string | null
+          envoyer_message?: boolean
           id?: string
+          message_client?: string | null
           montant?: number | null
+          montant_ht?: number | null
+          montant_ttc?: number | null
+          motif?: string | null
+          part_agence?: number | null
+          part_profil?: number | null
           pourcentage?: number | null
+          quartier?: string | null
           raison?: string | null
+          reduction_type?: string | null
+          reduction_valeur?: number | null
+          statut_geste?: string
+          total_a_payer?: number | null
+          tva_active?: boolean
+          tva_montant?: number | null
           type_geste?: string
+          ville?: string | null
         }
         Relationships: [
           {
