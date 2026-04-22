@@ -1,0 +1,1 @@
+ALTER TABLE public.feedbacks ADD COLUMN note_profil integer;
