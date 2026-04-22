@@ -550,6 +550,7 @@ export type Database = {
           date_fin: string | null
           id: string
           limite_utilisation: number | null
+          message_promotionnel: string | null
           nom: string
           nombre_utilisations: number | null
           segment_client: string | null
@@ -568,6 +569,7 @@ export type Database = {
           date_fin?: string | null
           id?: string
           limite_utilisation?: number | null
+          message_promotionnel?: string | null
           nom: string
           nombre_utilisations?: number | null
           segment_client?: string | null
@@ -586,6 +588,7 @@ export type Database = {
           date_fin?: string | null
           id?: string
           limite_utilisation?: number | null
+          message_promotionnel?: string | null
           nom?: string
           nombre_utilisations?: number | null
           segment_client?: string | null

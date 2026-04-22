@@ -1,0 +1,1 @@
+ALTER TABLE public.offres_marketing ADD COLUMN message_promotionnel TEXT NULL;
