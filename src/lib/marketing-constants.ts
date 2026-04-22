@@ -33,6 +33,7 @@ export const CANAUX_DIFFUSION = [
   { value: "email", label: "Mail" },
 ] as const;
 
+export const TYPES_GESTE = [
   { value: "reduction_prochaine", label: "Réduction prochaine prestation" },
   { value: "facturation_annulee", label: "Facturation annulée" },
   { value: "intervention_gratuite", label: "Intervention gratuite" },
