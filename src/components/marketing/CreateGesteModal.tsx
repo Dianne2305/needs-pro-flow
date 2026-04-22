@@ -239,7 +239,7 @@ export function CreateGesteModal({ open, onClose }: Props) {
 
           {/* 3. Référence demande */}
           <div>
-            <Label>Référence de la demande</Label>
+            <Label>Demande (numéro, service, statut)</Label>
             <Select value={form.demande_id} onValueChange={(v) => setForm({ ...form, demande_id: v })}>
               <SelectTrigger><SelectValue placeholder="Sélectionner une demande" /></SelectTrigger>
               <SelectContent>
