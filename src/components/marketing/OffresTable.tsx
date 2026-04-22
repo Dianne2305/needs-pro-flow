@@ -12,7 +12,7 @@ import { Plus, Trash2, Copy, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { STATUT_OFFRE_COLORS, SEGMENTS_CLIENT } from "@/lib/marketing-constants";
+import { STATUT_OFFRE_COLORS, SEGMENTS_CLIENT, STATUTS_CLIENT } from "@/lib/marketing-constants";
 import { CreateOffreModal } from "./CreateOffreModal";
 import { EditOffreModal } from "./EditOffreModal";
 
@@ -51,6 +51,8 @@ export function OffresTable() {
 
   const getSegmentLabel = (val: string) =>
     SEGMENTS_CLIENT.find((s) => s.value === val)?.label || val;
+  const getStatutClientLabel = (val: string) =>
+    STATUTS_CLIENT.find((s) => s.value === val)?.label || val;
 
   return (
     <div className="space-y-4">
@@ -65,12 +67,12 @@ export function OffresTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nom</TableHead>
+              <TableHead>Nom de la promo</TableHead>
               <TableHead>Code</TableHead>
               <TableHead>Réduction</TableHead>
               <TableHead>Segment</TableHead>
+              <TableHead>Statut client</TableHead>
               <TableHead>Validité</TableHead>
-              <TableHead>Utilisations</TableHead>
               <TableHead>Statut</TableHead>
               <TableHead className="w-20">Actions</TableHead>
             </TableRow>
@@ -97,12 +99,10 @@ export function OffresTable() {
                       {o.type_reduction === "pourcentage" ? `-${o.valeur_reduction}%` : `-${o.valeur_reduction} MAD`}
                     </TableCell>
                     <TableCell>{getSegmentLabel(o.segment_client)}</TableCell>
+                    <TableCell className="text-xs">{getStatutClientLabel(o.statut_client || "tous")}</TableCell>
                     <TableCell className="text-xs">
-                      {format(new Date(o.date_debut), "dd/MM", { locale: fr })}
-                      {o.date_fin ? ` - ${format(new Date(o.date_fin), "dd/MM", { locale: fr })}` : " - ∞"}
-                    </TableCell>
-                    <TableCell>
-                      {o.nombre_utilisations}{o.limite_utilisation ? `/${o.limite_utilisation}` : ""}
+                      {format(new Date(o.date_debut), "dd/MM/yy", { locale: fr })}
+                      {o.date_fin ? ` → ${format(new Date(o.date_fin), "dd/MM/yy", { locale: fr })}` : " → ∞"}
                     </TableCell>
                     <TableCell>
                       <Badge className={statutInfo.color}>{statutInfo.label}</Badge>
