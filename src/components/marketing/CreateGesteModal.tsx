@@ -60,7 +60,7 @@ export function CreateGesteModal({ open, onClose }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("demandes")
-        .select("id, nom, telephone_direct, ville, quartier, frequence, num_demande, statut")
+        .select("id, nom, telephone_direct, ville, quartier, frequence, num_demande, statut, type_service")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -247,7 +247,7 @@ export function CreateGesteModal({ open, onClose }: Props) {
                   <SelectItem value="none" disabled>Aucune demande</SelectItem>
                 ) : (
                   clientDemandes.map((d: any) => (
-                    <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.statut}</SelectItem>
+                    <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.type_service} — {d.statut}</SelectItem>
                   ))
                 )}
               </SelectContent>
