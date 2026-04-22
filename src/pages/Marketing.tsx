@@ -36,7 +36,6 @@ export default function Marketing() {
       <MarketingStats
         totalCodesUtilises={totalUtilisations}
         caGenere={0}
-        clientsAcquis={0}
       />
 
       <Tabs defaultValue="offres" className="space-y-4">

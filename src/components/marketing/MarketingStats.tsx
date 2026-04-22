@@ -3,23 +3,21 @@
  * Cartes KPI marketing en haut de la page Marketing.
  */
 import { Card, CardContent } from "@/components/ui/card";
-import { Ticket, TrendingUp, Users } from "lucide-react";
+import { Ticket, TrendingUp } from "lucide-react";
 
 interface MarketingStatsProps {
   totalCodesUtilises: number;
   caGenere: number;
-  clientsAcquis: number;
 }
 
-export function MarketingStats({ totalCodesUtilises, caGenere, clientsAcquis }: MarketingStatsProps) {
+export function MarketingStats({ totalCodesUtilises, caGenere }: MarketingStatsProps) {
   const stats = [
     { label: "Codes promo utilisés", value: totalCodesUtilises, icon: Ticket, bg: "bg-gradient-to-br from-[#e8920a] to-[#fcc35c]" },
     { label: "CA généré par promos", value: `${caGenere.toLocaleString()} MAD`, icon: TrendingUp, bg: "bg-gradient-to-br from-[#3da8b3] to-[#7dd4dc]" },
-    { label: "Clients acquis via promo", value: clientsAcquis, icon: Users, bg: "bg-gradient-to-br from-[#037a82] to-[#1ab5bf]" },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {stats.map((s) => (
         <Card key={s.label} className={`${s.bg} border-0`}>
           <CardContent className="p-4 flex items-center gap-3">
