@@ -62,7 +62,7 @@ export function CreateCampagneModal({ open, onClose }: Props) {
         message: form.message || null,
         statut: form.statut,
         cible: form.cible,
-        segment_cible: form.cible === "client" ? form.segment_cible : null,
+        segment_cible: form.cible === "client" ? form.segment_cible : "tous",
         critere_ciblage: form.critere_ciblage,
         canal: form.canal.length > 0 ? form.canal.join(",") : "whatsapp",
         ville_ciblage: form.ville_ciblage || null,
