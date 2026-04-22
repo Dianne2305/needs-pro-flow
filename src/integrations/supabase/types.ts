@@ -17,42 +17,63 @@ export type Database = {
       campagnes_marketing: {
         Row: {
           canal: string
+          cible: string
           created_at: string
+          critere_ciblage: string | null
+          date_diffusion: string | null
           date_envoi: string | null
+          heure_debut: string | null
+          heure_fin: string | null
           id: string
           message: string | null
           nom: string
           nombre_destinataires: number | null
+          nombre_destinataires_jour: number | null
           nombre_envoyes: number | null
           offre_id: string | null
           segment_cible: string
           statut: string
+          ville_ciblage: string | null
         }
         Insert: {
           canal?: string
+          cible?: string
           created_at?: string
+          critere_ciblage?: string | null
+          date_diffusion?: string | null
           date_envoi?: string | null
+          heure_debut?: string | null
+          heure_fin?: string | null
           id?: string
           message?: string | null
           nom: string
           nombre_destinataires?: number | null
+          nombre_destinataires_jour?: number | null
           nombre_envoyes?: number | null
           offre_id?: string | null
           segment_cible?: string
           statut?: string
+          ville_ciblage?: string | null
         }
         Update: {
           canal?: string
+          cible?: string
           created_at?: string
+          critere_ciblage?: string | null
+          date_diffusion?: string | null
           date_envoi?: string | null
+          heure_debut?: string | null
+          heure_fin?: string | null
           id?: string
           message?: string | null
           nom?: string
           nombre_destinataires?: number | null
+          nombre_destinataires_jour?: number | null
           nombre_envoyes?: number | null
           offre_id?: string | null
           segment_cible?: string
           statut?: string
+          ville_ciblage?: string | null
         }
         Relationships: [
           {
