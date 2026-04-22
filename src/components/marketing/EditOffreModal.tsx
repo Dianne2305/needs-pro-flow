@@ -19,6 +19,7 @@ import {
   STATUTS_CODE_PROMO,
   SERVICES_PARTICULIER,
   SERVICES_ENTREPRISE,
+  CANAUX_DIFFUSION,
 } from "@/lib/marketing-constants";
 
 /**
@@ -44,6 +45,7 @@ export function EditOffreModal({ offre, onClose }: Props) {
     segment_client: "particulier",
     statut_client: "tous",
     services: [] as string[],
+    canaux: [] as string[],
     date_debut: "",
     date_fin: "",
     date_indeterminee: false,
@@ -62,6 +64,7 @@ export function EditOffreModal({ offre, onClose }: Props) {
         segment_client: offre.segment_client || "particulier",
         statut_client: offre.statut_client || "tous",
         services: Array.isArray(offre.services_concernes) ? offre.services_concernes : [],
+        canaux: Array.isArray(offre.canaux_diffusion) ? offre.canaux_diffusion : [],
         date_debut: offre.date_debut || "",
         date_fin: offre.date_fin || "",
         date_indeterminee: !hasFin,
@@ -109,6 +112,7 @@ export function EditOffreModal({ offre, onClose }: Props) {
           segment_client: form.segment_client,
           statut_client: form.statut_client,
           services_concernes: form.services,
+          canaux_diffusion: form.canaux,
           date_debut: form.date_debut,
           date_fin: form.date_indeterminee ? null : form.date_fin || null,
         })
