@@ -543,6 +543,7 @@ export type Database = {
       }
       offres_marketing: {
         Row: {
+          canaux_diffusion: Json | null
           code_promo: string | null
           created_at: string
           date_debut: string
@@ -560,6 +561,7 @@ export type Database = {
           valeur_reduction: number
         }
         Insert: {
+          canaux_diffusion?: Json | null
           code_promo?: string | null
           created_at?: string
           date_debut?: string
@@ -577,6 +579,7 @@ export type Database = {
           valeur_reduction?: number
         }
         Update: {
+          canaux_diffusion?: Json | null
           code_promo?: string | null
           created_at?: string
           date_debut?: string
