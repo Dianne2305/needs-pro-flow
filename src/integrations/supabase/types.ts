@@ -400,6 +400,7 @@ export type Database = {
           lien_envoye_at: string | null
           nom_client: string
           note_agence: number | null
+          note_profil: number | null
           professionnel: string | null
           profil_id: string | null
           profil_nom: string | null
@@ -423,6 +424,7 @@ export type Database = {
           lien_envoye_at?: string | null
           nom_client: string
           note_agence?: number | null
+          note_profil?: number | null
           professionnel?: string | null
           profil_id?: string | null
           profil_nom?: string | null
@@ -446,6 +448,7 @@ export type Database = {
           lien_envoye_at?: string | null
           nom_client?: string
           note_agence?: number | null
+          note_profil?: number | null
           professionnel?: string | null
           profil_id?: string | null
           profil_nom?: string | null
