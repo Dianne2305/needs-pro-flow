@@ -203,6 +203,30 @@ export function EditOffreModal({ offre, onClose }: Props) {
               ))}
             </div>
           </div>
+
+          {/* Canal de diffusion (multichoix) */}
+          <div>
+            <Label>Canal de diffusion *</Label>
+            <div className="flex flex-wrap gap-4 mt-1">
+              {CANAUX_DIFFUSION.map((c) => (
+                <label key={c.value} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={form.canaux.includes(c.value)}
+                    onCheckedChange={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        canaux: prev.canaux.includes(c.value)
+                          ? prev.canaux.filter((x) => x !== c.value)
+                          : [...prev.canaux, c.value],
+                      }))
+                    }
+                  />
+                  {c.label}
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div>
             <Label>Promotion valable</Label>
             <div className="grid grid-cols-2 gap-3 mt-1">
