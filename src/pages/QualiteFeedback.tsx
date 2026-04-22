@@ -271,7 +271,7 @@ export default function QualiteFeedback() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
         <Card className="bg-gradient-to-br from-[#e8920a] to-[#fcc35c] border-0">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -288,19 +288,20 @@ export default function QualiteFeedback() {
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-white/20"><ThumbsUp className="h-5 w-5 text-white" /></div>
               <div>
-                <p className="text-xs text-white/80">Feedbacks positifs</p>
-                <p className="text-2xl font-bold text-white">{positifs}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-[#ef4444] to-[#f87171] border-0">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-white/20"><ThumbsDown className="h-5 w-5 text-white" /></div>
-              <div>
-                <p className="text-xs text-white/80">Feedbacks négatifs</p>
-                <p className="text-2xl font-bold text-white">{negatifs}</p>
+                <p className="text-xs font-semibold text-white/90">Feedback</p>
+                <div className="flex items-center gap-4 mt-1">
+                  <div className="flex items-center gap-1.5">
+                    <ThumbsUp className="h-4 w-4 text-white" />
+                    <span className="text-xl font-bold text-white">{positifs}</span>
+                    <span className="text-xs text-white/70">positifs</span>
+                  </div>
+                  <div className="w-px h-6 bg-white/30" />
+                  <div className="flex items-center gap-1.5">
+                    <ThumbsDown className="h-4 w-4 text-white" />
+                    <span className="text-xl font-bold text-white">{negatifs}</span>
+                    <span className="text-xs text-white/70">négatifs</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
