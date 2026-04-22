@@ -247,7 +247,7 @@ export function CreateGesteModal({ open, onClose }: Props) {
                   <SelectItem value="none" disabled>Aucune demande</SelectItem>
                 ) : (
                   clientDemandes.map((d: any) => (
-                    <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.statut}</SelectItem>
+                    <SelectItem key={d.id} value={d.id}>#{d.num_demande} — {d.type_service} — {d.statut}</SelectItem>
                   ))
                 )}
               </SelectContent>
