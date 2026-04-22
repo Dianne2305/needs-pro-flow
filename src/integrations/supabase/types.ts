@@ -554,6 +554,7 @@ export type Database = {
           segment_client: string | null
           services_concernes: Json | null
           statut: string
+          statut_client: string | null
           type: string
           type_reduction: string
           valeur_reduction: number
@@ -570,6 +571,7 @@ export type Database = {
           segment_client?: string | null
           services_concernes?: Json | null
           statut?: string
+          statut_client?: string | null
           type?: string
           type_reduction?: string
           valeur_reduction?: number
@@ -586,6 +588,7 @@ export type Database = {
           segment_client?: string | null
           services_concernes?: Json | null
           statut?: string
+          statut_client?: string | null
           type?: string
           type_reduction?: string
           valeur_reduction?: number
