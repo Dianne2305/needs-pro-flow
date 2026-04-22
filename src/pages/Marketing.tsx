@@ -40,10 +40,16 @@ export default function Marketing() {
       />
 
       <Tabs defaultValue="offres" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="offres">Codes promo</TabsTrigger>
-          <TabsTrigger value="gestes">Gestes commerciaux</TabsTrigger>
-          <TabsTrigger value="campagnes">Campagnes</TabsTrigger>
+        <TabsList className="w-full justify-center gap-2 bg-transparent h-auto p-0">
+          <TabsTrigger value="offres" className="flex-1 py-3 text-base font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white bg-emerald-100 text-emerald-800 rounded-lg">
+            Codes promo
+          </TabsTrigger>
+          <TabsTrigger value="gestes" className="flex-1 py-3 text-base font-semibold data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-blue-100 text-blue-800 rounded-lg">
+            Gestes commerciaux
+          </TabsTrigger>
+          <TabsTrigger value="campagnes" className="flex-1 py-3 text-base font-semibold data-[state=active]:bg-orange-500 data-[state=active]:text-white bg-orange-100 text-orange-800 rounded-lg">
+            Campagnes
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="offres">
