@@ -1,0 +1,1 @@
+ALTER TABLE public.campagnes_marketing ADD COLUMN IF NOT EXISTS archivee boolean NOT NULL DEFAULT false;

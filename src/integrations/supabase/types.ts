@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       campagnes_marketing: {
         Row: {
+          archivee: boolean
           canal: string
           cible: string
           created_at: string
@@ -36,6 +37,7 @@ export type Database = {
           ville_ciblage: string | null
         }
         Insert: {
+          archivee?: boolean
           canal?: string
           cible?: string
           created_at?: string
@@ -56,6 +58,7 @@ export type Database = {
           ville_ciblage?: string | null
         }
         Update: {
+          archivee?: boolean
           canal?: string
           cible?: string
           created_at?: string
