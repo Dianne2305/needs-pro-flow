@@ -382,8 +382,13 @@ export function CreateGesteModal({ open, onClose }: Props) {
           {/* Actions */}
           <div className="flex gap-2">
             <Button
-              onClick={() => mutation.mutate()}
-              disabled={!form.client_nom || !form.type_geste || !form.motif || (!isAnnulation && totalAPayer > 0 && !repartitionValid) || mutation.isPending}
+              onClick={() => {
+                if (!form.client_nom) { toast.error("Veuillez sélectionner un client"); return; }
+                if (!form.type_geste) { toast.error("Veuillez choisir un type de geste"); return; }
+                if (!isAnnulation && totalAPayer > 0 && !repartitionValid) { toast.error("La répartition profil + agence doit être égale au total à payer"); return; }
+                mutation.mutate();
+              }}
+              disabled={mutation.isPending}
               className="flex-1"
             >
               ✅ Enregistrer le geste commercial
