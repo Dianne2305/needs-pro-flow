@@ -206,7 +206,20 @@ export default function QualiteFeedback() {
     }
   };
 
-  // Stats
+  // Delete feedback
+  const deleteFeedbackMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("feedbacks").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feedbacks"] });
+      toast({ title: "Feedback supprimé" });
+    },
+    onError: () => toast({ title: "Erreur lors de la suppression", variant: "destructive" }),
+  });
+
+
   const submittedFeedbacks = feedbacks.filter((f) => f.submitted_at);
   const positifs = feedbacks.filter((f) => f.statut === "positif").length;
   const negatifs = feedbacks.filter((f) => f.statut === "negatif").length;
