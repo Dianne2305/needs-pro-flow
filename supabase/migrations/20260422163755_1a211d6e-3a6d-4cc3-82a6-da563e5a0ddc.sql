@@ -1,0 +1,21 @@
+
+ALTER TABLE public.gestes_commerciaux
+  ADD COLUMN IF NOT EXISTS ville text,
+  ADD COLUMN IF NOT EXISTS quartier text,
+  ADD COLUMN IF NOT EXISTS statut_geste text NOT NULL DEFAULT 'en_attente',
+  ADD COLUMN IF NOT EXISTS montant_ht numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS tva_active boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS tva_montant numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS montant_ttc numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS reduction_type text DEFAULT 'montant',
+  ADD COLUMN IF NOT EXISTS reduction_valeur numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_a_payer numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS part_profil numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS part_agence numeric DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS motif text,
+  ADD COLUMN IF NOT EXISTS envoyer_message boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS message_client text,
+  ADD COLUMN IF NOT EXISTS canal_diffusion jsonb DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS date_geste date DEFAULT CURRENT_DATE,
+  ADD COLUMN IF NOT EXISTS archivee boolean NOT NULL DEFAULT false,
+  ADD COLUMN IF NOT EXISTS commercial text;

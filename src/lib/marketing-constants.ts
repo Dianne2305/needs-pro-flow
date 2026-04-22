@@ -34,11 +34,22 @@ export const CANAUX_DIFFUSION = [
 ] as const;
 
 export const TYPES_GESTE = [
-  { value: "reduction_prochaine", label: "Réduction prochaine prestation" },
+  { value: "reduction_tarif", label: "Réduction sur le tarif" },
   { value: "facturation_annulee", label: "Facturation annulée" },
   { value: "intervention_gratuite", label: "Intervention gratuite" },
-  { value: "code_promo_perso", label: "Code promo personnalisé" },
 ] as const;
+
+export const STATUTS_GESTE = [
+  { value: "en_attente", label: "En attente" },
+  { value: "en_cours", label: "En cours" },
+  { value: "cloture", label: "Clôturé" },
+] as const;
+
+export const STATUT_GESTE_COLORS: Record<string, { label: string; color: string }> = {
+  en_attente: { label: "En attente", color: "bg-yellow-100 text-yellow-800" },
+  en_cours: { label: "En cours", color: "bg-blue-100 text-blue-800" },
+  cloture: { label: "Clôturé", color: "bg-gray-100 text-gray-800" },
+};
 
 export const CANAUX_CAMPAGNE = [
   { value: "whatsapp", label: "WhatsApp" },
