@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import {
-  ClipboardCheck, ThumbsUp, ThumbsDown, Star, Eye, Share2, BarChart3,
+  ClipboardCheck, ThumbsUp, ThumbsDown, Star, Eye, Share2, BarChart3, Trash2,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EditFeedbackModal } from "@/components/feedback/EditFeedbackModal";
