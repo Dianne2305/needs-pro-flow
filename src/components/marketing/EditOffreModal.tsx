@@ -116,6 +116,7 @@ export function EditOffreModal({ offre, onClose }: Props) {
           statut_client: form.statut_client,
           services_concernes: form.services,
           canaux_diffusion: form.canaux,
+          message_promotionnel: form.message_promotionnel || null,
           date_debut: form.date_debut,
           date_fin: form.date_indeterminee ? null : form.date_fin || null,
         })
