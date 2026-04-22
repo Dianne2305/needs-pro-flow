@@ -231,6 +231,17 @@ export function EditOffreModal({ offre, onClose }: Props) {
             </div>
           </div>
 
+          {/* Message promotionnel (facultatif) */}
+          <div>
+            <Label>Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
+            <Textarea
+              placeholder="Message qui accompagnera l'envoi du code promo via SMS, WhatsApp ou email..."
+              value={form.message_promotionnel}
+              onChange={(e) => setForm({ ...form, message_promotionnel: e.target.value })}
+              rows={3}
+            />
+          </div>
+
           <div>
             <Label>Promotion valable</Label>
             <div className="grid grid-cols-2 gap-3 mt-1">
