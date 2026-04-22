@@ -1,0 +1,1 @@
+ALTER TABLE public.offres_marketing ADD COLUMN archivee boolean NOT NULL DEFAULT false;
