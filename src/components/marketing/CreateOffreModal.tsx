@@ -1,8 +1,8 @@
 /**
  * CreateOffreModal.tsx
- * Modal de création d'une offre/promo marketing (code promo, % ou montant, période).
+ * Modal de création d'un code promo marketing avec validation complète.
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,7 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { TYPES_REDUCTION, SEGMENTS_CLIENT, SERVICES_MARKETING } from "@/lib/marketing-constants";
+import {
+  TYPES_REDUCTION,
+  SEGMENTS_CLIENT,
+  STATUTS_CLIENT,
+  STATUTS_CODE_PROMO,
+  SERVICES_PARTICULIER,
+  SERVICES_ENTREPRISE,
+} from "@/lib/marketing-constants";
 
 /**
  * Props du modal de création d'offre marketing.
@@ -25,54 +32,90 @@ interface Props {
 }
 
 /**
- * Modal de création d'une offre / promo marketing.
- * Insère dans `offres_marketing` (code promo, type de réduction %/montant,
- * segment client ciblé, services concernés, période de validité, limite).
+ * Modal de création d'un code promo.
+ * Gère : nom, statut, code promo unique, type/valeur réduction,
+ * segment (Particulier/Entreprise), statut client, services filtrés, dates.
  */
 export function CreateOffreModal({ open, onClose }: Props) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     nom: "",
+    statut: "brouillon",
     code_promo: "",
     type_reduction: "pourcentage",
     valeur_reduction: "",
-    segment_client: "tous",
+    segment_client: "particulier",
+    statut_client: "tous",
     services: [] as string[],
-    limite: "",
     date_debut: new Date().toISOString().split("T")[0],
     date_fin: "",
+    date_indeterminee: false,
   });
+
+  /** Services filtrés selon le segment sélectionné */
+  const servicesDisponibles = useMemo(() => {
+    if (form.segment_client === "entreprise") return [...SERVICES_ENTREPRISE];
+    return [...SERVICES_PARTICULIER];
+  }, [form.segment_client]);
+
+  /** Reset services quand le segment change */
+  const handleSegmentChange = (v: string) => {
+    setForm((prev) => ({ ...prev, segment_client: v, services: [] }));
+  };
+
+  const toggleService = (s: string) => {
+    setForm((prev) => ({
+      ...prev,
+      services: prev.services.includes(s)
+        ? prev.services.filter((x) => x !== s)
+        : [...prev.services, s],
+    }));
+  };
+
+  /** Validation avant soumission */
+  const isValid = useMemo(() => {
+    if (!form.nom || !form.code_promo || !form.valeur_reduction) return false;
+    if (form.services.length === 0) return false;
+    if (!form.date_debut) return false;
+    if (!form.date_indeterminee && !form.date_fin) return false;
+    if (!form.date_indeterminee && form.date_fin && form.date_fin < form.date_debut) return false;
+    return true;
+  }, [form]);
 
   const mutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("offres_marketing").insert({
         nom: form.nom,
-        code_promo: form.code_promo || null,
+        statut: form.statut,
+        code_promo: form.code_promo,
         type_reduction: form.type_reduction,
         valeur_reduction: Number(form.valeur_reduction),
         segment_client: form.segment_client,
+        statut_client: form.statut_client,
         services_concernes: form.services,
-        limite_utilisation: form.limite ? Number(form.limite) : null,
         date_debut: form.date_debut,
-        date_fin: form.date_fin || null,
+        date_fin: form.date_indeterminee ? null : form.date_fin || null,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes("unique") || error.code === "23505") {
+          throw new Error("Ce code promo existe déjà");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offres_marketing"] });
       toast.success("Code promo créé !");
       onClose();
-      setForm({ nom: "", code_promo: "", type_reduction: "pourcentage", valeur_reduction: "", segment_client: "tous", services: [], limite: "", date_debut: new Date().toISOString().split("T")[0], date_fin: "" });
+      setForm({
+        nom: "", statut: "brouillon", code_promo: "", type_reduction: "pourcentage",
+        valeur_reduction: "", segment_client: "particulier", statut_client: "tous",
+        services: [], date_debut: new Date().toISOString().split("T")[0],
+        date_fin: "", date_indeterminee: false,
+      });
     },
-    onError: () => toast.error("Erreur lors de la création"),
+    onError: (err: Error) => toast.error(err.message || "Erreur lors de la création"),
   });
-
-  const toggleService = (s: string) => {
-    setForm((prev) => ({
-      ...prev,
-      services: prev.services.includes(s) ? prev.services.filter((x) => x !== s) : [...prev.services, s],
-    }));
-  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -81,64 +124,153 @@ export function CreateOffreModal({ open, onClose }: Props) {
           <DialogTitle>Créer un code promo</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Nom de l'offre */}
           <div>
-            <Label>Nom de l'offre</Label>
-            <Input placeholder="ex: Promo Nouveau Client" value={form.nom} onChange={(e) => setForm({ ...form, nom: e.target.value })} />
+            <Label>Nom de l'offre *</Label>
+            <Input
+              placeholder="ex: Promo Nouveau Client"
+              value={form.nom}
+              onChange={(e) => setForm({ ...form, nom: e.target.value })}
+            />
           </div>
+
+          {/* Statut du code promo */}
           <div>
-            <Label>Code promo</Label>
-            <Input placeholder="ex: BIENVENUE10" value={form.code_promo} onChange={(e) => setForm({ ...form, code_promo: e.target.value.toUpperCase() })} className="font-mono" />
+            <Label>Statut du code promo *</Label>
+            <Select value={form.statut} onValueChange={(v) => setForm({ ...form, statut: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUTS_CODE_PROMO.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+
+          {/* Code promo */}
+          <div>
+            <Label>Code promo *</Label>
+            <Input
+              placeholder="ex: BIENVENUE10"
+              value={form.code_promo}
+              onChange={(e) => setForm({ ...form, code_promo: e.target.value.toUpperCase() })}
+              className="font-mono"
+            />
+          </div>
+
+          {/* Type et valeur de réduction */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Type de réduction</Label>
+              <Label>Type de réduction *</Label>
               <Select value={form.type_reduction} onValueChange={(v) => setForm({ ...form, type_reduction: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {TYPES_REDUCTION.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  {TYPES_REDUCTION.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Valeur</Label>
-              <Input type="number" placeholder={form.type_reduction === "pourcentage" ? "10" : "50"} value={form.valeur_reduction} onChange={(e) => setForm({ ...form, valeur_reduction: e.target.value })} />
+              <Label>Valeur *</Label>
+              <Input
+                type="number"
+                placeholder={form.type_reduction === "pourcentage" ? "ex: 10" : "ex: 50"}
+                value={form.valeur_reduction}
+                onChange={(e) => setForm({ ...form, valeur_reduction: e.target.value })}
+              />
             </div>
           </div>
+
+          {/* Segment */}
           <div>
-            <Label>Segment client</Label>
-            <Select value={form.segment_client} onValueChange={(v) => setForm({ ...form, segment_client: v })}>
+            <Label>Segment *</Label>
+            <Select value={form.segment_client} onValueChange={handleSegmentChange}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {SEGMENTS_CLIENT.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                {SEGMENTS_CLIENT.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+
+          {/* Statut client */}
           <div>
-            <Label>Services concernés</Label>
+            <Label>Statut client *</Label>
+            <Select value={form.statut_client} onValueChange={(v) => setForm({ ...form, statut_client: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUTS_CLIENT.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Services concernés (filtrés par segment) */}
+          <div>
+            <Label>Services concernés *</Label>
             <div className="grid grid-cols-2 gap-2 mt-1">
-              {SERVICES_MARKETING.map((s) => (
+              {servicesDisponibles.map((s) => (
                 <label key={s} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={form.services.includes(s)} onCheckedChange={() => toggleService(s)} />
+                  <Checkbox
+                    checked={form.services.includes(s)}
+                    onCheckedChange={() => toggleService(s)}
+                  />
                   {s}
                 </label>
               ))}
             </div>
+            {form.services.length === 0 && (
+              <p className="text-xs text-destructive mt-1">Sélectionnez au moins un service</p>
+            )}
           </div>
+
+          {/* Promotion valable : dates */}
           <div>
-            <Label>Limite d'utilisation (vide = illimité)</Label>
-            <Input type="number" placeholder="Illimité" value={form.limite} onChange={(e) => setForm({ ...form, limite: e.target.value })} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Date début</Label>
-              <Input type="date" value={form.date_debut} onChange={(e) => setForm({ ...form, date_debut: e.target.value })} />
+            <Label>Promotion valable</Label>
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <div>
+                <Label className="text-xs text-muted-foreground">Date début *</Label>
+                <Input
+                  type="date"
+                  value={form.date_debut}
+                  onChange={(e) => setForm({ ...form, date_debut: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Date fin {form.date_indeterminee ? "" : "*"}</Label>
+                <Input
+                  type="date"
+                  value={form.date_fin}
+                  onChange={(e) => setForm({ ...form, date_fin: e.target.value })}
+                  disabled={form.date_indeterminee}
+                  min={form.date_debut}
+                  className={form.date_indeterminee ? "opacity-50" : ""}
+                />
+              </div>
             </div>
-            <div>
-              <Label>Date fin</Label>
-              <Input type="date" value={form.date_fin} onChange={(e) => setForm({ ...form, date_fin: e.target.value })} />
-            </div>
+            <label className="flex items-center gap-2 text-sm mt-2">
+              <Checkbox
+                checked={form.date_indeterminee}
+                onCheckedChange={(checked) =>
+                  setForm({ ...form, date_indeterminee: !!checked, date_fin: "" })
+                }
+              />
+              Date indéterminée
+            </label>
+            {!form.date_indeterminee && form.date_fin && form.date_fin < form.date_debut && (
+              <p className="text-xs text-destructive mt-1">La date de fin doit être ≥ à la date de début</p>
+            )}
           </div>
-          <Button onClick={() => mutation.mutate()} disabled={!form.nom || !form.valeur_reduction || mutation.isPending} className="w-full">
+
+          {/* Bouton de création */}
+          <Button
+            onClick={() => mutation.mutate()}
+            disabled={!isValid || mutation.isPending}
+            className="w-full"
+          >
             ✅ Créer le code promo
           </Button>
         </div>
