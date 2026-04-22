@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
     statut_client: "tous",
     services: [] as string[],
     canaux: [] as string[],
+    message_promotionnel: "",
     date_debut: new Date().toISOString().split("T")[0],
     date_fin: "",
     date_indeterminee: false,
@@ -96,6 +98,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
         statut_client: form.statut_client,
         services_concernes: form.services,
         canaux_diffusion: form.canaux,
+        message_promotionnel: form.message_promotionnel || null,
         date_debut: form.date_debut,
         date_fin: form.date_indeterminee ? null : form.date_fin || null,
       });
@@ -113,7 +116,8 @@ export function CreateOffreModal({ open, onClose }: Props) {
       setForm({
         nom: "", statut: "brouillon", code_promo: "", type_reduction: "pourcentage",
         valeur_reduction: "", segment_client: "particulier", statut_client: "tous",
-        services: [], canaux: [], date_debut: new Date().toISOString().split("T")[0],
+        services: [], canaux: [], message_promotionnel: "",
+        date_debut: new Date().toISOString().split("T")[0],
         date_fin: "", date_indeterminee: false,
       });
     },
@@ -251,6 +255,17 @@ export function CreateOffreModal({ open, onClose }: Props) {
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Message promotionnel (facultatif) */}
+          <div>
+            <Label>Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
+            <Textarea
+              placeholder="Message qui accompagnera l'envoi du code promo via SMS, WhatsApp ou email..."
+              value={form.message_promotionnel}
+              onChange={(e) => setForm({ ...form, message_promotionnel: e.target.value })}
+              rows={3}
+            />
           </div>
 
           {/* Promotion valable : dates */}
