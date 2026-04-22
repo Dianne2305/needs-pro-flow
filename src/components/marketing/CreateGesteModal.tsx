@@ -60,7 +60,7 @@ export function CreateGesteModal({ open, onClose }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("demandes")
-        .select("id, nom, telephone_direct, ville, quartier, frequence, num_demande, statut")
+        .select("id, nom, telephone_direct, ville, quartier, frequence, num_demande, statut, type_service")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
