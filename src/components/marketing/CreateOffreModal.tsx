@@ -50,6 +50,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
     statut_client: "tous",
     services: [] as string[],
     canaux: [] as string[],
+    message_promotionnel: "",
     date_debut: new Date().toISOString().split("T")[0],
     date_fin: "",
     date_indeterminee: false,
