@@ -67,6 +67,7 @@ export function EditOffreModal({ offre, onClose }: Props) {
         statut_client: offre.statut_client || "tous",
         services: Array.isArray(offre.services_concernes) ? offre.services_concernes : [],
         canaux: Array.isArray(offre.canaux_diffusion) ? offre.canaux_diffusion : [],
+        message_promotionnel: offre.message_promotionnel || "",
         date_debut: offre.date_debut || "",
         date_fin: offre.date_fin || "",
         date_indeterminee: !hasFin,

@@ -115,7 +115,8 @@ export function CreateOffreModal({ open, onClose }: Props) {
       setForm({
         nom: "", statut: "brouillon", code_promo: "", type_reduction: "pourcentage",
         valeur_reduction: "", segment_client: "particulier", statut_client: "tous",
-        services: [], canaux: [], date_debut: new Date().toISOString().split("T")[0],
+        services: [], canaux: [], message_promotionnel: "",
+        date_debut: new Date().toISOString().split("T")[0],
         date_fin: "", date_indeterminee: false,
       });
     },
