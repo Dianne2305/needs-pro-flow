@@ -87,6 +87,32 @@ export const STATUT_OFFRE_COLORS: Record<string, { label: string; color: string 
 
 export const STATUT_CAMPAGNE_COLORS: Record<string, { label: string; color: string }> = {
   brouillon: { label: "Brouillon", color: "bg-gray-100 text-gray-800" },
-  planifiee: { label: "Planifiée", color: "bg-blue-100 text-blue-800" },
+  programmee: { label: "Programmée", color: "bg-blue-100 text-blue-800" },
   envoyee: { label: "Envoyée", color: "bg-emerald-100 text-emerald-800" },
+  annulee: { label: "Annulée", color: "bg-red-100 text-red-800" },
 };
+
+export const STATUTS_CAMPAGNE = [
+  { value: "brouillon", label: "Brouillon" },
+  { value: "programmee", label: "Programmée" },
+  { value: "envoyee", label: "Envoyée" },
+  { value: "annulee", label: "Annulée" },
+] as const;
+
+export const CIBLES_CAMPAGNE = [
+  { value: "client", label: "Client" },
+  { value: "profil", label: "Profil" },
+] as const;
+
+export const CRITERES_CLIENT = [
+  { value: "tous", label: "Tous les clients" },
+  { value: "nouveau", label: "Nouveau client" },
+  { value: "abonne", label: "Client abonné" },
+  { value: "inactif", label: "Client inactif (depuis 2 mois)" },
+  { value: "regulier", label: "Client régulier (2 demandes et +)" },
+] as const;
+
+export const CRITERES_PROFIL = [
+  { value: "femme_de_menage", label: "Femme de ménage" },
+  { value: "garde_malade", label: "Garde malade" },
+] as const;
