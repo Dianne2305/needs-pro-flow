@@ -261,7 +261,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
           <div>
             <Label>Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
             <Textarea
-              placeholder="Message qui accompagnera l'envoi du code promo via SMS, WhatsApp ou email..."
+              placeholder="Profitez de 20% de réduction sur votre prochaine demande avec le code BIENVENUE20, valable jusqu'au 30/06/2026."
               value={form.message_promotionnel}
               onChange={(e) => setForm({ ...form, message_promotionnel: e.target.value })}
               rows={3}
