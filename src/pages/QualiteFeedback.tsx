@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
 import {
-  ClipboardCheck, ThumbsUp, ThumbsDown, Star, Eye, Share2, BarChart3,
+  ClipboardCheck, ThumbsUp, ThumbsDown, Star, Eye, Share2, BarChart3, Trash2,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EditFeedbackModal } from "@/components/feedback/EditFeedbackModal";
@@ -206,7 +206,20 @@ export default function QualiteFeedback() {
     }
   };
 
-  // Stats
+  // Delete feedback
+  const deleteFeedbackMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("feedbacks").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feedbacks"] });
+      toast({ title: "Feedback supprimé" });
+    },
+    onError: () => toast({ title: "Erreur lors de la suppression", variant: "destructive" }),
+  });
+
+
   const submittedFeedbacks = feedbacks.filter((f) => f.submitted_at);
   const positifs = feedbacks.filter((f) => f.statut === "positif").length;
   const negatifs = feedbacks.filter((f) => f.statut === "negatif").length;
@@ -406,6 +419,7 @@ export default function QualiteFeedback() {
                 <div className="flex gap-2 pt-1">
                   <Button size="sm" variant="ghost" onClick={() => handleShare(f)} title="Partager"><Share2 className="h-3.5 w-3.5" /></Button>
                   <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir"><Eye className="h-3.5 w-3.5" /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => deleteFeedbackMutation.mutate(f.id)} title="Supprimer" className="text-red-500 hover:text-red-700"><Trash2 className="h-3.5 w-3.5" /></Button>
                 </div>
               </CardContent>
             </Card>
@@ -485,6 +499,9 @@ export default function QualiteFeedback() {
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
                           <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => deleteFeedbackMutation.mutate(f.id)} title="Supprimer" className="text-red-500 hover:text-red-700">
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </TableCell>
