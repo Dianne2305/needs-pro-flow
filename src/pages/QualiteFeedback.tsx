@@ -499,6 +499,9 @@ export default function QualiteFeedback() {
                         <Button size="sm" variant="ghost" onClick={() => setDetailFeedback(f)} title="Voir le feedback">
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
+                        <Button size="sm" variant="ghost" onClick={() => deleteFeedbackMutation.mutate(f.id)} title="Supprimer" className="text-red-500 hover:text-red-700">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
