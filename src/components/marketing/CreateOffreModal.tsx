@@ -19,6 +19,7 @@ import {
   STATUTS_CODE_PROMO,
   SERVICES_PARTICULIER,
   SERVICES_ENTREPRISE,
+  CANAUX_DIFFUSION,
 } from "@/lib/marketing-constants";
 
 /**
@@ -47,6 +48,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
     segment_client: "particulier",
     statut_client: "tous",
     services: [] as string[],
+    canaux: [] as string[],
     date_debut: new Date().toISOString().split("T")[0],
     date_fin: "",
     date_indeterminee: false,
@@ -93,6 +95,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
         segment_client: form.segment_client,
         statut_client: form.statut_client,
         services_concernes: form.services,
+        canaux_diffusion: form.canaux,
         date_debut: form.date_debut,
         date_fin: form.date_indeterminee ? null : form.date_fin || null,
       });
@@ -110,7 +113,7 @@ export function CreateOffreModal({ open, onClose }: Props) {
       setForm({
         nom: "", statut: "brouillon", code_promo: "", type_reduction: "pourcentage",
         valeur_reduction: "", segment_client: "particulier", statut_client: "tous",
-        services: [], date_debut: new Date().toISOString().split("T")[0],
+        services: [], canaux: [], date_debut: new Date().toISOString().split("T")[0],
         date_fin: "", date_indeterminee: false,
       });
     },
@@ -225,6 +228,29 @@ export function CreateOffreModal({ open, onClose }: Props) {
             {form.services.length === 0 && (
               <p className="text-xs text-destructive mt-1">Sélectionnez au moins un service</p>
             )}
+          </div>
+
+          {/* Canal de diffusion (multichoix) */}
+          <div>
+            <Label>Canal de diffusion *</Label>
+            <div className="flex flex-wrap gap-4 mt-1">
+              {CANAUX_DIFFUSION.map((c) => (
+                <label key={c.value} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={form.canaux.includes(c.value)}
+                    onCheckedChange={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        canaux: prev.canaux.includes(c.value)
+                          ? prev.canaux.filter((x) => x !== c.value)
+                          : [...prev.canaux, c.value],
+                      }))
+                    }
+                  />
+                  {c.label}
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Promotion valable : dates */}
