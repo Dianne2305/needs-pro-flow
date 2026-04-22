@@ -1,0 +1,1 @@
+ALTER TABLE public.offres_marketing ADD COLUMN IF NOT EXISTS statut_client text DEFAULT 'tous';
