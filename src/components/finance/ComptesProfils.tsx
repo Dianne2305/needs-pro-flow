@@ -174,8 +174,6 @@ export default function ComptesProfils() {
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">CA généré</TableHead>
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">Part agence</TableHead>
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">Part profil</TableHead>
-                <TableHead className="uppercase text-xs tracking-wider font-semibold">Versé au profil</TableHead>
-                <TableHead className="uppercase text-xs tracking-wider font-semibold">Reçu du profil</TableHead>
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">Solde</TableHead>
                 <TableHead></TableHead>
               </TableRow>
