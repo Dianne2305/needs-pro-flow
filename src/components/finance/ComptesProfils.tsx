@@ -189,8 +189,6 @@ export default function ComptesProfils() {
                   <TableCell className="font-medium">{fmt(p.totalCA)}</TableCell>
                   <TableCell className="text-emerald-700 font-medium">{fmt(p.totalPartAgence)}</TableCell>
                   <TableCell className="text-sky-700 font-medium">{fmt(p.totalPartProfil)}</TableCell>
-                  <TableCell>{fmt(p.totalVerseAuProfil)}</TableCell>
-                  <TableCell>{fmt(p.totalRecuDuProfil)}</TableCell>
                   <TableCell>
                     <SoldeBadge solde={p.solde} fmt={fmt} />
                   </TableCell>
