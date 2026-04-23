@@ -174,8 +174,6 @@ export default function ComptesProfils() {
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">CA généré</TableHead>
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">Part agence</TableHead>
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">Part profil</TableHead>
-                <TableHead className="uppercase text-xs tracking-wider font-semibold">Versé au profil</TableHead>
-                <TableHead className="uppercase text-xs tracking-wider font-semibold">Reçu du profil</TableHead>
                 <TableHead className="uppercase text-xs tracking-wider font-semibold">Solde</TableHead>
                 <TableHead></TableHead>
               </TableRow>
@@ -191,8 +189,6 @@ export default function ComptesProfils() {
                   <TableCell className="font-medium">{fmt(p.totalCA)}</TableCell>
                   <TableCell className="text-emerald-700 font-medium">{fmt(p.totalPartAgence)}</TableCell>
                   <TableCell className="text-sky-700 font-medium">{fmt(p.totalPartProfil)}</TableCell>
-                  <TableCell>{fmt(p.totalVerseAuProfil)}</TableCell>
-                  <TableCell>{fmt(p.totalRecuDuProfil)}</TableCell>
                   <TableCell>
                     <SoldeBadge solde={p.solde} fmt={fmt} />
                   </TableCell>
@@ -318,8 +314,8 @@ function ProfilCard({ profil, fmt, onView }: { profil: ProfilFinance; fmt: (n: n
           <MetricItem icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />} label="CA total généré" value={fmt(profil.totalCA)} />
           <MetricItem icon={<Building2 className="h-4 w-4 text-muted-foreground" />} label="Part agence cumulée" value={fmt(profil.totalPartAgence)} />
           <MetricItem icon={<Users className="h-4 w-4 text-muted-foreground" />} label="Part profil cumulée" value={fmt(profil.totalPartProfil)} />
-          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Total à verser au profil" value={fmt(montantAgenceDoit)} />
-          <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="Total à recevoir du profil" value={fmt(montantProfilDoit)} />
+          <MetricItem icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />} label="Versé au profil" value={fmt(profil.totalVerseAuProfil)} />
+          <MetricItem icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />} label="Reçu du profil" value={fmt(profil.totalRecuDuProfil)} />
           <button
             type="button"
             onClick={onView}
