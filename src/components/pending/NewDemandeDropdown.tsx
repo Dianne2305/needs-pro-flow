@@ -27,6 +27,12 @@ export function NewDemandeDropdown({ onSelect }: Props) {
                 {t}
               </DropdownMenuItem>
             ))}
+            <DropdownMenuItem
+              onClick={() => onSelect("SPP", "Autre service")}
+              className="font-medium text-primary"
+            >
+              + Autre service
+            </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSub>
@@ -37,6 +43,12 @@ export function NewDemandeDropdown({ onSelect }: Props) {
                 {t}
               </DropdownMenuItem>
             ))}
+            <DropdownMenuItem
+              onClick={() => onSelect("SPE", "Autre service")}
+              className="font-medium text-primary"
+            >
+              + Autre service
+            </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
       </DropdownMenuContent>

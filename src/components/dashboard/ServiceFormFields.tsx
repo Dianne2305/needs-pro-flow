@@ -319,6 +319,37 @@ function PlacementGestionForm() {
   );
 }
 
+function AutreServiceForm({ fields }: { fields: ServiceFormFields }) {
+  return (
+    <>
+      <div className="col-span-2">
+        <Label>Intitulé / nature du service *</Label>
+        <Input
+          placeholder="ex: Nettoyage de vitres en hauteur, désinfection, etc."
+          value={fields.natureIntervention}
+          onChange={(e) => fields.setNatureIntervention(e.target.value)}
+        />
+      </div>
+      <div className="col-span-2">
+        <Label>Description détaillée *</Label>
+        <Textarea
+          rows={4}
+          placeholder="Décrivez précisément le besoin du client : type d'intervention, lieu, contraintes particulières, matériel requis…"
+          value={fields.descriptionIntervention}
+          onChange={(e) => fields.setDescriptionIntervention(e.target.value)}
+        />
+      </div>
+      <FrequenceField value={fields.frequence} onChange={fields.setFrequence} />
+      <DureePersonnesFields fields={fields} />
+      <PlanningFields fields={fields} />
+      <div className="col-span-2 border-t pt-3 mt-1">
+        <p className="text-sm font-semibold text-muted-foreground mb-2">Services optionnels</p>
+      </div>
+      <ServicesOptionnels fields={fields} />
+    </>
+  );
+}
+
 export function ServiceFormFields({ typePrestation, segment, fields }: Props) {
   const formMap: Record<string, JSX.Element> = {
     "Ménage standard": <MenageStandardForm fields={fields} />,
@@ -330,6 +361,7 @@ export function ServiceFormFields({ typePrestation, segment, fields }: Props) {
     "Ménage post-sinistre": <PostSinistreForm fields={fields} />,
     "Ménage Bureaux": <MenageBureauxForm fields={fields} />,
     "Placement & gestion": <PlacementGestionForm />,
+    "Autre service": <AutreServiceForm fields={fields} />,
   };
 
   const form = formMap[typePrestation];
