@@ -876,7 +876,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                             </span>
                           )}
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0", delegue: false }])}>
+                        <Button variant="outline" size="sm" onClick={() => setProfilParts([...profilParts, { profilId: "", part: "0", delegue: false, tauxType: "horaire", nbHeures: "", prixHeure: "", nbJours: "", prixForfait: "" }])}>
                           <Plus className="h-4 w-4 mr-1" />
                           Ajouter un autre profil
                         </Button>
