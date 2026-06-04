@@ -885,68 +885,125 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
                         const showDelegate = profilParts.length > 1;
+                        const montantTotalTaux = pp.tauxType === "horaire"
+                          ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
+                          : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
                         return (
-                          <div key={index} className="flex items-end gap-3">
-                            <div className="flex-1">
-                              <Label className="text-xs flex items-center gap-2">
-                                Nom du profil
-                                {pp.delegue && showDelegate && (
-                                  <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-300 gap-1 px-1.5 py-0 text-[10px]">
-                                    <Crown className="h-2.5 w-2.5" />
-                                    Délégué
-                                  </Badge>
-                                )}
-                              </Label>
-                              <Select value={pp.profilId} onValueChange={(val) => {
-                                const updated = [...profilParts];
-                                updated[index] = { ...updated[index], profilId: val };
-                                setProfilParts(updated);
-                              }}>
-                                <SelectTrigger><SelectValue placeholder="Sélectionner un profil..." /></SelectTrigger>
-                                <SelectContent>
-                                  {availableProfils.map((p) => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                      {p.prenom} {p.nom} {p.type_profil ? `(${p.type_profil})` : ""}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                          <div key={index} className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                            <div className="flex items-end gap-3">
+                              <div className="flex-1">
+                                <Label className="text-xs flex items-center gap-2">
+                                  Nom du profil
+                                  {pp.delegue && showDelegate && (
+                                    <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-300 gap-1 px-1.5 py-0 text-[10px]">
+                                      <Crown className="h-2.5 w-2.5" />
+                                      Délégué
+                                    </Badge>
+                                  )}
+                                </Label>
+                                <Select value={pp.profilId} onValueChange={(val) => {
+                                  const updated = [...profilParts];
+                                  updated[index] = { ...updated[index], profilId: val };
+                                  setProfilParts(updated);
+                                }}>
+                                  <SelectTrigger><SelectValue placeholder="Sélectionner un profil..." /></SelectTrigger>
+                                  <SelectContent>
+                                    {availableProfils.map((p) => (
+                                      <SelectItem key={p.id} value={p.id}>
+                                        {p.prenom} {p.nom} {p.type_profil ? `(${p.type_profil})` : ""}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="w-40">
+                                <Label className="text-xs">Type de taux</Label>
+                                <Select value={pp.tauxType} onValueChange={(val: "horaire" | "forfait") => {
+                                  const updated = [...profilParts];
+                                  updated[index] = { ...updated[index], tauxType: val };
+                                  setProfilParts(updated);
+                                }}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="horaire">Taux horaire</SelectItem>
+                                    <SelectItem value="forfait">Taux forfaitaire</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              {showDelegate && (
+                                <Button
+                                  type="button"
+                                  variant={pp.delegue ? "default" : "outline"}
+                                  size="sm"
+                                  className={`h-10 gap-1 ${pp.delegue ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}
+                                  onClick={() => {
+                                    setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
+                                  }}
+                                  title="Désigner comme délégué"
+                                >
+                                  <Crown className="h-4 w-4" />
+                                  {pp.delegue ? "Délégué" : "Désigner"}
+                                </Button>
+                              )}
+                              {profilParts.length > 1 && (
+                                <Button variant="ghost" size="icon" className="text-destructive h-10 w-10" onClick={() => {
+                                  const filtered = profilParts.filter((_, i) => i !== index);
+                                  if (!filtered.some(p => p.delegue) && filtered.length > 0) {
+                                    filtered[0] = { ...filtered[0], delegue: true };
+                                  }
+                                  setProfilParts(filtered);
+                                }}>
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
-                            <div className="w-32">
-                              <Label className="text-xs">Part (MAD)</Label>
-                              <Input type="number" value={pp.part} onChange={(e) => {
-                                const updated = [...profilParts];
-                                updated[index] = { ...updated[index], part: e.target.value };
-                                setProfilParts(updated);
-                              }} />
+                            <div className="grid grid-cols-3 gap-3">
+                              {pp.tauxType === "horaire" ? (
+                                <>
+                                  <div>
+                                    <Label className="text-xs">Nombre d'heures</Label>
+                                    <Input type="number" value={pp.nbHeures} onChange={(e) => {
+                                      const updated = [...profilParts];
+                                      updated[index] = { ...updated[index], nbHeures: e.target.value };
+                                      setProfilParts(updated);
+                                    }} />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs">Prix par heure (MAD)</Label>
+                                    <Input type="number" value={pp.prixHeure} onChange={(e) => {
+                                      const updated = [...profilParts];
+                                      updated[index] = { ...updated[index], prixHeure: e.target.value };
+                                      setProfilParts(updated);
+                                    }} />
+                                  </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div>
+                                    <Label className="text-xs">Nombre de jours</Label>
+                                    <Input type="number" value={pp.nbJours} onChange={(e) => {
+                                      const updated = [...profilParts];
+                                      updated[index] = { ...updated[index], nbJours: e.target.value };
+                                      setProfilParts(updated);
+                                    }} />
+                                  </div>
+                                  <div>
+                                    <Label className="text-xs">Prix forfaitaire (MAD)</Label>
+                                    <Input type="number" value={pp.prixForfait} onChange={(e) => {
+                                      const updated = [...profilParts];
+                                      updated[index] = { ...updated[index], prixForfait: e.target.value };
+                                      setProfilParts(updated);
+                                    }} />
+                                  </div>
+                                </>
+                              )}
+                              <div>
+                                <Label className="text-xs">Montant total (MAD)</Label>
+                                <div className="h-10 px-3 flex items-center rounded-md border bg-background font-semibold text-emerald-700">
+                                  {montantTotalTaux.toFixed(2)}
+                                </div>
+                              </div>
                             </div>
-                            {showDelegate && (
-                              <Button
-                                type="button"
-                                variant={pp.delegue ? "default" : "outline"}
-                                size="sm"
-                                className={`h-10 gap-1 ${pp.delegue ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}
-                                onClick={() => {
-                                  setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
-                                }}
-                                title="Désigner comme délégué"
-                              >
-                                <Crown className="h-4 w-4" />
-                                {pp.delegue ? "Délégué" : "Désigner"}
-                              </Button>
-                            )}
-                            {profilParts.length > 1 && (
-                              <Button variant="ghost" size="icon" className="text-destructive h-10 w-10" onClick={() => {
-                                const filtered = profilParts.filter((_, i) => i !== index);
-                                // Ensure at least one delegate remains
-                                if (!filtered.some(p => p.delegue) && filtered.length > 0) {
-                                  filtered[0] = { ...filtered[0], delegue: true };
-                                }
-                                setProfilParts(filtered);
-                              }}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
                           </div>
                         );
                       })}
