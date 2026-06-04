@@ -94,6 +94,19 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [montantProfilDoit, setMontantProfilDoit] = useState("");
   const [montantAgenceDoit, setMontantAgenceDoit] = useState("");
 
+  // Paiement profil (à verser au profil)
+  const [paiementProfilType, setPaiementProfilType] = useState<"horaire" | "forfait">("horaire");
+  const [paiementNbHeures, setPaiementNbHeures] = useState("");
+  const [paiementPrixHeure, setPaiementPrixHeure] = useState("");
+  const [paiementNbJours, setPaiementNbJours] = useState("");
+  const [paiementPrixForfait, setPaiementPrixForfait] = useState("");
+  const paiementProfilTotal = useMemo(() => {
+    if (paiementProfilType === "horaire") {
+      return (Number(paiementNbHeures) || 0) * (Number(paiementPrixHeure) || 0);
+    }
+    return (Number(paiementNbJours) || 0) * (Number(paiementPrixForfait) || 0);
+  }, [paiementProfilType, paiementNbHeures, paiementPrixHeure, paiementNbJours, paiementPrixForfait]);
+
   // Facturation HT/TVA
   const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
   const [appliquerTVA, setAppliquerTVA] = useState(false);
@@ -625,6 +638,79 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     )}
                   </div>
                 </div>
+
+                {/* Paiement à verser au profil — visible dès qu'un statut de paiement est défini */}
+                {statutPaiement && statutPaiement !== "non_confirme" && statutPaiement !== "facturation_annulee" && (
+                  <div className="mt-4 p-4 rounded-lg border border-sky-200 bg-sky-50 space-y-3">
+                    <h4 className="text-sm font-bold text-sky-700">Paiement à verser au profil</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label className="text-sky-700">Type de paiement</Label>
+                        <Select value={paiementProfilType} onValueChange={(v) => setPaiementProfilType(v as "horaire" | "forfait")}>
+                          <SelectTrigger className="border-sky-300"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="horaire">Taux horaire</SelectItem>
+                            <SelectItem value="forfait">Forfaitaire</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {paiementProfilType === "horaire" ? (
+                        <>
+                          <div>
+                            <Label className="text-sky-700">Nombre d'heures</Label>
+                            <Input
+                              type="number"
+                              value={paiementNbHeures}
+                              onChange={(e) => setPaiementNbHeures(e.target.value)}
+                              placeholder="0"
+                              className="border-sky-300"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sky-700">Prix par heure (MAD)</Label>
+                            <Input
+                              type="number"
+                              value={paiementPrixHeure}
+                              onChange={(e) => setPaiementPrixHeure(e.target.value)}
+                              placeholder="0"
+                              className="border-sky-300"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <Label className="text-sky-700">Nombre de jours</Label>
+                            <Input
+                              type="number"
+                              value={paiementNbJours}
+                              onChange={(e) => setPaiementNbJours(e.target.value)}
+                              placeholder="0"
+                              className="border-sky-300"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-sky-700">Prix forfaitaire (MAD)</Label>
+                            <Input
+                              type="number"
+                              value={paiementPrixForfait}
+                              onChange={(e) => setPaiementPrixForfait(e.target.value)}
+                              placeholder="0"
+                              className="border-sky-300"
+                            />
+                          </div>
+                        </>
+                      )}
+                      <div className="col-span-3">
+                        <Label className="text-sky-700">Montant total à payer (MAD)</Label>
+                        <div className="flex items-center h-10 px-3 rounded-md border border-sky-300 bg-white">
+                          <span className="text-sm font-bold text-sky-800">{paiementProfilTotal.toFixed(2)} MAD</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
 
                 {/* Profil doit (when profil_paye_client) */}
                 {statutPaiement === "profil_paye_client" && (
