@@ -94,6 +94,19 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [montantProfilDoit, setMontantProfilDoit] = useState("");
   const [montantAgenceDoit, setMontantAgenceDoit] = useState("");
 
+  // Paiement profil (à verser au profil)
+  const [paiementProfilType, setPaiementProfilType] = useState<"horaire" | "forfait">("horaire");
+  const [paiementNbHeures, setPaiementNbHeures] = useState("");
+  const [paiementPrixHeure, setPaiementPrixHeure] = useState("");
+  const [paiementNbJours, setPaiementNbJours] = useState("");
+  const [paiementPrixForfait, setPaiementPrixForfait] = useState("");
+  const paiementProfilTotal = useMemo(() => {
+    if (paiementProfilType === "horaire") {
+      return (Number(paiementNbHeures) || 0) * (Number(paiementPrixHeure) || 0);
+    }
+    return (Number(paiementNbJours) || 0) * (Number(paiementPrixForfait) || 0);
+  }, [paiementProfilType, paiementNbHeures, paiementPrixHeure, paiementNbJours, paiementPrixForfait]);
+
   // Facturation HT/TVA
   const [montantHT, setMontantHT] = useState(String(demande.montant_total || ""));
   const [appliquerTVA, setAppliquerTVA] = useState(false);
