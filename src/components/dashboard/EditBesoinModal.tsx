@@ -252,6 +252,26 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       setPartAgence(String(montantTTC - val));
     }
   }, [montantAgenceDoit, statutPaiement, partsInitialized, montantTTC]);
+
+  // Sync each profil's part with its taux-based montant total
+  useEffect(() => {
+    if (!partsInitialized) return;
+    setProfilParts(prev => {
+      let changed = false;
+      const next = prev.map(pp => {
+        const total = pp.tauxType === "horaire"
+          ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
+          : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
+        const totalStr = String(total);
+        if (total > 0 && pp.part !== totalStr) {
+          changed = true;
+          return { ...pp, part: totalStr };
+        }
+        return pp;
+      });
+      return changed ? next : prev;
+    });
+  }, [profilParts.map(p => `${p.tauxType}|${p.nbHeures}|${p.prixHeure}|${p.nbJours}|${p.prixForfait}`).join(","), partsInitialized]);
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
   const [superficie, setSuperficie] = useState(String((demande as any).superficie_m2 || ""));
   const [etatLogement, setEtatLogement] = useState((demande as any).etat_logement || "");
