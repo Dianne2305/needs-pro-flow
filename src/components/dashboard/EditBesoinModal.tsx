@@ -191,7 +191,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
       // Initialize profil with candidat or facturation profil
       const profilId = facturationData.profil_id || "";
-      setProfilParts([{ profilId, part: String(profilPartVal), delegue: true }]);
+      setProfilParts([{ profilId, part: String(profilPartVal), delegue: true, tauxType: "horaire", nbHeures: "", prixHeure: "", nbJours: "", prixForfait: "" }]);
 
       // Initialize debt fields
       setMontantProfilDoit(facturationData.montant_profil_doit != null ? String(facturationData.montant_profil_doit) : "");
