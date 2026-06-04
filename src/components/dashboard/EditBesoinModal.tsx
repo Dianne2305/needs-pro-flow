@@ -626,7 +626,16 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                           <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
+                  </div>
+                  <div>
+                    <Label>Montant versé (MAD)</Label>
+                    <Input type="number" value={montantVerse} onChange={(e) => setMontantVerse(e.target.value)} />
+                    {montantTTC > 0 && Number(montantVerse) > 0 && resteAPayer > 0 && (
+                      <p className="text-xs text-destructive mt-1 font-medium">
+                        Reste à payer : {resteAPayer.toFixed(0)} MAD
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Paiement à verser au profil — visible dès qu'un statut de paiement est défini */}
@@ -700,16 +709,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     </div>
                   </div>
                 )}
-                  <div>
-                    <Label>Montant versé (MAD)</Label>
-                    <Input type="number" value={montantVerse} onChange={(e) => setMontantVerse(e.target.value)} />
-                    {montantTTC > 0 && Number(montantVerse) > 0 && resteAPayer > 0 && (
-                      <p className="text-xs text-destructive mt-1 font-medium">
-                        Reste à payer : {resteAPayer.toFixed(0)} MAD
-                      </p>
-                    )}
-                  </div>
-                </div>
+
 
                 {/* Profil doit (when profil_paye_client) */}
                 {statutPaiement === "profil_paye_client" && (
