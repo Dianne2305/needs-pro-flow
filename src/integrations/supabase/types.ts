@@ -88,6 +88,57 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          recipient_id: string | null
+          sender_avatar_url: string | null
+          sender_id: string
+          sender_name: string | null
+          type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          recipient_id?: string | null
+          sender_avatar_url?: string | null
+          sender_id: string
+          sender_name?: string | null
+          type?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string | null
+          sender_avatar_url?: string | null
+          sender_id?: string
+          sender_name?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
+      chat_reads: {
+        Row: {
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       demande_historique: {
         Row: {
           action: string
