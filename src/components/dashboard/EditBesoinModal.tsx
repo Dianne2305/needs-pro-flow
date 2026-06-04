@@ -131,8 +131,18 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   // Gestion des parts state
   const [partAgence, setPartAgence] = useState("0");
-  const [profilParts, setProfilParts] = useState<{ profilId: string; part: string; delegue: boolean }[]>([
-    { profilId: "", part: "0", delegue: true },
+  type ProfilPart = {
+    profilId: string;
+    part: string;
+    delegue: boolean;
+    tauxType: "horaire" | "forfait";
+    nbHeures: string;
+    prixHeure: string;
+    nbJours: string;
+    prixForfait: string;
+  };
+  const [profilParts, setProfilParts] = useState<ProfilPart[]>([
+    { profilId: "", part: "0", delegue: true, tauxType: "horaire", nbHeures: "", prixHeure: "", nbJours: "", prixForfait: "" },
   ]);
   const [partsInitialized, setPartsInitialized] = useState(false);
 
