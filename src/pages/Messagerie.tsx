@@ -1,7 +1,7 @@
 /**
  * Messagerie.tsx
  * Chat interne back-office : conversations individuelles + diffusion à tous.
- * In-app uniquement, realtime via Supabase.
+ * In-app uniquement, realtime via Supabase. Identité via session ou sélecteur (localStorage).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,9 +11,9 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Send, Megaphone, Search, Trash2, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Send, Megaphone, Search, Trash2, Users, UserCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Session } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
 
 type ChatUser = { id: string; display_name: string | null; avatar_url: string | null };
@@ -29,10 +29,11 @@ type ChatMessage = {
 };
 
 const BROADCAST_KEY = "__broadcast__";
+const LS_KEY = "messagerie_current_user_id";
 
 export default function Messagerie() {
-  const [session, setSession] = useState<Session | null>(null);
   const [users, setUsers] = useState<ChatUser[]>([]);
+  const [meId, setMeId] = useState<string | null>(() => localStorage.getItem(LS_KEY));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [reads, setReads] = useState<Set<string>>(new Set());
   const [activeKey, setActiveKey] = useState<string>(BROADCAST_KEY);
@@ -41,30 +42,37 @@ export default function Messagerie() {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  // Load users + auto-detect current user via session
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+    (async () => {
+      const { data: u } = await supabase.from("profiles").select("id, display_name, avatar_url");
+      const list = (u as ChatUser[]) || [];
+      setUsers(list);
+      if (!meId) {
+        const { data: s } = await supabase.auth.getSession();
+        const sid = s?.session?.user?.id;
+        if (sid && list.some((x) => x.id === sid)) {
+          setMeId(sid);
+          localStorage.setItem(LS_KEY, sid);
+        }
+      }
+    })();
   }, []);
 
-  const me = session?.user;
-
-  // Load users + messages + reads
+  // Load messages + reads (when identity known)
   useEffect(() => {
-    if (!me) return;
+    if (!meId) return;
     (async () => {
-      const [{ data: u }, { data: m }, { data: r }] = await Promise.all([
-        supabase.from("profiles").select("id, display_name, avatar_url"),
+      const [{ data: m }, { data: r }] = await Promise.all([
         supabase.from("chat_messages").select("*").order("created_at", { ascending: true }).limit(2000),
-        supabase.from("chat_reads").select("message_id").eq("user_id", me.id),
+        supabase.from("chat_reads").select("message_id").eq("user_id", meId),
       ]);
-      setUsers((u as ChatUser[]) || []);
       setMessages((m as ChatMessage[]) || []);
       setReads(new Set((r || []).map((x: any) => x.message_id)));
     })();
 
     const ch = supabase
-      .channel("chat-messagerie")
+      .channel(`chat-messagerie-${meId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, (p) => {
         setMessages((prev) => [...prev, p.new as ChatMessage]);
       })
@@ -75,7 +83,7 @@ export default function Messagerie() {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [me?.id]);
+  }, [meId]);
 
   // Auto scroll
   useEffect(() => {
@@ -83,25 +91,23 @@ export default function Messagerie() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, activeKey]);
 
-  // Filter messages for active conversation
   const currentMessages = useMemo(() => {
-    if (!me) return [];
+    if (!meId) return [];
     if (activeKey === BROADCAST_KEY) return messages.filter((m) => m.type === "broadcast" || m.recipient_id === null);
     return messages.filter(
       (m) =>
         m.type === "direct" &&
-        ((m.sender_id === me.id && m.recipient_id === activeKey) ||
-          (m.sender_id === activeKey && m.recipient_id === me.id)),
+        ((m.sender_id === meId && m.recipient_id === activeKey) ||
+          (m.sender_id === activeKey && m.recipient_id === meId)),
     );
-  }, [messages, activeKey, me?.id]);
+  }, [messages, activeKey, meId]);
 
-  // Mark visible messages as read
   useEffect(() => {
-    if (!me) return;
-    const unread = currentMessages.filter((m) => m.sender_id !== me.id && !reads.has(m.id));
+    if (!meId) return;
+    const unread = currentMessages.filter((m) => m.sender_id !== meId && !reads.has(m.id));
     if (unread.length === 0) return;
     (async () => {
-      const rows = unread.map((m) => ({ message_id: m.id, user_id: me.id }));
+      const rows = unread.map((m) => ({ message_id: m.id, user_id: meId }));
       await supabase.from("chat_reads").upsert(rows, { onConflict: "message_id,user_id" });
       setReads((prev) => {
         const next = new Set(prev);
@@ -109,39 +115,35 @@ export default function Messagerie() {
         return next;
       });
     })();
-  }, [currentMessages, me?.id]);
+  }, [currentMessages, meId]);
 
-  // Unread count per conversation
   const unreadByKey = useMemo(() => {
     const map = new Map<string, number>();
-    if (!me) return map;
+    if (!meId) return map;
     messages.forEach((m) => {
-      if (m.sender_id === me.id || reads.has(m.id)) return;
-      const key =
-        m.type === "broadcast" || m.recipient_id === null
-          ? BROADCAST_KEY
-          : m.sender_id; // direct → conversation is with sender
+      if (m.sender_id === meId || reads.has(m.id)) return;
+      const key = m.type === "broadcast" || m.recipient_id === null ? BROADCAST_KEY : m.sender_id;
       map.set(key, (map.get(key) || 0) + 1);
     });
     return map;
-  }, [messages, reads, me?.id]);
+  }, [messages, reads, meId]);
 
   const filteredUsers = useMemo(() => {
-    if (!me) return [];
+    if (!meId) return [];
     return users
-      .filter((u) => u.id !== me.id)
+      .filter((u) => u.id !== meId)
       .filter((u) => (u.display_name || "").toLowerCase().includes(search.toLowerCase()));
-  }, [users, search, me?.id]);
+  }, [users, search, meId]);
 
   const activeUser = users.find((u) => u.id === activeKey);
-  const myProfile = users.find((u) => u.id === me?.id);
+  const myProfile = users.find((u) => u.id === meId);
 
   const send = async () => {
-    if (!me || !input.trim()) return;
+    if (!meId || !input.trim()) return;
     const isBroadcast = activeKey === BROADCAST_KEY;
     const payload = {
-      sender_id: me.id,
-      sender_name: myProfile?.display_name || me.email || "Utilisateur",
+      sender_id: meId,
+      sender_name: myProfile?.display_name || "Utilisateur",
       sender_avatar_url: myProfile?.avatar_url || null,
       recipient_id: isBroadcast ? null : activeKey,
       content: input.trim(),
@@ -157,18 +159,63 @@ export default function Messagerie() {
     if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
   };
 
-  if (!session) {
-    return <div className="p-8 text-center text-muted-foreground">Connectez-vous pour accéder à la messagerie.</div>;
+  const pickIdentity = (id: string) => {
+    setMeId(id);
+    localStorage.setItem(LS_KEY, id);
+  };
+
+  // Identity selector when no user is set
+  if (!meId) {
+    return (
+      <div className="max-w-md mx-auto mt-20">
+        <Card className="p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <UserCircle2 className="h-6 w-6 text-primary" />
+            <h2 className="text-lg font-bold">Choisissez votre identité</h2>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Sélectionnez votre nom pour accéder à la messagerie interne.
+          </p>
+          {users.length === 0 ? (
+            <div className="text-sm text-muted-foreground">Aucun utilisateur disponible.</div>
+          ) : (
+            <Select onValueChange={pickIdentity}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner..." />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.display_name || "Utilisateur"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </Card>
+      </div>
+    );
   }
 
   return (
     <div className="flex h-[calc(100vh-7rem)] gap-4">
-      {/* Liste conversations */}
       <Card className="w-80 flex flex-col">
-        <div className="p-3 border-b">
-          <h2 className="font-bold text-lg mb-2 flex items-center gap-2">
-            <Users className="h-5 w-5" /> Messagerie
-          </h2>
+        <div className="p-3 border-b space-y-2">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <Users className="h-5 w-5" /> Messagerie
+            </h2>
+            <button
+              onClick={() => {
+                localStorage.removeItem(LS_KEY);
+                setMeId(null);
+              }}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline"
+              title="Changer d'utilisateur"
+            >
+              {myProfile?.display_name || "Moi"}
+            </button>
+          </div>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -180,7 +227,6 @@ export default function Messagerie() {
           </div>
         </div>
         <ScrollArea className="flex-1">
-          {/* Broadcast */}
           <button
             onClick={() => setActiveKey(BROADCAST_KEY)}
             className={cn(
@@ -233,7 +279,6 @@ export default function Messagerie() {
         </ScrollArea>
       </Card>
 
-      {/* Conversation */}
       <Card className="flex-1 flex flex-col">
         <div className="p-3 border-b flex items-center gap-3">
           {activeKey === BROADCAST_KEY ? (
@@ -269,7 +314,7 @@ export default function Messagerie() {
             </div>
           )}
           {currentMessages.map((m) => {
-            const mine = m.sender_id === me?.id;
+            const mine = m.sender_id === meId;
             return (
               <div key={m.id} className={cn("flex gap-2", mine ? "justify-end" : "justify-start")}>
                 {!mine && (
