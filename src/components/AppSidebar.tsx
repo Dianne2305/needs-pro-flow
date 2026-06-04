@@ -54,30 +54,54 @@ export function AppSidebar() {
     refetchInterval: 30000,
   });
 
-  const renderMenuItem = (item: typeof items[0]) => (
-    <SidebarMenuItem key={item.title}>
-      <SidebarMenuButton asChild>
-        <NavLink
-          to={item.url}
-          end={item.url === "/"}
-          className="hover:bg-sidebar-accent/50"
-          activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-bold"
-        >
-          <item.icon className="mr-2 h-5 w-5" />
-          {!collapsed && (
-            <span className="flex items-center gap-2 flex-1 text-[15px] font-semibold">
-              {item.title}
-              {item.showBadge && pendingCount > 0 && (
-                <Badge className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center">
-                  {pendingCount}
-                </Badge>
-              )}
-            </span>
-          )}
-        </NavLink>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
+  const { data: chatUnread = 0 } = useQuery({
+    queryKey: ["chat", "unread_count_sidebar"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      const { data: msgs } = await supabase
+        .from("chat_messages")
+        .select("id")
+        .neq("sender_id", user.id)
+        .or(`recipient_id.is.null,recipient_id.eq.${user.id}`);
+      if (!msgs || msgs.length === 0) return 0;
+      const { data: reads } = await supabase
+        .from("chat_reads")
+        .select("message_id")
+        .eq("user_id", user.id);
+      const readSet = new Set((reads || []).map((r: any) => r.message_id));
+      return msgs.filter((m: any) => !readSet.has(m.id)).length;
+    },
+    refetchInterval: 15000,
+  });
+
+  const renderMenuItem = (item: any) => {
+    const badgeValue = item.showBadge ? pendingCount : item.showChatBadge ? chatUnread : 0;
+    return (
+      <SidebarMenuItem key={item.title}>
+        <SidebarMenuButton asChild>
+          <NavLink
+            to={item.url}
+            end={item.url === "/"}
+            className="hover:bg-sidebar-accent/50"
+            activeClassName="bg-sidebar-accent text-sidebar-accent-foreground font-bold"
+          >
+            <item.icon className="mr-2 h-5 w-5" />
+            {!collapsed && (
+              <span className="flex items-center gap-2 flex-1 text-[15px] font-semibold">
+                {item.title}
+                {badgeValue > 0 && (
+                  <Badge className="h-5 min-w-5 px-1.5 text-[10px] font-bold bg-destructive text-destructive-foreground rounded-full flex items-center justify-center">
+                    {badgeValue}
+                  </Badge>
+                )}
+              </span>
+            )}
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
 
   // Split items: before and after finance
   const beforeFinance = items.slice(0, 5); // up to Historique
