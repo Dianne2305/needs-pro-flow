@@ -3,7 +3,7 @@
  * Barre latérale de navigation (thème noir/teal). Liens vers Dashboard, Pending, Listing, Profils, Finance, Marketing, Qualité, Paramètres. Badge rouge pour demandes en attente.
  */
 import {
-  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown,
+  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown, MessageSquare,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -26,6 +26,7 @@ const items = [
   { title: "Historique", url: "/historique", icon: History },
   { title: "Qualité & Feedback", url: "/qualite", icon: Star },
   { title: "Marketing", url: "/marketing", icon: Megaphone },
+  { title: "Messagerie", url: "/messagerie", icon: MessageSquare, showChatBadge: true },
   { title: "Paramètres", url: "/parametres", icon: Settings },
 ];
 
