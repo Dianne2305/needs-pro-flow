@@ -626,6 +626,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                           <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                         ))}
                       </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label>Montant versé (MAD)</Label>
