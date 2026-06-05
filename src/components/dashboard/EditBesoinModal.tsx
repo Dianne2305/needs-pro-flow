@@ -932,7 +932,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                             const totalProfils = profilParts.reduce((s, p) => s + (Number(p.part) || 0), 0);
                             const reste = montantTTC - totalProfils;
                             setPartAgence(String(Number(reste.toFixed(2))));
-                            toast({ title: "Parts validées", description: `Part de l'agence ajustée à ${reste.toFixed(2)} MAD.` });
+                            toast.success("Parts validées", { description: `Part de l'agence ajustée à ${reste.toFixed(2)} MAD.` });
                           }}
                         >
                           Valider les parts
