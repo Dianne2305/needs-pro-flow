@@ -893,11 +893,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                   </div>
                                   <div>
                                     <Label className="text-xs">Prix par heure (MAD)</Label>
-                                    <Input type="number" value={pp.prixHeure} onChange={(e) => {
-                                      const updated = [...profilParts];
-                                      updated[index] = { ...updated[index], prixHeure: e.target.value };
-                                      setProfilParts(updated);
-                                    }} />
+                                    <Input
+                                      type="number"
+                                      value={pp.prixHeure}
+                                      readOnly
+                                      disabled
+                                      className="bg-muted cursor-not-allowed"
+                                      title="Tarif standard défini par le service sélectionné"
+                                    />
+                                  </div>
                                   </div>
                                 </>
                               ) : (
