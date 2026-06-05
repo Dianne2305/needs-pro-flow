@@ -17,6 +17,7 @@ import {
   STATUTS, SEGMENTS,
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
   STATUTS_PAIEMENT_COMMERCIAL,
+  getTarifHoraireStandard,
 } from "@/lib/constants";
 import { ArrowLeft, Save, X, FileText, ChevronDown, Building2, ClipboardList, History, Receipt, Users, Plus, Trash2, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
