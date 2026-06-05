@@ -902,7 +902,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                       title="Tarif standard défini par le service sélectionné"
                                     />
                                   </div>
-                                  </div>
                                 </>
                               ) : (
                                 <>
