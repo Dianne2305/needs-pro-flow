@@ -23,6 +23,33 @@ export const TYPES_PRESTATION = [
   ...new Set([...TYPES_PRESTATION_PARTICULIER, ...TYPES_PRESTATION_ENTREPRISE]),
 ] as const;
 
+/**
+ * Tarifs horaires standards par service (MAD/heure).
+ * Source : grille tarifaire agence.
+ * - Airbnb : 40 DH/h si durée ≤ 2h, sinon 30 DH/h.
+ * - Auxiliaire de vie / Placement & gestion : taux forfaitaire (non géré ici).
+ */
+export function getTarifHoraireStandard(
+  typePrestation: string | null | undefined,
+  nbHeures?: number,
+): number | null {
+  if (!typePrestation) return null;
+  switch (typePrestation) {
+    case "Ménage standard":
+    case "Ménage Bureaux":
+      return 30;
+    case "Grand ménage":
+    case "Ménage fin de chantier":
+    case "Ménage post-sinistre":
+    case "Nettoyage post-déménagement":
+      return 40;
+    case "Ménage Air BnB":
+      return nbHeures && nbHeures > 2 ? 30 : 40;
+    default:
+      return null;
+  }
+}
+
 export const TYPES_BIEN = [
   "Appartement",
   "Villa",
