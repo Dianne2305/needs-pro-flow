@@ -887,7 +887,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                               )}
                             </div>
                             <div className="grid grid-cols-3 gap-3">
-                              {pp.tauxType === "horaire" ? (
+                              {pp.tauxType === "horaire" || pp.tauxType === "horaire_exceptionnel" ? (
                                 <>
                                   <div>
                                     <Label className="text-xs">Nombre d'heures</Label>
@@ -898,15 +898,32 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     }} />
                                   </div>
                                   <div>
-                                    <Label className="text-xs">Prix par heure (MAD)</Label>
-                                    <Input
-                                      type="number"
-                                      value={pp.prixHeure}
-                                      readOnly
-                                      disabled
-                                      className="bg-muted cursor-not-allowed"
-                                      title="Tarif standard défini par le service sélectionné"
-                                    />
+                                    <Label className="text-xs">
+                                      Prix par heure (MAD)
+                                      {pp.tauxType === "horaire_exceptionnel" && <span className="text-destructive ml-1">*</span>}
+                                    </Label>
+                                    {pp.tauxType === "horaire_exceptionnel" ? (
+                                      <Input
+                                        type="number"
+                                        value={pp.prixHeure}
+                                        required
+                                        placeholder="Saisir le tarif exceptionnel"
+                                        onChange={(e) => {
+                                          const updated = [...profilParts];
+                                          updated[index] = { ...updated[index], prixHeure: e.target.value };
+                                          setProfilParts(updated);
+                                        }}
+                                      />
+                                    ) : (
+                                      <Input
+                                        type="number"
+                                        value={pp.prixHeure}
+                                        readOnly
+                                        disabled
+                                        className="bg-muted cursor-not-allowed"
+                                        title="Tarif standard défini par le service sélectionné"
+                                      />
+                                    )}
                                   </div>
                                 </>
                               ) : (
