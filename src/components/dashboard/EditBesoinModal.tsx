@@ -853,7 +853,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 }}>
                                   <SelectTrigger><SelectValue /></SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="horaire">Taux horaire</SelectItem>
+                                    <SelectItem value="horaire">Taux horaire standard</SelectItem>
                                     <SelectItem value="horaire_exceptionnel">Taux horaire exceptionnel</SelectItem>
                                     <SelectItem value="forfait">Taux forfaitaire</SelectItem>
                                   </SelectContent>
