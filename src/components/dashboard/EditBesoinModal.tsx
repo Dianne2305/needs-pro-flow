@@ -917,11 +917,26 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         <span>Total réparti : <strong>{totalReparti.toFixed(2)} MAD</strong></span>
                         <span>Reste à répartir : <strong className={repartitionCorrecte ? "text-emerald-600" : "text-destructive"}>{resteARepartir.toFixed(2)} MAD</strong></span>
                       </div>
-                      {repartitionCorrecte ? (
-                        <span className="text-xs font-medium text-emerald-600">✓ Répartition correcte</span>
-                      ) : (
-                        <span className="text-xs font-medium text-destructive">⚠ Répartition incorrecte</span>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {repartitionCorrecte ? (
+                          <span className="text-xs font-medium text-emerald-600">✓ Répartition correcte</span>
+                        ) : (
+                          <span className="text-xs font-medium text-destructive">⚠ Répartition incorrecte</span>
+                        )}
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={() => {
+                            const totalProfils = profilParts.reduce((s, p) => s + (Number(p.part) || 0), 0);
+                            const reste = montantTTC - totalProfils;
+                            setPartAgence(String(Number(reste.toFixed(2))));
+                            toast({ title: "Parts validées", description: `Part de l'agence ajustée à ${reste.toFixed(2)} MAD.` });
+                          }}
+                        >
+                          Valider les parts
+                        </Button>
+                      </div>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
