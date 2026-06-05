@@ -251,9 +251,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     setProfilParts(prev => {
       let changed = false;
       const next = prev.map(pp => {
-        const total = pp.tauxType === "horaire"
-          ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
-          : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
+        const total = pp.tauxType === "forfait"
+          ? (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0)
+          : (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0);
         const totalStr = String(total);
         if (total > 0 && pp.part !== totalStr) {
           changed = true;
