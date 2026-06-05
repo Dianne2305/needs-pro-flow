@@ -264,6 +264,25 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       return changed ? next : prev;
     });
   }, [profilParts.map(p => `${p.tauxType}|${p.nbHeures}|${p.prixHeure}|${p.nbJours}|${p.prixForfait}`).join(","), partsInitialized]);
+
+  // Auto-set prixHeure from typePrestation (read-only standard tariff grid)
+  useEffect(() => {
+    setProfilParts(prev => {
+      let changed = false;
+      const next = prev.map(pp => {
+        if (pp.tauxType !== "horaire") return pp;
+        const tarif = getTarifHoraireStandard(typePrestation, Number(pp.nbHeures) || 0);
+        if (tarif == null) return pp;
+        const tarifStr = String(tarif);
+        if (pp.prixHeure !== tarifStr) {
+          changed = true;
+          return { ...pp, prixHeure: tarifStr };
+        }
+        return pp;
+      });
+      return changed ? next : prev;
+    });
+  }, [typePrestation, profilParts.map(p => `${p.tauxType}|${p.nbHeures}`).join(",")]);
   const [typeBien, setTypeBien] = useState(demande.type_bien || "");
   const [superficie, setSuperficie] = useState(String((demande as any).superficie_m2 || ""));
   const [etatLogement, setEtatLogement] = useState((demande as any).etat_logement || "");
