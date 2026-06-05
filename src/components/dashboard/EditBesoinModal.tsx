@@ -841,14 +841,20 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                               </div>
                               <div className="w-40">
                                 <Label className="text-xs">Type de taux</Label>
-                                <Select value={pp.tauxType} onValueChange={(val: "horaire" | "forfait") => {
+                                <Select value={pp.tauxType} onValueChange={(val: "horaire" | "horaire_exceptionnel" | "forfait") => {
                                   const updated = [...profilParts];
-                                  updated[index] = { ...updated[index], tauxType: val };
+                                  updated[index] = {
+                                    ...updated[index],
+                                    tauxType: val,
+                                    // Reset prixHeure when switching to exceptionnel so user must saisir
+                                    prixHeure: val === "horaire_exceptionnel" ? "" : updated[index].prixHeure,
+                                  };
                                   setProfilParts(updated);
                                 }}>
                                   <SelectTrigger><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="horaire">Taux horaire</SelectItem>
+                                    <SelectItem value="horaire_exceptionnel">Taux horaire exceptionnel</SelectItem>
                                     <SelectItem value="forfait">Taux forfaitaire</SelectItem>
                                   </SelectContent>
                                 </Select>
