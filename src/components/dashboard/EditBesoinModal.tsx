@@ -127,7 +127,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     profilId: string;
     part: string;
     delegue: boolean;
-    tauxType: "horaire" | "forfait";
+    tauxType: "horaire" | "horaire_exceptionnel" | "forfait";
     nbHeures: string;
     prixHeure: string;
     nbJours: string;
@@ -251,9 +251,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     setProfilParts(prev => {
       let changed = false;
       const next = prev.map(pp => {
-        const total = pp.tauxType === "horaire"
-          ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
-          : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
+        const total = pp.tauxType === "forfait"
+          ? (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0)
+          : (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0);
         const totalStr = String(total);
         if (total > 0 && pp.part !== totalStr) {
           changed = true;
@@ -841,14 +841,20 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                               </div>
                               <div className="w-40">
                                 <Label className="text-xs">Type de taux</Label>
-                                <Select value={pp.tauxType} onValueChange={(val: "horaire" | "forfait") => {
+                                <Select value={pp.tauxType} onValueChange={(val: "horaire" | "horaire_exceptionnel" | "forfait") => {
                                   const updated = [...profilParts];
-                                  updated[index] = { ...updated[index], tauxType: val };
+                                  updated[index] = {
+                                    ...updated[index],
+                                    tauxType: val,
+                                    // Reset prixHeure when switching to exceptionnel so user must saisir
+                                    prixHeure: val === "horaire_exceptionnel" ? "" : updated[index].prixHeure,
+                                  };
                                   setProfilParts(updated);
                                 }}>
                                   <SelectTrigger><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="horaire">Taux horaire</SelectItem>
+                                    <SelectItem value="horaire_exceptionnel">Taux horaire exceptionnel</SelectItem>
                                     <SelectItem value="forfait">Taux forfaitaire</SelectItem>
                                   </SelectContent>
                                 </Select>
@@ -881,7 +887,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                               )}
                             </div>
                             <div className="grid grid-cols-3 gap-3">
-                              {pp.tauxType === "horaire" ? (
+                              {pp.tauxType === "horaire" || pp.tauxType === "horaire_exceptionnel" ? (
                                 <>
                                   <div>
                                     <Label className="text-xs">Nombre d'heures</Label>
@@ -892,15 +898,32 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     }} />
                                   </div>
                                   <div>
-                                    <Label className="text-xs">Prix par heure (MAD)</Label>
-                                    <Input
-                                      type="number"
-                                      value={pp.prixHeure}
-                                      readOnly
-                                      disabled
-                                      className="bg-muted cursor-not-allowed"
-                                      title="Tarif standard défini par le service sélectionné"
-                                    />
+                                    <Label className="text-xs">
+                                      Prix par heure (MAD)
+                                      {pp.tauxType === "horaire_exceptionnel" && <span className="text-destructive ml-1">*</span>}
+                                    </Label>
+                                    {pp.tauxType === "horaire_exceptionnel" ? (
+                                      <Input
+                                        type="number"
+                                        value={pp.prixHeure}
+                                        required
+                                        placeholder="Saisir le tarif exceptionnel"
+                                        onChange={(e) => {
+                                          const updated = [...profilParts];
+                                          updated[index] = { ...updated[index], prixHeure: e.target.value };
+                                          setProfilParts(updated);
+                                        }}
+                                      />
+                                    ) : (
+                                      <Input
+                                        type="number"
+                                        value={pp.prixHeure}
+                                        readOnly
+                                        disabled
+                                        className="bg-muted cursor-not-allowed"
+                                        title="Tarif standard défini par le service sélectionné"
+                                      />
+                                    )}
                                   </div>
                                 </>
                               ) : (
