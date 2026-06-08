@@ -401,9 +401,22 @@ export default function CompteClient() {
   };
 
   const togglePlanningJour = (jour: string) => {
+    setPlanning((prev) => {
+      const exists = prev.jours.find((j) => j.jour === jour);
+      const jours = exists
+        ? prev.jours.filter((j) => j.jour !== jour)
+        : [...prev.jours, { jour, heure_debut: "", heure_fin: "" }];
+      // Trier dans l'ordre de la semaine
+      const order = JOURS_SEMAINE.map((j) => j.value) as readonly string[];
+      jours.sort((a, b) => order.indexOf(a.jour) - order.indexOf(b.jour));
+      return { ...prev, jours };
+    });
+  };
+
+  const updatePlanningJourHeure = (jour: string, field: "heure_debut" | "heure_fin", value: string) => {
     setPlanning((prev) => ({
       ...prev,
-      jours: prev.jours.includes(jour) ? prev.jours.filter((j) => j !== jour) : [...prev.jours, jour],
+      jours: prev.jours.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)),
     }));
   };
 
@@ -593,42 +606,10 @@ export default function CompteClient() {
                   </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-muted-foreground">Jours d'intervention</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {JOURS_SEMAINE.map((j) => (
-                      <label key={j.value} className="flex items-center gap-2 px-3 py-1.5 rounded-md border bg-background/60 cursor-pointer hover:bg-background">
-                        <Checkbox
-                          checked={planning.jours.includes(j.value)}
-                          onCheckedChange={() => togglePlanningJour(j.value)}
-                        />
-                        <span className="text-sm">{j.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
+                {/* Fréquence + Dates abonnement */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Heure de début</Label>
-                    <Input
-                      type="time"
-                      value={planning.heure_debut}
-                      onChange={(e) => setPlanning({ ...planning, heure_debut: e.target.value })}
-                      className="bg-background/60"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Heure de fin</Label>
-                    <Input
-                      type="time"
-                      value={planning.heure_fin}
-                      onChange={(e) => setPlanning({ ...planning, heure_fin: e.target.value })}
-                      className="bg-background/60"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Fréquence des interventions</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Fréquence de l'abonnement</Label>
                     <Select
                       value={planning.frequence}
                       onValueChange={(v) => setPlanning({ ...planning, frequence: v })}
@@ -643,6 +624,86 @@ export default function CompteClient() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground">Date de début de l'abonnement</Label>
+                    <Input
+                      type="date"
+                      value={planning.date_debut}
+                      onChange={(e) => setPlanning({ ...planning, date_debut: e.target.value })}
+                      className="bg-background/60"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground">Date de fin (optionnel)</Label>
+                    <Input
+                      type="date"
+                      value={planning.date_fin}
+                      onChange={(e) => setPlanning({ ...planning, date_fin: e.target.value })}
+                      className="bg-background/60"
+                    />
+                  </div>
+                </div>
+
+                {/* Semaine type */}
+                <div className="space-y-2 border rounded-md bg-background/60 p-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-muted-foreground">Semaine type — du</Label>
+                      <Input
+                        type="date"
+                        value={planning.semaine_debut}
+                        onChange={(e) => setPlanning({ ...planning, semaine_debut: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold text-muted-foreground">Au</Label>
+                      <Input
+                        type="date"
+                        value={planning.semaine_fin}
+                        onChange={(e) => setPlanning({ ...planning, semaine_fin: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <Label className="text-xs font-semibold text-muted-foreground">Jours & horaires d'intervention</Label>
+                    <div className="space-y-2">
+                      {JOURS_SEMAINE.map((j) => {
+                        const selected = planning.jours.find((pj) => pj.jour === j.value);
+                        return (
+                          <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1.5 rounded-md border bg-background/80">
+                            <label className="col-span-4 sm:col-span-3 flex items-center gap-2 cursor-pointer">
+                              <Checkbox
+                                checked={!!selected}
+                                onCheckedChange={() => togglePlanningJour(j.value)}
+                              />
+                              <span className="text-sm font-medium">{j.label}</span>
+                            </label>
+                            <div className="col-span-4 sm:col-span-4">
+                              <Input
+                                type="time"
+                                value={selected?.heure_debut || ""}
+                                onChange={(e) => updatePlanningJourHeure(j.value, "heure_debut", e.target.value)}
+                                disabled={!selected}
+                                className="h-8"
+                                placeholder="Début"
+                              />
+                            </div>
+                            <div className="col-span-4 sm:col-span-4">
+                              <Input
+                                type="time"
+                                value={selected?.heure_fin || ""}
+                                onChange={(e) => updatePlanningJourHeure(j.value, "heure_fin", e.target.value)}
+                                disabled={!selected}
+                                className="h-8"
+                                placeholder="Fin"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">
@@ -656,14 +717,28 @@ export default function CompteClient() {
                   />
                 </div>
 
-                {(planning.jours.length > 0 || planning.heure_debut) && (
-                  <div className="rounded-md bg-background/60 border px-3 py-2 text-sm">
-                    <span className="font-semibold">Résumé : </span>
-                    {planning.jours.length > 0
-                      ? planning.jours.map((j) => JOURS_SEMAINE.find((js) => js.value === j)?.label).join(", ")
-                      : "—"}
-                    {planning.heure_debut && ` • ${planning.heure_debut}${planning.heure_fin ? ` - ${planning.heure_fin}` : ""}`}
-                    {planning.frequence && ` • ${FREQUENCES.find((f) => f.value === planning.frequence)?.label || planning.frequence}`}
+                {planning.jours.length > 0 && (
+                  <div className="rounded-md bg-background/60 border px-3 py-2 text-sm space-y-1">
+                    <div className="font-semibold">Résumé du planning</div>
+                    {planning.date_debut && (
+                      <div className="text-xs text-muted-foreground">
+                        Du {planning.date_debut}{planning.date_fin ? ` au ${planning.date_fin}` : " (sans date de fin)"}
+                        {planning.frequence && ` • ${FREQUENCES.find((f) => f.value === planning.frequence)?.label || planning.frequence}`}
+                      </div>
+                    )}
+                    {planning.semaine_debut && (
+                      <div className="text-xs text-muted-foreground">
+                        Semaine type : {planning.semaine_debut}{planning.semaine_fin ? ` → ${planning.semaine_fin}` : ""}
+                      </div>
+                    )}
+                    <ul className="text-xs pl-4 list-disc">
+                      {planning.jours.map((pj) => (
+                        <li key={pj.jour}>
+                          {JOURS_SEMAINE.find((js) => js.value === pj.jour)?.label}
+                          {(pj.heure_debut || pj.heure_fin) && ` — ${pj.heure_debut || "?"}${pj.heure_fin ? ` à ${pj.heure_fin}` : ""}`}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
