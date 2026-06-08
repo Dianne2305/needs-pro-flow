@@ -68,10 +68,11 @@ function FrequenceField({ value, onChange }: { value: string; onChange: (v: stri
     <div>
       <Label>Fréquence</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger><SelectValue /></SelectTrigger>
+        <SelectTrigger><SelectValue placeholder="Choisir..." /></SelectTrigger>
         <SelectContent>
-          <SelectItem value="ponctuel">Une fois</SelectItem>
-          <SelectItem value="abonnement">Abonnement</SelectItem>
+          {FREQUENCES.map((f) => (
+            <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
     </div>

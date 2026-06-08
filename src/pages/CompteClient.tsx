@@ -333,12 +333,9 @@ export default function CompteClient() {
   const calculateAboTarif = (baseTarif: number | null, freq: string) => {
     if (!baseTarif) return null;
     const multipliers: Record<string, number> = {
-      "1_fois_semaine": 4,
-      "2_fois_semaine": 8,
-      "3_fois_semaine": 12,
-      "4_fois_semaine": 16,
-      "5_fois_semaine": 20,
-      "6_fois_semaine": 24,
+      hebdomadaire: 4,
+      bi_mensuel: 2,
+      mensuel: 1,
       quotidien: 28,
     };
     return baseTarif * (multipliers[freq] || 1);
