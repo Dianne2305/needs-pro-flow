@@ -419,23 +419,54 @@ export default function CompteClient() {
     updateMutation.mutate({ note_commercial: noteComm || null, note_operationnel: noteOpe || null });
   };
 
-  const togglePlanningJour = (jour: string) => {
-    setPlanning((prev) => {
-      const exists = prev.jours.find((j) => j.jour === jour);
-      const jours = exists
-        ? prev.jours.filter((j) => j.jour !== jour)
-        : [...prev.jours, { jour, heure_debut: "", heure_fin: "" }];
-      // Trier dans l'ordre de la semaine
-      const order = JOURS_SEMAINE.map((j) => j.value) as readonly string[];
-      jours.sort((a, b) => order.indexOf(a.jour) - order.indexOf(b.jour));
-      return { ...prev, jours };
-    });
-  };
+  const order = JOURS_SEMAINE.map((j) => j.value) as readonly string[];
 
-  const updatePlanningJourHeure = (jour: string, field: "heure_debut" | "heure_fin", value: string) => {
+  const addSemaine = () => {
     setPlanning((prev) => ({
       ...prev,
-      jours: prev.jours.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)),
+      semaines: [...prev.semaines, { semaine_debut: "", semaine_fin: "", jours: [] }],
+    }));
+  };
+
+  const removeSemaine = (idx: number) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const updateSemaineDate = (idx: number, field: "semaine_debut" | "semaine_fin", value: string) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) => (i === idx ? { ...s, [field]: value } : s)),
+    }));
+  };
+
+  const togglePlanningJour = (idx: number, jour: string) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) => {
+        if (i !== idx) return s;
+        const exists = s.jours.find((j) => j.jour === jour);
+        const jours = exists
+          ? s.jours.filter((j) => j.jour !== jour)
+          : [...s.jours, { jour, heure_debut: "", heure_fin: "" }];
+        jours.sort((a, b) => order.indexOf(a.jour) - order.indexOf(b.jour));
+        return { ...s, jours };
+      }),
+    }));
+  };
+
+  const updatePlanningJourHeure = (
+    idx: number, jour: string, field: "heure_debut" | "heure_fin", value: string
+  ) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) =>
+        i === idx
+          ? { ...s, jours: s.jours.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)) }
+          : s
+      ),
     }));
   };
 
