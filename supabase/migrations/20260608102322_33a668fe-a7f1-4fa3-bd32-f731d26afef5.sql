@@ -1,0 +1,1 @@
+ALTER TABLE public.demandes ADD COLUMN IF NOT EXISTS planning jsonb;

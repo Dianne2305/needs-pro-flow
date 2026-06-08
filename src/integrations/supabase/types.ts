@@ -209,6 +209,7 @@ export type Database = {
           note_operationnel: string | null
           notes_client: string | null
           num_demande: number
+          planning: Json | null
           preference_horaire: string | null
           quartier: string | null
           services_optionnels: Json | null
@@ -258,6 +259,7 @@ export type Database = {
           note_operationnel?: string | null
           notes_client?: string | null
           num_demande?: number
+          planning?: Json | null
           preference_horaire?: string | null
           quartier?: string | null
           services_optionnels?: Json | null
@@ -307,6 +309,7 @@ export type Database = {
           note_operationnel?: string | null
           notes_client?: string | null
           num_demande?: number
+          planning?: Json | null
           preference_horaire?: string | null
           quartier?: string | null
           services_optionnels?: Json | null

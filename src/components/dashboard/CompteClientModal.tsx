@@ -103,12 +103,33 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
           </Section>
 
           {/* Fréquence */}
-          <Section title="Fréquence" icon={Clock} color="bg-amber-50 text-amber-800">
-            <div className="py-2 text-sm">
+          <Section title="Fréquence & Planning" icon={Clock} color="bg-amber-50 text-amber-800" defaultOpen={demande.frequence !== "ponctuel"}>
+            <div className="py-2 text-sm space-y-2">
               <Badge variant="outline">{freq?.label || demande.frequence}</Badge>
-              {demande.frequence !== "ponctuel" && (
-                <p className="mt-2 text-muted-foreground">Abonnement actif — les détails de la récurrence sont configurés dans le besoin.</p>
-              )}
+              {demande.frequence !== "ponctuel" && (() => {
+                const p = (demande as any).planning as { jours?: string[]; heure_debut?: string; heure_fin?: string; frequence?: string; notes?: string } | null;
+                const joursLabels: Record<string, string> = {
+                  lundi: "Lundi", mardi: "Mardi", mercredi: "Mercredi", jeudi: "Jeudi",
+                  vendredi: "Vendredi", samedi: "Samedi", dimanche: "Dimanche",
+                };
+                if (!p || (!p.jours?.length && !p.heure_debut && !p.notes)) {
+                  return <p className="text-muted-foreground">Aucun planning défini — configurez-le depuis le compte client.</p>;
+                }
+                return (
+                  <div className="space-y-1 bg-muted/40 rounded-md p-3">
+                    {p.jours && p.jours.length > 0 && (
+                      <div><span className="text-muted-foreground">Jours :</span> {p.jours.map((j) => joursLabels[j] || j).join(", ")}</div>
+                    )}
+                    {(p.heure_debut || p.heure_fin) && (
+                      <div><span className="text-muted-foreground">Horaires :</span> {p.heure_debut || "—"}{p.heure_fin ? ` → ${p.heure_fin}` : ""}</div>
+                    )}
+                    {p.frequence && (
+                      <div><span className="text-muted-foreground">Fréquence :</span> {FREQUENCES.find((f) => f.value === p.frequence)?.label || p.frequence}</div>
+                    )}
+                    {p.notes && <div><span className="text-muted-foreground">Notes :</span> {p.notes}</div>}
+                  </div>
+                );
+              })()}
             </div>
           </Section>
 
