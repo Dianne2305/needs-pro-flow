@@ -205,6 +205,10 @@ export default function CompteClient() {
   const [aboNote, setAboNote] = useState("");
   const [aboDate, setAboDate] = useState<Date | undefined>();
   const notesInitialized = useState(false);
+  const [planning, setPlanning] = useState<PlanningAbonnement>({
+    jours: [], heure_debut: "", heure_fin: "", frequence: "", notes: "",
+  });
+  const [planningInitialized, setPlanningInitialized] = useState(false);
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
