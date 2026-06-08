@@ -27,11 +27,19 @@ const JOURS_SEMAINE = [
   { value: "dimanche", label: "Dimanche" },
 ] as const;
 
-type PlanningAbonnement = {
-  jours: string[];
+type PlanningJour = {
+  jour: string;
   heure_debut: string;
   heure_fin: string;
+};
+
+type PlanningAbonnement = {
+  semaine_debut: string;
+  semaine_fin: string;
+  date_debut: string;
+  date_fin: string;
   frequence: string;
+  jours: PlanningJour[];
   notes?: string;
 };
 import {
@@ -206,7 +214,8 @@ export default function CompteClient() {
   const [aboDate, setAboDate] = useState<Date | undefined>();
   const notesInitialized = useState(false);
   const [planning, setPlanning] = useState<PlanningAbonnement>({
-    jours: [], heure_debut: "", heure_fin: "", frequence: "", notes: "",
+    semaine_debut: "", semaine_fin: "", date_debut: "", date_fin: "",
+    frequence: "", jours: [], notes: "",
   });
   const [planningInitialized, setPlanningInitialized] = useState(false);
 
@@ -229,12 +238,27 @@ export default function CompteClient() {
   }
 
   if (demande && !planningInitialized) {
-    const p = ((demande as any).planning || {}) as Partial<PlanningAbonnement>;
+    const p = ((demande as any).planning || {}) as any;
+    // Backward compat : ancien format { jours: string[], heure_debut, heure_fin }
+    let jours: PlanningJour[] = [];
+    if (Array.isArray(p.jours)) {
+      if (p.jours.length > 0 && typeof p.jours[0] === "string") {
+        jours = p.jours.map((j: string) => ({
+          jour: j,
+          heure_debut: p.heure_debut || "",
+          heure_fin: p.heure_fin || "",
+        }));
+      } else {
+        jours = p.jours as PlanningJour[];
+      }
+    }
     setPlanning({
-      jours: Array.isArray(p.jours) ? p.jours : [],
-      heure_debut: p.heure_debut || "",
-      heure_fin: p.heure_fin || "",
+      semaine_debut: p.semaine_debut || "",
+      semaine_fin: p.semaine_fin || "",
+      date_debut: p.date_debut || "",
+      date_fin: p.date_fin || "",
       frequence: p.frequence || demande.frequence || "",
+      jours,
       notes: p.notes || "",
     });
     setPlanningInitialized(true);
