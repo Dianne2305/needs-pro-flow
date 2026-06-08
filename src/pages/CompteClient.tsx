@@ -223,8 +223,8 @@ export default function CompteClient() {
   const [aboDate, setAboDate] = useState<Date | undefined>();
   const notesInitialized = useState(false);
   const [planning, setPlanning] = useState<PlanningAbonnement>({
-    semaine_debut: "", semaine_fin: "", date_debut: "", date_fin: "",
-    frequence: "", jours: [], notes: "",
+    semaines: [], date_debut: "", date_fin: "",
+    frequence: "", notes: "",
   });
   const [planningInitialized, setPlanningInitialized] = useState(false);
 
@@ -248,26 +248,36 @@ export default function CompteClient() {
 
   if (demande && !planningInitialized) {
     const p = ((demande as any).planning || {}) as any;
-    // Backward compat : ancien format { jours: string[], heure_debut, heure_fin }
-    let jours: PlanningJour[] = [];
-    if (Array.isArray(p.jours)) {
-      if (p.jours.length > 0 && typeof p.jours[0] === "string") {
-        jours = p.jours.map((j: string) => ({
-          jour: j,
-          heure_debut: p.heure_debut || "",
-          heure_fin: p.heure_fin || "",
-        }));
-      } else {
-        jours = p.jours as PlanningJour[];
+    // Compat ancien format mono-semaine
+    let semaines: PlanningSemaine[] = [];
+    if (Array.isArray(p.semaines) && p.semaines.length > 0) {
+      semaines = p.semaines.map((s: any) => ({
+        semaine_debut: s.semaine_debut || "",
+        semaine_fin: s.semaine_fin || "",
+        jours: Array.isArray(s.jours) ? s.jours : [],
+      }));
+    } else if (Array.isArray(p.jours)) {
+      const legacyJours: PlanningJour[] =
+        p.jours.length > 0 && typeof p.jours[0] === "string"
+          ? p.jours.map((j: string) => ({
+              jour: j,
+              heure_debut: p.heure_debut || "",
+              heure_fin: p.heure_fin || "",
+            }))
+          : (p.jours as PlanningJour[]);
+      if (legacyJours.length > 0 || p.semaine_debut || p.semaine_fin) {
+        semaines = [{
+          semaine_debut: p.semaine_debut || "",
+          semaine_fin: p.semaine_fin || "",
+          jours: legacyJours,
+        }];
       }
     }
     setPlanning({
-      semaine_debut: p.semaine_debut || "",
-      semaine_fin: p.semaine_fin || "",
+      semaines,
       date_debut: p.date_debut || "",
       date_fin: p.date_fin || "",
       frequence: p.frequence || demande.frequence || "",
-      jours,
       notes: p.notes || "",
     });
     setPlanningInitialized(true);
