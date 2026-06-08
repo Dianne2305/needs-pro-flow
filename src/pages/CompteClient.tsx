@@ -379,6 +379,21 @@ export default function CompteClient() {
     updateMutation.mutate({ note_commercial: noteComm || null, note_operationnel: noteOpe || null });
   };
 
+  const togglePlanningJour = (jour: string) => {
+    setPlanning((prev) => ({
+      ...prev,
+      jours: prev.jours.includes(jour) ? prev.jours.filter((j) => j !== jour) : [...prev.jours, jour],
+    }));
+  };
+
+  const savePlanning = () => {
+    const updates: Record<string, unknown> = { planning: planning as any };
+    if (planning.frequence && planning.frequence !== demande.frequence) {
+      updates.frequence = planning.frequence;
+    }
+    updateMutation.mutate(updates);
+  };
+
   // Mock history actions (future: store in a separate table)
   const historyActions = [
     { user: "Système", date: demande.created_at, action: "Demande créée", note: "" },
