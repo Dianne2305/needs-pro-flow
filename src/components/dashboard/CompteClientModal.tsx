@@ -111,6 +111,7 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
                   semaines?: Array<{
                     semaine_debut?: string; semaine_fin?: string;
                     jours?: Array<{ jour: string; heure_debut?: string; heure_fin?: string }>;
+                    statut?: "en_cours" | "termine";
                   }>;
                   // legacy
                   semaine_debut?: string; semaine_fin?: string;
@@ -127,12 +128,14 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
                 let semaines: Array<{
                   semaine_debut?: string; semaine_fin?: string;
                   jours: Array<{ jour: string; heure_debut?: string; heure_fin?: string }>;
+                  statut?: "en_cours" | "termine";
                 }> = [];
                 if (p?.semaines && p.semaines.length > 0) {
                   semaines = p.semaines.map((s) => ({
                     semaine_debut: s.semaine_debut,
                     semaine_fin: s.semaine_fin,
                     jours: (s.jours || []),
+                    statut: s.statut,
                   }));
                 } else if (p?.jours && p.jours.length > 0) {
                   semaines = [{
@@ -162,10 +165,22 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
                     )}
                     {semaines.map((s, i) => (
                       <div key={i} className="pt-1 border-t first:border-t-0 first:pt-0">
-                        <div className="font-semibold text-xs">
-                          {s.semaine_debut || s.semaine_fin
-                            ? `Semaine du ${s.semaine_debut || "?"}${s.semaine_fin ? ` au ${s.semaine_fin}` : ""}`
-                            : `Semaine ${i + 1}`}
+                        <div className="flex items-center gap-2 font-semibold text-xs">
+                          <span>
+                            {s.semaine_debut || s.semaine_fin
+                              ? `Semaine du ${s.semaine_debut || "?"}${s.semaine_fin ? ` au ${s.semaine_fin}` : ""}`
+                              : `Semaine ${i + 1}`}
+                          </span>
+                          <Badge
+                            variant="secondary"
+                            className={`text-[10px] px-1.5 py-0 h-4 ${
+                              s.statut === "termine"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {s.statut === "termine" ? "Terminé" : "En cours"}
+                          </Badge>
                         </div>
                         {s.jours.length > 0 && (
                           <ul className="pl-4 list-disc space-y-0.5 mt-0.5">
