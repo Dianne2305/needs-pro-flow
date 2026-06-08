@@ -33,13 +33,22 @@ type PlanningJour = {
   heure_fin: string;
 };
 
-type PlanningAbonnement = {
+type PlanningSemaine = {
   semaine_debut: string;
   semaine_fin: string;
+  jours: PlanningJour[];
+};
+
+type PlanningAbonnement = {
+  // legacy fields (compat ascendante avec ancien format mono-semaine)
+  semaine_debut?: string;
+  semaine_fin?: string;
+  jours?: PlanningJour[];
+  // nouveau modèle multi-semaines
+  semaines: PlanningSemaine[];
   date_debut: string;
   date_fin: string;
   frequence: string;
-  jours: PlanningJour[];
   notes?: string;
 };
 import {
