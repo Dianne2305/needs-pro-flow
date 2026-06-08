@@ -14,7 +14,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { STATUTS, FREQUENCES, STATUT_CANDIDATURE_OPTIONS } from "@/lib/constants";
+
+const JOURS_SEMAINE = [
+  { value: "lundi", label: "Lundi" },
+  { value: "mardi", label: "Mardi" },
+  { value: "mercredi", label: "Mercredi" },
+  { value: "jeudi", label: "Jeudi" },
+  { value: "vendredi", label: "Vendredi" },
+  { value: "samedi", label: "Samedi" },
+  { value: "dimanche", label: "Dimanche" },
+] as const;
+
+type PlanningAbonnement = {
+  jours: string[];
+  heure_debut: string;
+  heure_fin: string;
+  frequence: string;
+  notes?: string;
+};
 import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
