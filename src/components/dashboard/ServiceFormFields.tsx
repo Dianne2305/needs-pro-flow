@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { FREQUENCES } from "@/lib/constants";
 
 const TYPES_HABITATION = ["Studio", "Appartement", "Duplex", "Villa", "Maison"] as const;
 const TYPES_HABITATION_SINISTRE = ["Studio", "Appartement", "Duplex", "Villa", "Bureau"] as const;
