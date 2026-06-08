@@ -738,17 +738,21 @@ export default function CompteClient() {
                               <span className="text-xs text-muted-foreground truncate">— {summary}</span>
                             </button>
                           </CollapsibleTrigger>
-                          <Badge
-                            onClick={(e) => { e.stopPropagation(); toggleSemaineStatut(idx); }}
-                            className={`cursor-pointer text-[10px] px-2 py-0 h-5 ${
+                          <label
+                            onClick={(e) => e.stopPropagation()}
+                            className={`flex items-center gap-1.5 cursor-pointer px-2 h-6 rounded-md border text-[11px] font-medium ${
                               sem.statut === "termine"
-                                ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                                : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : "bg-amber-100 text-amber-800 border-amber-200"
                             }`}
-                            variant="secondary"
                           >
-                            {sem.statut === "termine" ? "Terminé" : "En cours"}
-                          </Badge>
+                            <Checkbox
+                              checked={sem.statut === "termine"}
+                              onCheckedChange={() => toggleSemaineStatut(idx)}
+                              className="h-3.5 w-3.5"
+                            />
+                            {sem.statut === "termine" ? "Terminée" : "En cours"}
+                          </label>
                           <Button
                             type="button" size="icon" variant="ghost"
                             onClick={() => removeSemaine(idx)}
