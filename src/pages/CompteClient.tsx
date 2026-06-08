@@ -37,6 +37,7 @@ type PlanningSemaine = {
   semaine_debut: string;
   semaine_fin: string;
   jours: PlanningJour[];
+  statut?: "en_cours" | "termine";
 };
 
 type PlanningAbonnement = {
@@ -424,7 +425,16 @@ export default function CompteClient() {
   const addSemaine = () => {
     setPlanning((prev) => ({
       ...prev,
-      semaines: [...prev.semaines, { semaine_debut: "", semaine_fin: "", jours: [] }],
+      semaines: [...prev.semaines, { semaine_debut: "", semaine_fin: "", jours: [], statut: "en_cours" }],
+    }));
+  };
+
+  const toggleSemaineStatut = (idx: number) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) =>
+        i === idx ? { ...s, statut: s.statut === "termine" ? "en_cours" : "termine" } : s
+      ),
     }));
   };
 
@@ -728,6 +738,17 @@ export default function CompteClient() {
                               <span className="text-xs text-muted-foreground truncate">— {summary}</span>
                             </button>
                           </CollapsibleTrigger>
+                          <Badge
+                            onClick={(e) => { e.stopPropagation(); toggleSemaineStatut(idx); }}
+                            className={`cursor-pointer text-[10px] px-2 py-0 h-5 ${
+                              sem.statut === "termine"
+                                ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                                : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                            }`}
+                            variant="secondary"
+                          >
+                            {sem.statut === "termine" ? "Terminé" : "En cours"}
+                          </Badge>
                           <Button
                             type="button" size="icon" variant="ghost"
                             onClick={() => removeSemaine(idx)}
@@ -736,6 +757,7 @@ export default function CompteClient() {
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
+
                         <CollapsibleContent className="px-3 pb-3 pt-1 space-y-2">
                           <div className="grid grid-cols-2 gap-2">
                             <div className="space-y-1">
