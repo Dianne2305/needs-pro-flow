@@ -228,6 +228,18 @@ export default function CompteClient() {
     notesInitialized[1](true);
   }
 
+  if (demande && !planningInitialized) {
+    const p = ((demande as any).planning || {}) as Partial<PlanningAbonnement>;
+    setPlanning({
+      jours: Array.isArray(p.jours) ? p.jours : [],
+      heure_debut: p.heure_debut || "",
+      heure_fin: p.heure_fin || "",
+      frequence: p.frequence || demande.frequence || "",
+      notes: p.notes || "",
+    });
+    setPlanningInitialized(true);
+  }
+
   if (demande && !renewInitialized) {
     setRenewForm({
       nom: demande.nom,
