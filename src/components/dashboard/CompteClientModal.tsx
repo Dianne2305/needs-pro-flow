@@ -107,26 +107,60 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
             <div className="py-2 text-sm space-y-2">
               <Badge variant="outline">{freq?.label || demande.frequence}</Badge>
               {demande.frequence !== "ponctuel" && (() => {
-                const p = (demande as any).planning as { jours?: string[]; heure_debut?: string; heure_fin?: string; frequence?: string; notes?: string } | null;
+                const p = (demande as any).planning as {
+                  semaine_debut?: string; semaine_fin?: string;
+                  date_debut?: string; date_fin?: string;
+                  jours?: Array<string | { jour: string; heure_debut?: string; heure_fin?: string }>;
+                  heure_debut?: string; heure_fin?: string;
+                  frequence?: string; notes?: string;
+                } | null;
                 const joursLabels: Record<string, string> = {
                   lundi: "Lundi", mardi: "Mardi", mercredi: "Mercredi", jeudi: "Jeudi",
                   vendredi: "Vendredi", samedi: "Samedi", dimanche: "Dimanche",
                 };
-                if (!p || (!p.jours?.length && !p.heure_debut && !p.notes)) {
+                if (!p || (!p.jours?.length && !p.date_debut && !p.notes)) {
                   return <p className="text-muted-foreground">Aucun planning défini — configurez-le depuis le compte client.</p>;
                 }
+                // Normalise jours (compat ancien format)
+                const joursDetailed = (p.jours || []).map((j) =>
+                  typeof j === "string"
+                    ? { jour: j, heure_debut: p.heure_debut || "", heure_fin: p.heure_fin || "" }
+                    : j
+                );
                 return (
-                  <div className="space-y-1 bg-muted/40 rounded-md p-3">
-                    {p.jours && p.jours.length > 0 && (
-                      <div><span className="text-muted-foreground">Jours :</span> {p.jours.map((j) => joursLabels[j] || j).join(", ")}</div>
-                    )}
-                    {(p.heure_debut || p.heure_fin) && (
-                      <div><span className="text-muted-foreground">Horaires :</span> {p.heure_debut || "—"}{p.heure_fin ? ` → ${p.heure_fin}` : ""}</div>
-                    )}
+                  <div className="space-y-2 bg-muted/40 rounded-md p-3 text-sm">
                     {p.frequence && (
                       <div><span className="text-muted-foreground">Fréquence :</span> {FREQUENCES.find((f) => f.value === p.frequence)?.label || p.frequence}</div>
                     )}
-                    {p.notes && <div><span className="text-muted-foreground">Notes :</span> {p.notes}</div>}
+                    {(p.date_debut || p.date_fin) && (
+                      <div>
+                        <span className="text-muted-foreground">Période :</span>{" "}
+                        {p.date_debut ? `du ${p.date_debut}` : "—"}
+                        {p.date_fin ? ` au ${p.date_fin}` : " (sans date de fin)"}
+                      </div>
+                    )}
+                    {(p.semaine_debut || p.semaine_fin) && (
+                      <div>
+                        <span className="text-muted-foreground">Semaine type :</span>{" "}
+                        {p.semaine_debut || "—"}{p.semaine_fin ? ` → ${p.semaine_fin}` : ""}
+                      </div>
+                    )}
+                    {joursDetailed.length > 0 && (
+                      <div className="pt-1">
+                        <div className="text-muted-foreground mb-1">Jours d'intervention :</div>
+                        <ul className="pl-4 list-disc space-y-0.5">
+                          {joursDetailed.map((jd) => (
+                            <li key={jd.jour}>
+                              <span className="font-medium">{joursLabels[jd.jour] || jd.jour}</span>
+                              {(jd.heure_debut || jd.heure_fin) && (
+                                <span className="text-muted-foreground"> — {jd.heure_debut || "?"}{jd.heure_fin ? ` à ${jd.heure_fin}` : ""}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {p.notes && <div className="pt-1"><span className="text-muted-foreground">Notes :</span> {p.notes}</div>}
                   </div>
                 );
               })()}
