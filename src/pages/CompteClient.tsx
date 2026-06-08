@@ -37,6 +37,7 @@ type PlanningSemaine = {
   semaine_debut: string;
   semaine_fin: string;
   jours: PlanningJour[];
+  statut?: "en_cours" | "termine";
 };
 
 type PlanningAbonnement = {
