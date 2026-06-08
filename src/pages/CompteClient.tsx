@@ -564,30 +564,87 @@ export default function CompteClient() {
               </span>
             </div>
             {demande.frequence !== "ponctuel" && (
-              <div className="space-y-2 border-t pt-3">
-                <p className="text-xs font-semibold text-muted-foreground">Programmer les interventions</p>
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <Textarea
-                      value={aboNote}
-                      onChange={(e) => setAboNote(e.target.value)}
-                      rows={2}
-                      placeholder="Détails planning (ex : Lundi et Jeudi, 9h-12h)..."
-                      className="resize-none bg-background/60"
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Planning de l'abonnement</p>
+                  <Button size="sm" onClick={savePlanning} disabled={updateMutation.isPending} className="gap-1.5">
+                    <Save className="h-3.5 w-3.5" /> Enregistrer le planning
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-muted-foreground">Jours d'intervention</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {JOURS_SEMAINE.map((j) => (
+                      <label key={j.value} className="flex items-center gap-2 px-3 py-1.5 rounded-md border bg-background/60 cursor-pointer hover:bg-background">
+                        <Checkbox
+                          checked={planning.jours.includes(j.value)}
+                          onCheckedChange={() => togglePlanningJour(j.value)}
+                        />
+                        <span className="text-sm">{j.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground">Heure de début</Label>
+                    <Input
+                      type="time"
+                      value={planning.heure_debut}
+                      onChange={(e) => setPlanning({ ...planning, heure_debut: e.target.value })}
+                      className="bg-background/60"
                     />
                   </div>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-1.5">
-                        <CalendarIcon className="h-3.5 w-3.5" />
-                        {aboDate ? format(aboDate, "dd/MM/yyyy") : "Date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={aboDate} onSelect={setAboDate} className="p-3 pointer-events-auto" />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground">Heure de fin</Label>
+                    <Input
+                      type="time"
+                      value={planning.heure_fin}
+                      onChange={(e) => setPlanning({ ...planning, heure_fin: e.target.value })}
+                      className="bg-background/60"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-muted-foreground">Fréquence des interventions</Label>
+                    <Select
+                      value={planning.frequence}
+                      onValueChange={(v) => setPlanning({ ...planning, frequence: v })}
+                    >
+                      <SelectTrigger className="bg-background/60">
+                        <SelectValue placeholder="Sélectionner..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FREQUENCES.filter((f) => f.value !== "ponctuel").map((f) => (
+                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-muted-foreground">Notes complémentaires (optionnel)</Label>
+                  <Textarea
+                    value={planning.notes || ""}
+                    onChange={(e) => setPlanning({ ...planning, notes: e.target.value })}
+                    rows={2}
+                    placeholder="Précisions sur le planning..."
+                    className="resize-none bg-background/60"
+                  />
+                </div>
+
+                {(planning.jours.length > 0 || planning.heure_debut) && (
+                  <div className="rounded-md bg-background/60 border px-3 py-2 text-sm">
+                    <span className="font-semibold">Résumé : </span>
+                    {planning.jours.length > 0
+                      ? planning.jours.map((j) => JOURS_SEMAINE.find((js) => js.value === j)?.label).join(", ")
+                      : "—"}
+                    {planning.heure_debut && ` • ${planning.heure_debut}${planning.heure_fin ? ` - ${planning.heure_fin}` : ""}`}
+                    {planning.frequence && ` • ${FREQUENCES.find((f) => f.value === planning.frequence)?.label || planning.frequence}`}
+                  </div>
+                )}
               </div>
             )}
           </div>
