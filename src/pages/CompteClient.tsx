@@ -33,20 +33,29 @@ type PlanningJour = {
   heure_fin: string;
 };
 
-type PlanningAbonnement = {
+type PlanningSemaine = {
   semaine_debut: string;
   semaine_fin: string;
+  jours: PlanningJour[];
+};
+
+type PlanningAbonnement = {
+  // legacy fields (compat ascendante avec ancien format mono-semaine)
+  semaine_debut?: string;
+  semaine_fin?: string;
+  jours?: PlanningJour[];
+  // nouveau modèle multi-semaines
+  semaines: PlanningSemaine[];
   date_debut: string;
   date_fin: string;
   frequence: string;
-  jours: PlanningJour[];
   notes?: string;
 };
 import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
   FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
-  Ban, History
+  Ban, History, Plus, Trash2
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -214,8 +223,8 @@ export default function CompteClient() {
   const [aboDate, setAboDate] = useState<Date | undefined>();
   const notesInitialized = useState(false);
   const [planning, setPlanning] = useState<PlanningAbonnement>({
-    semaine_debut: "", semaine_fin: "", date_debut: "", date_fin: "",
-    frequence: "", jours: [], notes: "",
+    semaines: [], date_debut: "", date_fin: "",
+    frequence: "", notes: "",
   });
   const [planningInitialized, setPlanningInitialized] = useState(false);
 
@@ -239,26 +248,36 @@ export default function CompteClient() {
 
   if (demande && !planningInitialized) {
     const p = ((demande as any).planning || {}) as any;
-    // Backward compat : ancien format { jours: string[], heure_debut, heure_fin }
-    let jours: PlanningJour[] = [];
-    if (Array.isArray(p.jours)) {
-      if (p.jours.length > 0 && typeof p.jours[0] === "string") {
-        jours = p.jours.map((j: string) => ({
-          jour: j,
-          heure_debut: p.heure_debut || "",
-          heure_fin: p.heure_fin || "",
-        }));
-      } else {
-        jours = p.jours as PlanningJour[];
+    // Compat ancien format mono-semaine
+    let semaines: PlanningSemaine[] = [];
+    if (Array.isArray(p.semaines) && p.semaines.length > 0) {
+      semaines = p.semaines.map((s: any) => ({
+        semaine_debut: s.semaine_debut || "",
+        semaine_fin: s.semaine_fin || "",
+        jours: Array.isArray(s.jours) ? s.jours : [],
+      }));
+    } else if (Array.isArray(p.jours)) {
+      const legacyJours: PlanningJour[] =
+        p.jours.length > 0 && typeof p.jours[0] === "string"
+          ? p.jours.map((j: string) => ({
+              jour: j,
+              heure_debut: p.heure_debut || "",
+              heure_fin: p.heure_fin || "",
+            }))
+          : (p.jours as PlanningJour[]);
+      if (legacyJours.length > 0 || p.semaine_debut || p.semaine_fin) {
+        semaines = [{
+          semaine_debut: p.semaine_debut || "",
+          semaine_fin: p.semaine_fin || "",
+          jours: legacyJours,
+        }];
       }
     }
     setPlanning({
-      semaine_debut: p.semaine_debut || "",
-      semaine_fin: p.semaine_fin || "",
+      semaines,
       date_debut: p.date_debut || "",
       date_fin: p.date_fin || "",
       frequence: p.frequence || demande.frequence || "",
-      jours,
       notes: p.notes || "",
     });
     setPlanningInitialized(true);
@@ -400,23 +419,54 @@ export default function CompteClient() {
     updateMutation.mutate({ note_commercial: noteComm || null, note_operationnel: noteOpe || null });
   };
 
-  const togglePlanningJour = (jour: string) => {
-    setPlanning((prev) => {
-      const exists = prev.jours.find((j) => j.jour === jour);
-      const jours = exists
-        ? prev.jours.filter((j) => j.jour !== jour)
-        : [...prev.jours, { jour, heure_debut: "", heure_fin: "" }];
-      // Trier dans l'ordre de la semaine
-      const order = JOURS_SEMAINE.map((j) => j.value) as readonly string[];
-      jours.sort((a, b) => order.indexOf(a.jour) - order.indexOf(b.jour));
-      return { ...prev, jours };
-    });
-  };
+  const order = JOURS_SEMAINE.map((j) => j.value) as readonly string[];
 
-  const updatePlanningJourHeure = (jour: string, field: "heure_debut" | "heure_fin", value: string) => {
+  const addSemaine = () => {
     setPlanning((prev) => ({
       ...prev,
-      jours: prev.jours.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)),
+      semaines: [...prev.semaines, { semaine_debut: "", semaine_fin: "", jours: [] }],
+    }));
+  };
+
+  const removeSemaine = (idx: number) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const updateSemaineDate = (idx: number, field: "semaine_debut" | "semaine_fin", value: string) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) => (i === idx ? { ...s, [field]: value } : s)),
+    }));
+  };
+
+  const togglePlanningJour = (idx: number, jour: string) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) => {
+        if (i !== idx) return s;
+        const exists = s.jours.find((j) => j.jour === jour);
+        const jours = exists
+          ? s.jours.filter((j) => j.jour !== jour)
+          : [...s.jours, { jour, heure_debut: "", heure_fin: "" }];
+        jours.sort((a, b) => order.indexOf(a.jour) - order.indexOf(b.jour));
+        return { ...s, jours };
+      }),
+    }));
+  };
+
+  const updatePlanningJourHeure = (
+    idx: number, jour: string, field: "heure_debut" | "heure_fin", value: string
+  ) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) =>
+        i === idx
+          ? { ...s, jours: s.jours.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)) }
+          : s
+      ),
     }));
   };
 
@@ -644,66 +694,102 @@ export default function CompteClient() {
                   </div>
                 </div>
 
-                {/* Semaine type */}
-                <div className="space-y-2 border rounded-md bg-background/60 p-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-muted-foreground">Semaine type — du</Label>
-                      <Input
-                        type="date"
-                        value={planning.semaine_debut}
-                        onChange={(e) => setPlanning({ ...planning, semaine_debut: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold text-muted-foreground">Au</Label>
-                      <Input
-                        type="date"
-                        value={planning.semaine_fin}
-                        onChange={(e) => setPlanning({ ...planning, semaine_fin: e.target.value })}
-                      />
-                    </div>
+                {/* Semaines (multi) */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-muted-foreground">Semaines & jours d'intervention</Label>
+                    <Button type="button" size="sm" variant="outline" onClick={addSemaine} className="h-7 gap-1.5">
+                      <Plus className="h-3.5 w-3.5" /> Ajouter une semaine
+                    </Button>
                   </div>
 
-                  <div className="space-y-2 pt-2">
-                    <Label className="text-xs font-semibold text-muted-foreground">Jours & horaires d'intervention</Label>
-                    <div className="space-y-2">
-                      {JOURS_SEMAINE.map((j) => {
-                        const selected = planning.jours.find((pj) => pj.jour === j.value);
-                        return (
-                          <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1.5 rounded-md border bg-background/80">
-                            <label className="col-span-4 sm:col-span-3 flex items-center gap-2 cursor-pointer">
-                              <Checkbox
-                                checked={!!selected}
-                                onCheckedChange={() => togglePlanningJour(j.value)}
-                              />
-                              <span className="text-sm font-medium">{j.label}</span>
-                            </label>
-                            <div className="col-span-4 sm:col-span-4">
+                  {planning.semaines.length === 0 && (
+                    <p className="text-xs text-muted-foreground italic px-1">Aucune semaine. Cliquez sur "Ajouter une semaine".</p>
+                  )}
+
+                  {planning.semaines.map((sem, idx) => {
+                    const summary = sem.jours.length > 0
+                      ? sem.jours.map((j) => {
+                          const lbl = JOURS_SEMAINE.find((js) => js.value === j.jour)?.label.slice(0, 3);
+                          const h = j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `-${j.heure_fin}` : ""}` : "";
+                          return `${lbl}${h}`;
+                        }).join(" · ")
+                      : "aucun jour";
+                    const title = sem.semaine_debut || sem.semaine_fin
+                      ? `Semaine du ${sem.semaine_debut || "?"}${sem.semaine_fin ? ` au ${sem.semaine_fin}` : ""}`
+                      : `Semaine ${idx + 1}`;
+                    return (
+                      <Collapsible key={idx} defaultOpen={idx === 0} className="border rounded-md bg-background/60">
+                        <div className="flex items-center gap-2 px-2 py-1.5">
+                          <CollapsibleTrigger asChild>
+                            <button type="button" className="flex-1 flex items-center gap-2 text-left">
+                              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform data-[state=closed]:-rotate-90" />
+                              <span className="text-sm font-semibold">{title}</span>
+                              <span className="text-xs text-muted-foreground truncate">— {summary}</span>
+                            </button>
+                          </CollapsibleTrigger>
+                          <Button
+                            type="button" size="icon" variant="ghost"
+                            onClick={() => removeSemaine(idx)}
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        <CollapsibleContent className="px-3 pb-3 pt-1 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground">Du</Label>
                               <Input
-                                type="time"
-                                value={selected?.heure_debut || ""}
-                                onChange={(e) => updatePlanningJourHeure(j.value, "heure_debut", e.target.value)}
-                                disabled={!selected}
-                                className="h-8"
-                                placeholder="Début"
+                                type="date" className="h-8"
+                                value={sem.semaine_debut}
+                                onChange={(e) => updateSemaineDate(idx, "semaine_debut", e.target.value)}
                               />
                             </div>
-                            <div className="col-span-4 sm:col-span-4">
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground">Au</Label>
                               <Input
-                                type="time"
-                                value={selected?.heure_fin || ""}
-                                onChange={(e) => updatePlanningJourHeure(j.value, "heure_fin", e.target.value)}
-                                disabled={!selected}
-                                className="h-8"
-                                placeholder="Fin"
+                                type="date" className="h-8"
+                                value={sem.semaine_fin}
+                                onChange={(e) => updateSemaineDate(idx, "semaine_fin", e.target.value)}
                               />
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+
+                          <div className="space-y-1 pt-1">
+                            {JOURS_SEMAINE.map((j) => {
+                              const selected = sem.jours.find((pj) => pj.jour === j.value);
+                              return (
+                                <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1 rounded border bg-background/80">
+                                  <label className="col-span-4 flex items-center gap-2 cursor-pointer">
+                                    <Checkbox
+                                      checked={!!selected}
+                                      onCheckedChange={() => togglePlanningJour(idx, j.value)}
+                                    />
+                                    <span className="text-xs font-medium">{j.label}</span>
+                                  </label>
+                                  <Input
+                                    type="time"
+                                    value={selected?.heure_debut || ""}
+                                    onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_debut", e.target.value)}
+                                    disabled={!selected}
+                                    className="col-span-4 h-7 text-xs"
+                                  />
+                                  <Input
+                                    type="time"
+                                    value={selected?.heure_fin || ""}
+                                    onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_fin", e.target.value)}
+                                    disabled={!selected}
+                                    className="col-span-4 h-7 text-xs"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    );
+                  })}
                 </div>
 
                 <div className="space-y-1.5">
@@ -717,30 +803,6 @@ export default function CompteClient() {
                   />
                 </div>
 
-                {planning.jours.length > 0 && (
-                  <div className="rounded-md bg-background/60 border px-3 py-2 text-sm space-y-1">
-                    <div className="font-semibold">Résumé du planning</div>
-                    {planning.date_debut && (
-                      <div className="text-xs text-muted-foreground">
-                        Du {planning.date_debut}{planning.date_fin ? ` au ${planning.date_fin}` : " (sans date de fin)"}
-                        {planning.frequence && ` • ${FREQUENCES.find((f) => f.value === planning.frequence)?.label || planning.frequence}`}
-                      </div>
-                    )}
-                    {planning.semaine_debut && (
-                      <div className="text-xs text-muted-foreground">
-                        Semaine type : {planning.semaine_debut}{planning.semaine_fin ? ` → ${planning.semaine_fin}` : ""}
-                      </div>
-                    )}
-                    <ul className="text-xs pl-4 list-disc">
-                      {planning.jours.map((pj) => (
-                        <li key={pj.jour}>
-                          {JOURS_SEMAINE.find((js) => js.value === pj.jour)?.label}
-                          {(pj.heure_debut || pj.heure_fin) && ` — ${pj.heure_debut || "?"}${pj.heure_fin ? ` à ${pj.heure_fin}` : ""}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             )}
           </div>

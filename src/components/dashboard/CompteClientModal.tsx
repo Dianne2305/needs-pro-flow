@@ -108,25 +108,46 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
               <Badge variant="outline">{freq?.label || demande.frequence}</Badge>
               {demande.frequence !== "ponctuel" && (() => {
                 const p = (demande as any).planning as {
+                  semaines?: Array<{
+                    semaine_debut?: string; semaine_fin?: string;
+                    jours?: Array<{ jour: string; heure_debut?: string; heure_fin?: string }>;
+                  }>;
+                  // legacy
                   semaine_debut?: string; semaine_fin?: string;
-                  date_debut?: string; date_fin?: string;
                   jours?: Array<string | { jour: string; heure_debut?: string; heure_fin?: string }>;
                   heure_debut?: string; heure_fin?: string;
+                  date_debut?: string; date_fin?: string;
                   frequence?: string; notes?: string;
                 } | null;
                 const joursLabels: Record<string, string> = {
                   lundi: "Lundi", mardi: "Mardi", mercredi: "Mercredi", jeudi: "Jeudi",
                   vendredi: "Vendredi", samedi: "Samedi", dimanche: "Dimanche",
                 };
-                if (!p || (!p.jours?.length && !p.date_debut && !p.notes)) {
+                // Normalisation : nouveau modèle = semaines[]; sinon compat ancien mono-semaine
+                let semaines: Array<{
+                  semaine_debut?: string; semaine_fin?: string;
+                  jours: Array<{ jour: string; heure_debut?: string; heure_fin?: string }>;
+                }> = [];
+                if (p?.semaines && p.semaines.length > 0) {
+                  semaines = p.semaines.map((s) => ({
+                    semaine_debut: s.semaine_debut,
+                    semaine_fin: s.semaine_fin,
+                    jours: (s.jours || []),
+                  }));
+                } else if (p?.jours && p.jours.length > 0) {
+                  semaines = [{
+                    semaine_debut: p.semaine_debut,
+                    semaine_fin: p.semaine_fin,
+                    jours: p.jours.map((j) =>
+                      typeof j === "string"
+                        ? { jour: j, heure_debut: p.heure_debut, heure_fin: p.heure_fin }
+                        : j
+                    ),
+                  }];
+                }
+                if (!p || (semaines.length === 0 && !p.date_debut && !p.notes)) {
                   return <p className="text-muted-foreground">Aucun planning défini — configurez-le depuis le compte client.</p>;
                 }
-                // Normalise jours (compat ancien format)
-                const joursDetailed = (p.jours || []).map((j) =>
-                  typeof j === "string"
-                    ? { jour: j, heure_debut: p.heure_debut || "", heure_fin: p.heure_fin || "" }
-                    : j
-                );
                 return (
                   <div className="space-y-2 bg-muted/40 rounded-md p-3 text-sm">
                     {p.frequence && (
@@ -139,28 +160,28 @@ export function CompteClientModal({ demande, open, onOpenChange, onSave }: Props
                         {p.date_fin ? ` au ${p.date_fin}` : " (sans date de fin)"}
                       </div>
                     )}
-                    {(p.semaine_debut || p.semaine_fin) && (
-                      <div>
-                        <span className="text-muted-foreground">Semaine type :</span>{" "}
-                        {p.semaine_debut || "—"}{p.semaine_fin ? ` → ${p.semaine_fin}` : ""}
+                    {semaines.map((s, i) => (
+                      <div key={i} className="pt-1 border-t first:border-t-0 first:pt-0">
+                        <div className="font-semibold text-xs">
+                          {s.semaine_debut || s.semaine_fin
+                            ? `Semaine du ${s.semaine_debut || "?"}${s.semaine_fin ? ` au ${s.semaine_fin}` : ""}`
+                            : `Semaine ${i + 1}`}
+                        </div>
+                        {s.jours.length > 0 && (
+                          <ul className="pl-4 list-disc space-y-0.5 mt-0.5">
+                            {s.jours.map((jd) => (
+                              <li key={jd.jour}>
+                                <span className="font-medium">{joursLabels[jd.jour] || jd.jour}</span>
+                                {(jd.heure_debut || jd.heure_fin) && (
+                                  <span className="text-muted-foreground"> — {jd.heure_debut || "?"}{jd.heure_fin ? ` à ${jd.heure_fin}` : ""}</span>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
-                    )}
-                    {joursDetailed.length > 0 && (
-                      <div className="pt-1">
-                        <div className="text-muted-foreground mb-1">Jours d'intervention :</div>
-                        <ul className="pl-4 list-disc space-y-0.5">
-                          {joursDetailed.map((jd) => (
-                            <li key={jd.jour}>
-                              <span className="font-medium">{joursLabels[jd.jour] || jd.jour}</span>
-                              {(jd.heure_debut || jd.heure_fin) && (
-                                <span className="text-muted-foreground"> — {jd.heure_debut || "?"}{jd.heure_fin ? ` à ${jd.heure_fin}` : ""}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {p.notes && <div className="pt-1"><span className="text-muted-foreground">Notes :</span> {p.notes}</div>}
+                    ))}
+                    {p.notes && <div className="pt-1 border-t"><span className="text-muted-foreground">Notes :</span> {p.notes}</div>}
                   </div>
                 );
               })()}
