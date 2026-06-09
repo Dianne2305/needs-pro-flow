@@ -388,7 +388,8 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       // Récupère le nom d'affichage de l'utilisateur connecté pour traçabilité
       let currentUserName: string | null = null;
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         if (user) {
           const { data: prof } = await supabase
             .from("profiles")
@@ -409,7 +410,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       };
 
       // Traçabilité : qui a ajouté la part du profil (premier renseignement)
-      if (currentUserName && !(facturationData as any)?.created_by_name && firstProfil?.profilId) {
+      if (currentUserName && !(facturationData as any)?.created_by_name) {
         (factUpdates as any).created_by_name = currentUserName;
       }
 
