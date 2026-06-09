@@ -983,6 +983,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     <strong className="text-foreground">
                                       {format(new Date(facturationData.created_at), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
                                     </strong>
+                                    {(facturationData as any)?.created_by_name && (
+                                      <> par <strong className="text-foreground">{(facturationData as any).created_by_name}</strong></>
+                                    )}
                                   </span>
                                 )}
                                 {facturationData?.part_profil_versee && facturationData?.date_versement_profil && (
@@ -991,6 +994,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     <strong>
                                       {format(new Date(facturationData.date_versement_profil), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
                                     </strong>
+                                    {(facturationData as any)?.validated_by_name && (
+                                      <> par <strong>{(facturationData as any).validated_by_name}</strong></>
+                                    )}
                                   </span>
                                 )}
                               </div>
