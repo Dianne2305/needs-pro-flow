@@ -385,6 +385,20 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         ? `${selectedProfil.prenom} ${selectedProfil.nom}`
         : demande.candidat_nom || null;
 
+      // Récupère le nom d'affichage de l'utilisateur connecté pour traçabilité
+      let currentUserName: string | null = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("id", user.id)
+            .maybeSingle();
+          currentUserName = prof?.display_name || user.email || null;
+        }
+      } catch { /* ignore */ }
+
       const factUpdates: Record<string, unknown> = {
         statut_paiement: statutPaiement,
         montant_paye_client: montantVerse ? Number(montantVerse) : null,
@@ -393,6 +407,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         profil_id: firstProfil?.profilId || null,
         profil_nom: profilNom,
       };
+
+      // Traçabilité : qui a ajouté la part du profil (premier renseignement)
+      if (currentUserName && !(facturationData as any)?.created_by_name && firstProfil?.profilId) {
+        (factUpdates as any).created_by_name = currentUserName;
+      }
 
       // Set encaisse_par based on new status
       if (statutPaiement === "agence_payee_client" || statutPaiement === "paye") {
@@ -414,6 +433,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         factUpdates.part_profil_versee = true;
         factUpdates.date_paiement_client = new Date().toISOString().split("T")[0];
         factUpdates.statut_mission = "paye";
+        if (currentUserName && !(facturationData as any)?.validated_by_name) {
+          (factUpdates as any).validated_by_name = currentUserName;
+        }
       }
 
       // If facturation annulée
@@ -961,6 +983,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     <strong className="text-foreground">
                                       {format(new Date(facturationData.created_at), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
                                     </strong>
+                                    {(facturationData as any)?.created_by_name && (
+                                      <> par <strong className="text-foreground">{(facturationData as any).created_by_name}</strong></>
+                                    )}
                                   </span>
                                 )}
                                 {facturationData?.part_profil_versee && facturationData?.date_versement_profil && (
@@ -969,6 +994,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     <strong>
                                       {format(new Date(facturationData.date_versement_profil), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
                                     </strong>
+                                    {(facturationData as any)?.validated_by_name && (
+                                      <> par <strong>{(facturationData as any).validated_by_name}</strong></>
+                                    )}
                                   </span>
                                 )}
                               </div>

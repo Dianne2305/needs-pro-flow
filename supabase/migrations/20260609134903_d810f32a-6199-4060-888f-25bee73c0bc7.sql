@@ -1,0 +1,1 @@
+ALTER TABLE public.facturation ADD COLUMN IF NOT EXISTS created_by_name text, ADD COLUMN IF NOT EXISTS validated_by_name text;
