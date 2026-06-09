@@ -953,7 +953,28 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 </div>
                               </div>
                             </div>
+                            {(facturationData?.created_at || (facturationData?.part_profil_versee && facturationData?.date_versement_profil)) && (
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-2 text-[11px] text-muted-foreground border-t border-dashed">
+                                {facturationData?.created_at && (
+                                  <span>
+                                    Part ajoutée le{" "}
+                                    <strong className="text-foreground">
+                                      {format(new Date(facturationData.created_at), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
+                                    </strong>
+                                  </span>
+                                )}
+                                {facturationData?.part_profil_versee && facturationData?.date_versement_profil && (
+                                  <span className="text-emerald-700">
+                                    ✓ Part validée le{" "}
+                                    <strong>
+                                      {format(new Date(facturationData.date_versement_profil), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
+                                    </strong>
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
+              
                         );
                       })}
                     </div>
