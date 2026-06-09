@@ -385,6 +385,20 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         ? `${selectedProfil.prenom} ${selectedProfil.nom}`
         : demande.candidat_nom || null;
 
+      // Récupère le nom d'affichage de l'utilisateur connecté pour traçabilité
+      let currentUserName: string | null = null;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("id", user.id)
+            .maybeSingle();
+          currentUserName = prof?.display_name || user.email || null;
+        }
+      } catch { /* ignore */ }
+
       const factUpdates: Record<string, unknown> = {
         statut_paiement: statutPaiement,
         montant_paye_client: montantVerse ? Number(montantVerse) : null,
@@ -393,6 +407,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         profil_id: firstProfil?.profilId || null,
         profil_nom: profilNom,
       };
+
+      // Traçabilité : qui a ajouté la part du profil (premier renseignement)
+      if (currentUserName && !(facturationData as any)?.created_by_name && firstProfil?.profilId) {
+        (factUpdates as any).created_by_name = currentUserName;
+      }
 
       // Set encaisse_par based on new status
       if (statutPaiement === "agence_payee_client" || statutPaiement === "paye") {
