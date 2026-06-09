@@ -333,6 +333,7 @@ export type Database = {
           commercial: string | null
           commission_pourcentage: number
           created_at: string
+          created_by_name: string | null
           date_intervention: string | null
           date_paiement_client: string | null
           date_remise_agence: string | null
@@ -359,6 +360,7 @@ export type Database = {
           statut_paiement: string
           tva_pourcentage: number
           type_service: string | null
+          validated_by_name: string | null
           ville: string | null
         }
         Insert: {
@@ -366,6 +368,7 @@ export type Database = {
           commercial?: string | null
           commission_pourcentage?: number
           created_at?: string
+          created_by_name?: string | null
           date_intervention?: string | null
           date_paiement_client?: string | null
           date_remise_agence?: string | null
@@ -392,6 +395,7 @@ export type Database = {
           statut_paiement?: string
           tva_pourcentage?: number
           type_service?: string | null
+          validated_by_name?: string | null
           ville?: string | null
         }
         Update: {
@@ -399,6 +403,7 @@ export type Database = {
           commercial?: string | null
           commission_pourcentage?: number
           created_at?: string
+          created_by_name?: string | null
           date_intervention?: string | null
           date_paiement_client?: string | null
           date_remise_agence?: string | null
@@ -425,6 +430,7 @@ export type Database = {
           statut_paiement?: string
           tva_pourcentage?: number
           type_service?: string | null
+          validated_by_name?: string | null
           ville?: string | null
         }
         Relationships: [
