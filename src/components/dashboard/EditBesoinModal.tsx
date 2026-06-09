@@ -433,6 +433,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
         factUpdates.part_profil_versee = true;
         factUpdates.date_paiement_client = new Date().toISOString().split("T")[0];
         factUpdates.statut_mission = "paye";
+        if (currentUserName && !(facturationData as any)?.validated_by_name) {
+          (factUpdates as any).validated_by_name = currentUserName;
+        }
       }
 
       // If facturation annulée
