@@ -811,8 +811,88 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                       </div>
                     </div>
 
+                    {/* Liste des interventions planifiées (lecture seule) */}
+                    {(() => {
+                      const JOUR_INDEX: Record<string, number> = {
+                        lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6, dimanche: 0,
+                      };
+                      const JOUR_LABEL: Record<string, string> = {
+                        lundi: "Lundi", mardi: "Mardi", mercredi: "Mercredi", jeudi: "Jeudi",
+                        vendredi: "Vendredi", samedi: "Samedi", dimanche: "Dimanche",
+                      };
+                      const planning = (demande as any).planning as any;
+                      if (!planning) return null;
+                      const semaines: any[] = planning.semaines?.length
+                        ? planning.semaines
+                        : (planning.jours
+                          ? [{ semaine_debut: planning.semaine_debut, semaine_fin: planning.semaine_fin, jours: planning.jours }]
+                          : []);
+                      const occurrences: Array<{ date: Date | null; jour: string; heure: string; statut: string }> = [];
+                      semaines.forEach((sem) => {
+                        (sem.jours || []).forEach((j: any) => {
+                          let d: Date | null = null;
+                          if (sem.semaine_debut && JOUR_INDEX.hasOwnProperty(j.jour)) {
+                            d = new Date(sem.semaine_debut + "T00:00:00");
+                            if (!isNaN(d.getTime())) {
+                              let diff = JOUR_INDEX[j.jour] - d.getDay();
+                              if (diff < 0) diff += 7;
+                              d.setDate(d.getDate() + diff);
+                            } else { d = null; }
+                          }
+                          const statutJour = j.statut === "terminee" || sem.statut === "termine" ? "terminee" : "a_venir";
+                          occurrences.push({
+                            date: d,
+                            jour: JOUR_LABEL[j.jour] || j.jour,
+                            heure: j.heure_debut ? `${j.heure_debut}${j.heure_fin ? `–${j.heure_fin}` : ""}` : "",
+                            statut: statutJour,
+                          });
+                        });
+                      });
+                      if (occurrences.length === 0) return null;
+                      occurrences.sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0));
+                      return (
+                        <div className="rounded-lg border bg-background p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-semibold">Interventions planifiées</Label>
+                            <span className="text-xs text-muted-foreground">
+                              {occurrences.filter((o) => o.statut === "terminee").length} / {occurrences.length} terminée(s)
+                            </span>
+                          </div>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {occurrences.map((o, i) => (
+                              <div key={i} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded border text-xs bg-muted/30">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{o.jour}</span>
+                                  {o.date && (
+                                    <span className="text-muted-foreground">
+                                      {format(o.date, "dd/MM/yyyy", { locale: fr })}
+                                    </span>
+                                  )}
+                                  {o.heure && <span className="text-muted-foreground">— {o.heure}</span>}
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    o.statut === "terminee"
+                                      ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                      : "bg-amber-50 text-amber-800 border-amber-200"
+                                  }
+                                >
+                                  {o.statut === "terminee" ? "✓ Terminée" : "En cours"}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground italic">
+                            Le statut de chaque intervention se met à jour depuis le planning du compte client. Quand toutes les interventions sont terminées, la prestation bascule automatiquement en « Prestation terminée ».
+                          </p>
+                        </div>
+                      );
+                    })()}
+
                     {/* Profil lines */}
                     <div className="space-y-3">
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Label className="text-sm font-semibold">Profils intervenants</Label>
