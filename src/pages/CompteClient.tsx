@@ -31,6 +31,8 @@ type PlanningJour = {
   jour: string;
   heure_debut: string;
   heure_fin: string;
+  statut?: "a_venir" | "terminee";
+  rappel_envoye?: boolean;
 };
 
 type PlanningSemaine = {
@@ -480,10 +482,39 @@ export default function CompteClient() {
     }));
   };
 
+  const toggleJourStatut = (idx: number, jour: string) => {
+    setPlanning((prev) => ({
+      ...prev,
+      semaines: prev.semaines.map((s, i) =>
+        i === idx
+          ? {
+              ...s,
+              jours: s.jours.map((j) =>
+                j.jour === jour
+                  ? { ...j, statut: j.statut === "terminee" ? "a_venir" : "terminee" }
+                  : j,
+              ),
+            }
+          : s,
+      ),
+    }));
+  };
+
   const savePlanning = () => {
     const updates: Record<string, unknown> = { planning: planning as any };
     if (planning.frequence && planning.frequence !== demande.frequence) {
       updates.frequence = planning.frequence;
+    }
+    // Auto-passage en "prestation_terminee" si tous les jours de toutes les semaines sont terminés
+    const allJours = planning.semaines.flatMap((s) => s.jours);
+    if (
+      allJours.length > 0 &&
+      allJours.every((j) => j.statut === "terminee") &&
+      demande.statut !== "prestation_terminee" &&
+      demande.statut !== "paye" &&
+      demande.statut !== "facturation_annulee"
+    ) {
+      updates.statut = "prestation_terminee";
     }
     updateMutation.mutate(updates);
   };
@@ -785,9 +816,10 @@ export default function CompteClient() {
                           <div className="space-y-1 pt-1">
                             {JOURS_SEMAINE.map((j) => {
                               const selected = sem.jours.find((pj) => pj.jour === j.value);
+                              const isDone = selected?.statut === "terminee";
                               return (
                                 <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1 rounded border bg-background/80">
-                                  <label className="col-span-4 flex items-center gap-2 cursor-pointer">
+                                  <label className="col-span-3 flex items-center gap-2 cursor-pointer">
                                     <Checkbox
                                       checked={!!selected}
                                       onCheckedChange={() => togglePlanningJour(idx, j.value)}
@@ -799,15 +831,32 @@ export default function CompteClient() {
                                     value={selected?.heure_debut || ""}
                                     onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_debut", e.target.value)}
                                     disabled={!selected}
-                                    className="col-span-4 h-7 text-xs"
+                                    className="col-span-3 h-7 text-xs"
                                   />
                                   <Input
                                     type="time"
                                     value={selected?.heure_fin || ""}
                                     onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_fin", e.target.value)}
                                     disabled={!selected}
-                                    className="col-span-4 h-7 text-xs"
+                                    className="col-span-3 h-7 text-xs"
                                   />
+                                  {selected ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleJourStatut(idx, j.value)}
+                                      className={cn(
+                                        "col-span-3 h-7 rounded-md border text-[11px] font-medium transition-colors",
+                                        isDone
+                                          ? "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200"
+                                          : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100",
+                                      )}
+                                      title="Cliquer pour basculer le statut de l'intervention"
+                                    >
+                                      {isDone ? "✓ Terminée" : "En cours"}
+                                    </button>
+                                  ) : (
+                                    <span className="col-span-3" />
+                                  )}
                                 </div>
                               );
                             })}
