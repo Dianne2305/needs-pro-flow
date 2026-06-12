@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import { STATUTS, SEGMENTS } from "@/lib/constants";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -231,6 +231,18 @@ export default function ListingClients() {
         <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5">
           <RefreshCw className="h-3.5 w-3.5" /> Actualiser
         </Button>
+      </div>
+
+      {/* Sub-nav */}
+      <div className="flex gap-1 border-b">
+        <NavLink to="/clients" end className={({ isActive }) => cn("px-3 py-2 text-sm font-medium border-b-2 -mb-px",
+          isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}>
+          Tous les clients
+        </NavLink>
+        <NavLink to="/clients/abonnements" className={({ isActive }) => cn("px-3 py-2 text-sm font-medium border-b-2 -mb-px",
+          isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}>
+          Suivi des abonnements
+        </NavLink>
       </div>
 
       {/* Status tabs */}

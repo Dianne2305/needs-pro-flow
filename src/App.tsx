@@ -15,6 +15,7 @@ import GestionFinanciere from "./pages/GestionFinanciere";
 import CompteClient from "./pages/CompteClient";
 import Historique from "./pages/Historique";
 import ListingClients from "./pages/ListingClients";
+import SuiviAbonnements from "./pages/SuiviAbonnements";
 import Profils from "./pages/Profils";
 import CompteProfil from "./pages/CompteProfil";
 import QualiteFeedback from "./pages/QualiteFeedback";
@@ -44,6 +45,7 @@ const App = () => (
                 <Route path="/profils" element={<Profils />} />
                 <Route path="/compte-profil" element={<CompteProfil />} />
                 <Route path="/clients" element={<ListingClients />} />
+                <Route path="/clients/abonnements" element={<SuiviAbonnements />} />
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/caisse" element={<GestionFinanciere />} />
                 <Route path="/qualite" element={<QualiteFeedback />} />
