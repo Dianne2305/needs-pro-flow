@@ -178,6 +178,27 @@ const URGENCY_LABEL: Record<string, string> = {
   inconnu: "—",
 };
 
+type AboStatus = "actif" | "expire" | "retard";
+
+function getAboStatus(dateFin: Date | null, restantes: number, jours: number | null, today: Date): AboStatus {
+  if (dateFin && dateFin < today) return "expire";
+  if (dateFin && restantes === 0) return "expire";
+  if (jours !== null && jours < 0) return "retard";
+  return "actif";
+}
+
+const ABO_STATUS_STYLES: Record<AboStatus, string> = {
+  actif: "bg-emerald-100 text-emerald-700 border-emerald-300",
+  expire: "bg-slate-200 text-slate-700 border-slate-300",
+  retard: "bg-red-100 text-red-700 border-red-300",
+};
+
+const ABO_STATUS_LABEL: Record<AboStatus, string> = {
+  actif: "Actif",
+  expire: "Expiré",
+  retard: "En retard",
+};
+
 export default function SuiviAbonnements() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -412,6 +433,7 @@ export default function SuiviAbonnements() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
+                  <TableHead>Statut</TableHead>
                   <TableHead>Segment</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Fréquence</TableHead>
@@ -426,18 +448,25 @@ export default function SuiviAbonnements() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
                 ) : filtered
                   .sort((a, b) => (a.jours ?? 9999) - (b.jours ?? 9999))
-                  .map(({ d, next, jours, urgency, caMois, lastRelance, stats }) => (
+                  .map(({ d, next, jours, urgency, caMois, lastRelance, stats }) => {
+                  const aboStatus = getAboStatus(stats.dateFin, stats.restantes, jours, today);
+                  return (
                   <TableRow key={d.id}>
                     <TableCell>
                       <button onClick={() => setDetailFor(d)} className="font-medium text-sm text-primary hover:underline text-left">
                         {d.nom}
                       </button>
                       <div className="text-[10px] text-muted-foreground font-mono">#{d.num_demande} • {d.ville}</div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={cn("text-xs", ABO_STATUS_STYLES[aboStatus])}>
+                        {ABO_STATUS_LABEL[aboStatus]}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={d.type_service === "SPP" ? "bg-primary text-primary-foreground" : "bg-spe text-spe-foreground"}>
@@ -481,7 +510,7 @@ export default function SuiviAbonnements() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                );})}
               </TableBody>
             </Table>
           </div>
