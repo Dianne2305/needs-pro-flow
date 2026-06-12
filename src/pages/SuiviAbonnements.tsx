@@ -476,7 +476,7 @@ export default function SuiviAbonnements() {
                     <div className="font-semibold text-[11px] mb-1">{format(day, "d")}</div>
                     <div className="space-y-0.5">
                       {items.slice(0, 3).map((it, idx) => (
-                        <button key={idx} onClick={() => navigate(`/compte-client?id=${it.d.id}&from=/clients/abonnements`)}
+                        <button key={idx} onClick={() => setDetailFor(it.d)}
                           className={cn("block w-full text-left truncate rounded px-1 py-0.5 text-[10px] hover:opacity-80",
                             it.d.type_service === "SPP" ? "bg-primary/15 text-primary" : "bg-spe/30 text-spe-foreground")}>
                           {it.d.nom}
