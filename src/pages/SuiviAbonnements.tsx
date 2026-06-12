@@ -26,8 +26,9 @@ import { format, addDays, addWeeks, startOfMonth, endOfMonth, eachDayOfInterval,
 import { fr } from "date-fns/locale";
 import {
   RefreshCw, Search, Phone, MessageSquare, UserCheck, RotateCw,
-  AlertTriangle, CalendarDays, TrendingUp, History, ChevronLeft, ChevronRight, Bell,
+  AlertTriangle, CalendarDays, TrendingUp, History, ChevronLeft, ChevronRight, Bell, Eye,
 } from "lucide-react";
+import { AbonnementDetailModal } from "@/components/dashboard/AbonnementDetailModal";
 
 type Demande = Tables<"demandes">;
 type Historique = Tables<"demande_historique">;
@@ -168,6 +169,7 @@ export default function SuiviAbonnements() {
   const [relanceFor, setRelanceFor] = useState<Demande | null>(null);
   const [relanceCanal, setRelanceCanal] = useState<"whatsapp" | "appel" | "email">("whatsapp");
   const [relanceNote, setRelanceNote] = useState("");
+  const [detailFor, setDetailFor] = useState<Demande | null>(null);
 
   const { data: demandes = [], isLoading, refetch } = useQuery({
     queryKey: ["demandes", "abonnements"],
@@ -406,7 +408,7 @@ export default function SuiviAbonnements() {
                   .map(({ d, next, jours, urgency, caMois, lastRelance }) => (
                   <TableRow key={d.id}>
                     <TableCell>
-                      <button onClick={() => navigate(`/compte-client?id=${d.id}&from=/clients/abonnements`)} className="font-medium text-sm text-primary hover:underline text-left">
+                      <button onClick={() => setDetailFor(d)} className="font-medium text-sm text-primary hover:underline text-left">
                         {d.nom}
                       </button>
                       <div className="text-[10px] text-muted-foreground font-mono">#{d.num_demande} • {d.ville}</div>
@@ -430,6 +432,9 @@ export default function SuiviAbonnements() {
                     <TableCell className="text-sm font-medium">{Math.round(caMois).toLocaleString("fr-FR")} DH</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={() => setDetailFor(d)}>
+                          <Eye className="h-3 w-3" /> Détail
+                        </Button>
                         <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={() => { setRelanceFor(d); setRelanceCanal("whatsapp"); setRelanceNote(""); }}>
                           <Bell className="h-3 w-3" /> Relancer
                         </Button>
