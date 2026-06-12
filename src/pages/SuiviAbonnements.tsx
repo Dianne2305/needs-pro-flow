@@ -448,18 +448,25 @@ export default function SuiviAbonnements() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
                 ) : filtered
                   .sort((a, b) => (a.jours ?? 9999) - (b.jours ?? 9999))
-                  .map(({ d, next, jours, urgency, caMois, lastRelance, stats }) => (
+                  .map(({ d, next, jours, urgency, caMois, lastRelance, stats }) => {
+                  const aboStatus = getAboStatus(stats.dateFin, stats.restantes, jours, today);
+                  return (
                   <TableRow key={d.id}>
                     <TableCell>
                       <button onClick={() => setDetailFor(d)} className="font-medium text-sm text-primary hover:underline text-left">
                         {d.nom}
                       </button>
                       <div className="text-[10px] text-muted-foreground font-mono">#{d.num_demande} • {d.ville}</div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={cn("text-xs", ABO_STATUS_STYLES[aboStatus])}>
+                        {ABO_STATUS_LABEL[aboStatus]}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={d.type_service === "SPP" ? "bg-primary text-primary-foreground" : "bg-spe text-spe-foreground"}>
