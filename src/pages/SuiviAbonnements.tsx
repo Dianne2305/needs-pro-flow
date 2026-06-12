@@ -62,18 +62,40 @@ const FREQ_PER_MONTH: Record<string, number> = {
 };
 
 const FREQ_LABEL: Record<string, string> = {
-  "1_fois_semaine": "1×/sem",
-  "2_fois_semaine": "2×/sem",
-  "3_fois_semaine": "3×/sem",
-  "4_fois_semaine": "4×/sem",
-  "5_fois_semaine": "5×/sem",
-  "6_fois_semaine": "6×/sem",
-  "quotidien": "7j/7",
-  "1_fois_mois": "1×/mois",
-  "2_fois_mois": "2×/mois",
-  "3_fois_mois": "3×/mois",
-  "4_fois_mois": "4×/mois",
+  "1_fois_semaine": "1 / semaine",
+  "2_fois_semaine": "2 / semaine",
+  "3_fois_semaine": "3 / semaine",
+  "4_fois_semaine": "4 / semaine",
+  "5_fois_semaine": "5 / semaine",
+  "6_fois_semaine": "6 / semaine",
+  "quotidien": "7 / semaine",
+  "1_fois_mois": "1 / mois",
+  "2_fois_mois": "2 / mois",
+  "3_fois_mois": "3 / mois",
+  "4_fois_mois": "4 / mois",
 };
+
+/** Total planifié, effectué, restant + date de fin d'abonnement à partir du planning. */
+function getInterventionStats(d: Demande): { total: number; effectuees: number; restantes: number; dateFin: Date | null } {
+  const planning = d.planning as any;
+  let total = 0;
+  let effectuees = 0;
+  let maxDate: Date | null = null;
+  if (planning?.semaines?.length) {
+    for (const sem of planning.semaines) {
+      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
+      for (const j of sem.jours || []) {
+        total++;
+        if (j.statut === "terminee") effectuees++;
+        if (base) {
+          const dt = addDays(base, typeof j.jour === "number" ? j.jour : 0);
+          if (!maxDate || dt > maxDate) maxDate = dt;
+        }
+      }
+    }
+  }
+  return { total, effectuees, restantes: Math.max(0, total - effectuees), dateFin: maxDate };
+}
 
 function isAbonnement(d: Demande): boolean {
   return !!d.frequence && d.frequence !== "ponctuel";
