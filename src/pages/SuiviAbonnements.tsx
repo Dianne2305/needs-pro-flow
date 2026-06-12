@@ -566,6 +566,9 @@ export default function SuiviAbonnements() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Detail modal */}
+      <AbonnementDetailModal demande={detailFor} open={!!detailFor} onOpenChange={(o) => !o && setDetailFor(null)} />
     </div>
   );
 }
