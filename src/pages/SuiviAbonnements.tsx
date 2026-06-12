@@ -415,8 +415,10 @@ export default function SuiviAbonnements() {
                   <TableHead>Segment</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Fréquence</TableHead>
+                  <TableHead>Interventions</TableHead>
                   <TableHead>Prochaine intervention</TableHead>
                   <TableHead>Jours restants</TableHead>
+                  <TableHead>Fin d'abonnement</TableHead>
                   <TableHead>Dernière relance</TableHead>
                   <TableHead>CA / mois</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -424,12 +426,12 @@ export default function SuiviAbonnements() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
                 ) : filtered
                   .sort((a, b) => (a.jours ?? 9999) - (b.jours ?? 9999))
-                  .map(({ d, next, jours, urgency, caMois, lastRelance }) => (
+                  .map(({ d, next, jours, urgency, caMois, lastRelance, stats }) => (
                   <TableRow key={d.id}>
                     <TableCell>
                       <button onClick={() => setDetailFor(d)} className="font-medium text-sm text-primary hover:underline text-left">
@@ -444,12 +446,23 @@ export default function SuiviAbonnements() {
                     </TableCell>
                     <TableCell className="text-sm">{d.type_prestation}</TableCell>
                     <TableCell className="text-sm font-medium">{FREQ_LABEL[d.frequence || ""] || d.frequence}</TableCell>
+                    <TableCell className="text-sm">
+                      {stats.total > 0 ? (
+                        <span className="font-medium">
+                          <span className="text-emerald-600">{stats.effectuees}</span>
+                          <span className="text-muted-foreground"> / </span>
+                          <span>{stats.restantes}</span>
+                          <span className="text-[10px] text-muted-foreground ml-1">(restantes)</span>
+                        </span>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
                     <TableCell className="text-sm">{next ? format(next, "EEE dd MMM yyyy", { locale: fr }) : "—"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn("text-xs", URGENCY_STYLES[urgency])}>
                         {jours === null ? "—" : jours < 0 ? `${Math.abs(jours)}j en retard` : jours === 0 ? "Aujourd'hui" : `J-${jours}`}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-sm">{stats.dateFin ? format(stats.dateFin, "dd MMM yyyy", { locale: fr }) : <span className="text-muted-foreground">—</span>}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {lastRelance ? format(new Date(lastRelance.created_at), "dd/MM HH:mm") : <span className="italic">Jamais</span>}
                     </TableCell>
@@ -461,9 +474,6 @@ export default function SuiviAbonnements() {
                         </Button>
                         <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={() => { setRelanceFor(d); setRelanceCanal("whatsapp"); setRelanceNote(""); }}>
                           <Bell className="h-3 w-3" /> Relancer
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={() => renouvelerMutation.mutate(d)}>
-                          <RotateCw className="h-3 w-3" /> Renouveler
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => navigate(`/compte-client?id=${d.id}&from=/clients/abonnements`)}>
                           <UserCheck className="h-4 w-4" />
