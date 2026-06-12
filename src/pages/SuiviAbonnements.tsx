@@ -226,6 +226,7 @@ export default function SuiviAbonnements() {
       const jours = next ? differenceInCalendarDays(next, today) : null;
       const ca = (Number(d.montant_total) || 0) * (FREQ_PER_MONTH[d.frequence || ""] || 0);
       const lastRelance = historiqueRelances.find((h) => h.demande_id === d.id);
+      const stats = getInterventionStats(d);
       return {
         d,
         next,
@@ -233,6 +234,7 @@ export default function SuiviAbonnements() {
         urgency: urgencyOf(jours),
         caMois: ca,
         lastRelance,
+        stats,
       };
     });
   }, [demandes, historiqueRelances, today]);
