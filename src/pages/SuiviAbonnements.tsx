@@ -433,6 +433,7 @@ export default function SuiviAbonnements() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Client</TableHead>
+                  <TableHead>Statut</TableHead>
                   <TableHead>Segment</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Fréquence</TableHead>
