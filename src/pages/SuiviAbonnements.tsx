@@ -510,7 +510,7 @@ export default function SuiviAbonnements() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                );})}
               </TableBody>
             </Table>
           </div>
