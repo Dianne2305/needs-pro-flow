@@ -62,18 +62,40 @@ const FREQ_PER_MONTH: Record<string, number> = {
 };
 
 const FREQ_LABEL: Record<string, string> = {
-  "1_fois_semaine": "1×/sem",
-  "2_fois_semaine": "2×/sem",
-  "3_fois_semaine": "3×/sem",
-  "4_fois_semaine": "4×/sem",
-  "5_fois_semaine": "5×/sem",
-  "6_fois_semaine": "6×/sem",
-  "quotidien": "7j/7",
-  "1_fois_mois": "1×/mois",
-  "2_fois_mois": "2×/mois",
-  "3_fois_mois": "3×/mois",
-  "4_fois_mois": "4×/mois",
+  "1_fois_semaine": "1 / semaine",
+  "2_fois_semaine": "2 / semaine",
+  "3_fois_semaine": "3 / semaine",
+  "4_fois_semaine": "4 / semaine",
+  "5_fois_semaine": "5 / semaine",
+  "6_fois_semaine": "6 / semaine",
+  "quotidien": "7 / semaine",
+  "1_fois_mois": "1 / mois",
+  "2_fois_mois": "2 / mois",
+  "3_fois_mois": "3 / mois",
+  "4_fois_mois": "4 / mois",
 };
+
+/** Total planifié, effectué, restant + date de fin d'abonnement à partir du planning. */
+function getInterventionStats(d: Demande): { total: number; effectuees: number; restantes: number; dateFin: Date | null } {
+  const planning = d.planning as any;
+  let total = 0;
+  let effectuees = 0;
+  let maxDate: Date | null = null;
+  if (planning?.semaines?.length) {
+    for (const sem of planning.semaines) {
+      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
+      for (const j of sem.jours || []) {
+        total++;
+        if (j.statut === "terminee") effectuees++;
+        if (base) {
+          const dt = addDays(base, typeof j.jour === "number" ? j.jour : 0);
+          if (!maxDate || dt > maxDate) maxDate = dt;
+        }
+      }
+    }
+  }
+  return { total, effectuees, restantes: Math.max(0, total - effectuees), dateFin: maxDate };
+}
 
 function isAbonnement(d: Demande): boolean {
   return !!d.frequence && d.frequence !== "ponctuel";
@@ -204,6 +226,7 @@ export default function SuiviAbonnements() {
       const jours = next ? differenceInCalendarDays(next, today) : null;
       const ca = (Number(d.montant_total) || 0) * (FREQ_PER_MONTH[d.frequence || ""] || 0);
       const lastRelance = historiqueRelances.find((h) => h.demande_id === d.id);
+      const stats = getInterventionStats(d);
       return {
         d,
         next,
@@ -211,6 +234,7 @@ export default function SuiviAbonnements() {
         urgency: urgencyOf(jours),
         caMois: ca,
         lastRelance,
+        stats,
       };
     });
   }, [demandes, historiqueRelances, today]);
@@ -391,8 +415,10 @@ export default function SuiviAbonnements() {
                   <TableHead>Segment</TableHead>
                   <TableHead>Service</TableHead>
                   <TableHead>Fréquence</TableHead>
+                  <TableHead>Interventions</TableHead>
                   <TableHead>Prochaine intervention</TableHead>
                   <TableHead>Jours restants</TableHead>
+                  <TableHead>Fin d'abonnement</TableHead>
                   <TableHead>Dernière relance</TableHead>
                   <TableHead>CA / mois</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -400,12 +426,12 @@ export default function SuiviAbonnements() {
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Chargement…</TableCell></TableRow>
                 ) : filtered.length === 0 ? (
-                  <TableRow><TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Aucun abonnement trouvé</TableCell></TableRow>
                 ) : filtered
                   .sort((a, b) => (a.jours ?? 9999) - (b.jours ?? 9999))
-                  .map(({ d, next, jours, urgency, caMois, lastRelance }) => (
+                  .map(({ d, next, jours, urgency, caMois, lastRelance, stats }) => (
                   <TableRow key={d.id}>
                     <TableCell>
                       <button onClick={() => setDetailFor(d)} className="font-medium text-sm text-primary hover:underline text-left">
@@ -420,12 +446,23 @@ export default function SuiviAbonnements() {
                     </TableCell>
                     <TableCell className="text-sm">{d.type_prestation}</TableCell>
                     <TableCell className="text-sm font-medium">{FREQ_LABEL[d.frequence || ""] || d.frequence}</TableCell>
+                    <TableCell className="text-sm">
+                      {stats.total > 0 ? (
+                        <span className="font-medium">
+                          <span className="text-emerald-600">{stats.effectuees}</span>
+                          <span className="text-muted-foreground"> / </span>
+                          <span>{stats.restantes}</span>
+                          <span className="text-[10px] text-muted-foreground ml-1">(restantes)</span>
+                        </span>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
                     <TableCell className="text-sm">{next ? format(next, "EEE dd MMM yyyy", { locale: fr }) : "—"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={cn("text-xs", URGENCY_STYLES[urgency])}>
                         {jours === null ? "—" : jours < 0 ? `${Math.abs(jours)}j en retard` : jours === 0 ? "Aujourd'hui" : `J-${jours}`}
                       </Badge>
                     </TableCell>
+                    <TableCell className="text-sm">{stats.dateFin ? format(stats.dateFin, "dd MMM yyyy", { locale: fr }) : <span className="text-muted-foreground">—</span>}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {lastRelance ? format(new Date(lastRelance.created_at), "dd/MM HH:mm") : <span className="italic">Jamais</span>}
                     </TableCell>
@@ -437,9 +474,6 @@ export default function SuiviAbonnements() {
                         </Button>
                         <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={() => { setRelanceFor(d); setRelanceCanal("whatsapp"); setRelanceNote(""); }}>
                           <Bell className="h-3 w-3" /> Relancer
-                        </Button>
-                        <Button size="sm" variant="outline" className="h-7 px-2 text-xs gap-1" onClick={() => renouvelerMutation.mutate(d)}>
-                          <RotateCw className="h-3 w-3" /> Renouveler
                         </Button>
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => navigate(`/compte-client?id=${d.id}&from=/clients/abonnements`)}>
                           <UserCheck className="h-4 w-4" />
