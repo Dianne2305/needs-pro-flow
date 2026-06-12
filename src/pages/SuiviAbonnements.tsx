@@ -62,17 +62,17 @@ const FREQ_PER_MONTH: Record<string, number> = {
 };
 
 const FREQ_LABEL: Record<string, string> = {
-  "1_fois_semaine": "1 / semaine",
-  "2_fois_semaine": "2 / semaine",
-  "3_fois_semaine": "3 / semaine",
-  "4_fois_semaine": "4 / semaine",
-  "5_fois_semaine": "5 / semaine",
-  "6_fois_semaine": "6 / semaine",
-  "quotidien": "7 / semaine",
-  "1_fois_mois": "1 / mois",
-  "2_fois_mois": "2 / mois",
-  "3_fois_mois": "3 / mois",
-  "4_fois_mois": "4 / mois",
+  "1_fois_semaine": "1 fois par semaine",
+  "2_fois_semaine": "2 fois par semaine",
+  "3_fois_semaine": "3 fois par semaine",
+  "4_fois_semaine": "4 fois par semaine",
+  "5_fois_semaine": "5 fois par semaine",
+  "6_fois_semaine": "6 fois par semaine",
+  "quotidien": "7 fois par semaine",
+  "1_fois_mois": "1 fois par mois",
+  "2_fois_mois": "2 fois par mois",
+  "3_fois_mois": "3 fois par mois",
+  "4_fois_mois": "4 fois par mois",
 };
 
 /** Total planifié, effectué, restant + date de fin d'abonnement à partir du planning. */
