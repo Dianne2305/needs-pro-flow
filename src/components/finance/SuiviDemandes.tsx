@@ -313,6 +313,7 @@ export default function SuiviDemandes() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Chargé opé.</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Profil assigné</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Note</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
