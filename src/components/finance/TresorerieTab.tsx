@@ -234,10 +234,14 @@ export default function TresorerieTab() {
   return (
     <div className="space-y-4">
       {/* KPI bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="rounded-lg border bg-card p-4">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Solde initial</p>
-          <p className="text-xl font-bold mt-1">{fmt(Number(config?.solde_initial) || 0)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="rounded-lg border bg-cyan-50 p-4">
+          <p className="text-xs uppercase tracking-wider text-cyan-700">CA total</p>
+          <p className="text-xl font-bold mt-1 text-cyan-800">{fmt(caTotals.ca)}</p>
+        </div>
+        <div className="rounded-lg border bg-amber-50 p-4">
+          <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
+          <p className="text-xl font-bold mt-1 text-amber-800">{fmt(caTotals.partAg)}</p>
         </div>
         <div className="rounded-lg border bg-emerald-50 p-4">
           <p className="text-xs uppercase tracking-wider text-emerald-700">Total entrées</p>
