@@ -440,7 +440,7 @@ export default function SuiviDusProfils() {
               </div>
 
               <div className="space-y-2">
-                <Label>Statut d'encaissement</Label>
+                <Label>Règlement profil</Label>
                 <Select value={editForm.statut_paiement} onValueChange={(v) => setEditForm((f) => ({ ...f, statut_paiement: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
