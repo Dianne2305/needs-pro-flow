@@ -33,7 +33,7 @@ const items = [
 const financeSubItems = [
   { title: "Vue globale", url: "/gestion-financiere", icon: BarChart3 },
   { title: "Les suivis", url: "/gestion-financiere/suivi-dus", icon: HandCoins },
-  { title: "La Caisse", url: "/gestion-financiere/caisse", icon: Wallet },
+  { title: "Trésorerie et Caisse", url: "/gestion-financiere/caisse", icon: Wallet },
 ];
 
 export function AppSidebar() {
