@@ -18,8 +18,21 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react";
+import { Search, CalendarIcon, X, Download, Wallet, Pencil, Eye } from "lucide-react";
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
+import { useNavigate } from "react-router-dom";
+
+const getEncaissementDC = (m: Facturation): { label: string; className: string } | null => {
+  if (m.part_profil_versee) return null;
+  const s = m.statut_paiement;
+  if (s === "agence_payee_client" || s === "paye") {
+    return { label: "Débiteur", className: "bg-rose-100 text-rose-800" };
+  }
+  if (s === "profil_paye_client") {
+    return { label: "Créditeur", className: "bg-emerald-100 text-emerald-800" };
+  }
+  return null;
+};
 
 const ENCAISSEMENT_OPTIONS = [
   { value: "en_attente", label: "Paiement en attente", color: "bg-amber-100 text-amber-800" },
