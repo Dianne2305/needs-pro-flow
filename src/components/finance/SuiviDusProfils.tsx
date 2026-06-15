@@ -22,8 +22,12 @@ import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react"
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
 
 const ENCAISSEMENT_OPTIONS = [
-  { value: "debiteur", label: "Débiteur", color: "bg-rose-100 text-rose-800" },
-  { value: "crediteur", label: "Créditeur", color: "bg-emerald-100 text-emerald-800" },
+  { value: "en_attente", label: "Paiement en attente", color: "bg-amber-100 text-amber-800" },
+  { value: "agence_payee_client", label: "Agence payée/client", color: "bg-sky-100 text-sky-800" },
+  { value: "profil_paye_client", label: "Profil payé/client", color: "bg-violet-100 text-violet-800" },
+  { value: "partiel", label: "Paiement partiel", color: "bg-orange-100 text-orange-800" },
+  { value: "paye", label: "Payé", color: "bg-emerald-100 text-emerald-800" },
+  { value: "annulee", label: "Facturation annulée", color: "bg-gray-200 text-gray-700" },
 ] as const;
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
