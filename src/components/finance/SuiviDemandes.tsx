@@ -267,7 +267,7 @@ export default function SuiviDemandes() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Part Agence</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Mode paiement</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Commercial</TableHead>
-              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut encais.</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut paiem.</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-center">Produit</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-center">Torchons</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Chargé opé.</TableHead>
