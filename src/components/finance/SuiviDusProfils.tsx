@@ -73,6 +73,7 @@ export default function SuiviDusProfils() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [editMission, setEditMission] = useState<Facturation | null>(null);
+  const [viewMission, setViewMission] = useState<Facturation | null>(null);
   const [editForm, setEditForm] = useState({
     statut_paiement: "",
     part_profil_versee: false,
