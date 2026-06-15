@@ -13,9 +13,19 @@ export default function SuiviDusProfilsPage() {
         <p className="text-sm text-muted-foreground">Suivi des dus Agence-Profils et suivi des demandes</p>
       </div>
       <Tabs defaultValue="dus" className="w-full">
-        <TabsList>
-          <TabsTrigger value="dus">Suivi des dus Agence-Profils</TabsTrigger>
-          <TabsTrigger value="demandes">Suivi des demandes</TabsTrigger>
+        <TabsList className="h-auto p-1.5 bg-muted/60 gap-1.5 rounded-xl">
+          <TabsTrigger
+            value="dus"
+            className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0b7f7a] data-[state=active]:to-[#118b7e] data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
+            Suivi des dus Agence-Profils
+          </TabsTrigger>
+          <TabsTrigger
+            value="demandes"
+            className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+          >
+            Suivi des demandes
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="dus" className="mt-4">
           <SuiviDusProfils />
