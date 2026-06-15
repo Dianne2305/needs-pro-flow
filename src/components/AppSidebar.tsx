@@ -3,7 +3,7 @@
  * Barre latérale de navigation (thème noir/teal). Liens vers Dashboard, Pending, Listing, Profils, Finance, Marketing, Qualité, Paramètres. Badge rouge pour demandes en attente.
  */
 import {
-  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown, MessageSquare,
+  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown, MessageSquare, HandCoins,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -32,6 +32,7 @@ const items = [
 
 const financeSubItems = [
   { title: "Vue globale", url: "/gestion-financiere", icon: BarChart3 },
+  { title: "Suivi des dus Agence-Profils", url: "/gestion-financiere/suivi-dus", icon: HandCoins },
   { title: "La Caisse", url: "/gestion-financiere/caisse", icon: Wallet },
 ];
 
