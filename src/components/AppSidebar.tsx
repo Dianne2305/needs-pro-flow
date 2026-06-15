@@ -32,7 +32,7 @@ const items = [
 
 const financeSubItems = [
   { title: "Vue globale", url: "/gestion-financiere", icon: BarChart3 },
-  { title: "Suivi des dus Agence-Profils", url: "/gestion-financiere/suivi-dus", icon: HandCoins },
+  { title: "Les suivis", url: "/gestion-financiere/suivi-dus", icon: HandCoins },
   { title: "La Caisse", url: "/gestion-financiere/caisse", icon: Wallet },
 ];
 
