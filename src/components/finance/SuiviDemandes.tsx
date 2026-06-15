@@ -319,7 +319,7 @@ export default function SuiviDemandes() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={16} className="text-center text-muted-foreground py-10">Aucune demande</TableCell>
+                <TableCell colSpan={17} className="text-center text-muted-foreground py-10">Aucune demande</TableCell>
               </TableRow>
             ) : filtered.map((d) => {
               const f = factByDemande[d.id];
