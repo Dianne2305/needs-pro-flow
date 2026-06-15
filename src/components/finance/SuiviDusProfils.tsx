@@ -3,8 +3,8 @@
  * Onglet Suivi des dus Agence-Profils : tableau détaillé par mission (FDM)
  * avec taux horaire, parts, statut d'encaissement et règlement FDM.
  */
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, CalendarIcon, X, Download, Wallet } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react";
 import { Facturation, partAgence, partProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -28,11 +33,55 @@ const FREQ_LABEL: Record<string, string> = {
 };
 
 export default function SuiviDusProfils() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterReglement, setFilterReglement] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [editMission, setEditMission] = useState<Facturation | null>(null);
+  const [editForm, setEditForm] = useState({
+    statut_paiement: "",
+    part_profil_versee: false,
+    date_versement_profil: "" as string | "",
+    commentaire: "",
+  });
+
+  useEffect(() => {
+    if (editMission) {
+      setEditForm({
+        statut_paiement: editMission.statut_paiement || "non_paye",
+        part_profil_versee: !!editMission.part_profil_versee,
+        date_versement_profil: editMission.date_versement_profil || "",
+        commentaire: editMission.commentaire || "",
+      });
+    }
+  }, [editMission]);
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editMission) return;
+      const { error } = await supabase
+        .from("facturation")
+        .update({
+          statut_paiement: editForm.statut_paiement,
+          part_profil_versee: editForm.part_profil_versee,
+          date_versement_profil: editForm.part_profil_versee
+            ? (editForm.date_versement_profil || new Date().toISOString().slice(0, 10))
+            : null,
+          commentaire: editForm.commentaire || null,
+        })
+        .eq("id", editMission.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facturation"] });
+      toast({ title: "Mission mise à jour" });
+      setEditMission(null);
+    },
+    onError: () => toast({ title: "Erreur lors de la mise à jour", variant: "destructive" }),
+  });
 
   const { data: missions = [] } = useQuery({
     queryKey: ["facturation", "dus_profils"],
@@ -265,12 +314,13 @@ export default function SuiviDusProfils() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">CA</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Remarque</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Fréquence</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={13} className="text-center text-muted-foreground py-10">Aucune mission</TableCell>
+                <TableCell colSpan={14} className="text-center text-muted-foreground py-10">Aucune mission</TableCell>
               </TableRow>
             ) : filtered.map((m) => {
               const dem = demandesMap[m.demande_id];
@@ -308,12 +358,71 @@ export default function SuiviDusProfils() {
                       <Badge variant="outline" className="text-xs">{FREQ_LABEL[dem.frequence] || dem.frequence}</Badge>
                     ) : "—"}
                   </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setEditMission(m)} title="Modifier">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </div>
+
+      {/* Edit modal */}
+      <Dialog open={!!editMission} onOpenChange={(o) => !o && setEditMission(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier la mission</DialogTitle>
+          </DialogHeader>
+          {editMission && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {editMission.profil_nom || "—"} · {editMission.nom_client} · {editMission.date_intervention ? format(new Date(editMission.date_intervention), "dd/MM/yyyy") : ""}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Statut d'encaissement</Label>
+                <Select value={editForm.statut_paiement} onValueChange={(v) => setEditForm((f) => ({ ...f, statut_paiement: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {STATUT_PAIEMENT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border p-3">
+                <div>
+                  <Label className="text-sm font-medium">Règlement FDM</Label>
+                  <p className="text-xs text-muted-foreground">Part profil versée à la FDM</p>
+                </div>
+                <Switch checked={editForm.part_profil_versee} onCheckedChange={(c) => setEditForm((f) => ({ ...f, part_profil_versee: c }))} />
+              </div>
+
+              {editForm.part_profil_versee && (
+                <div className="space-y-2">
+                  <Label>Date de règlement</Label>
+                  <Input type="date" value={editForm.date_versement_profil || ""} onChange={(e) => setEditForm((f) => ({ ...f, date_versement_profil: e.target.value }))} />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Remarque</Label>
+                <Textarea rows={3} value={editForm.commentaire} onChange={(e) => setEditForm((f) => ({ ...f, commentaire: e.target.value }))} placeholder="Note interne…" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditMission(null)}>Annuler</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
