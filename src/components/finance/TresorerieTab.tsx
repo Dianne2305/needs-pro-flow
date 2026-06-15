@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Facturation, partAgence } from "@/lib/finance-types";
 
 export const TRESORERIE_CATEGORIES = [
   { value: "encaissement_client", label: "Encaissement client (auto)", type: "entree" as const, auto: true },
@@ -79,17 +80,28 @@ export default function TresorerieTab() {
     },
   });
 
-  const { data: encaissementsAuto = [] } = useQuery({
-    queryKey: ["facturation", "tresorerie_auto"],
+  const { data: missionsAll = [] } = useQuery({
+    queryKey: ["facturation", "tresorerie_all"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("facturation")
-        .select("id, date_intervention, nom_client, montant_paye_client, statut_paiement")
-        .eq("statut_paiement", "paye")
-        .gt("montant_paye_client", 0);
-      return data || [];
+      const { data } = await supabase.from("facturation").select("*");
+      return (data || []) as unknown as Facturation[];
     },
   });
+
+  const encaissementsAuto = useMemo(
+    () => missionsAll.filter((m: any) => m.statut_paiement === "paye" && Number(m.montant_paye_client) > 0),
+    [missionsAll]
+  );
+
+  const caTotals = useMemo(() => {
+    let ca = 0, partAg = 0;
+    missionsAll.forEach((m) => {
+      if ((m as any).statut_mission === "facturation_annulee") return;
+      ca += Number((m as any).montant_total) || 0;
+      partAg += partAgence(m);
+    });
+    return { ca, partAg };
+  }, [missionsAll]);
 
   const rows: Row[] = useMemo(() => {
     const manual: Row[] = (ops as any[]).map((o) => ({
@@ -222,10 +234,14 @@ export default function TresorerieTab() {
   return (
     <div className="space-y-4">
       {/* KPI bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div className="rounded-lg border bg-card p-4">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">Solde initial</p>
-          <p className="text-xl font-bold mt-1">{fmt(Number(config?.solde_initial) || 0)}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="rounded-lg border bg-cyan-50 p-4">
+          <p className="text-xs uppercase tracking-wider text-cyan-700">CA total</p>
+          <p className="text-xl font-bold mt-1 text-cyan-800">{fmt(caTotals.ca)}</p>
+        </div>
+        <div className="rounded-lg border bg-amber-50 p-4">
+          <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
+          <p className="text-xl font-bold mt-1 text-amber-800">{fmt(caTotals.partAg)}</p>
         </div>
         <div className="rounded-lg border bg-emerald-50 p-4">
           <p className="text-xs uppercase tracking-wider text-emerald-700">Total entrées</p>
