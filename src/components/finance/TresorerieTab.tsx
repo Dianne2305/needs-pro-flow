@@ -360,16 +360,28 @@ export default function TresorerieTab() {
                 <Input type="number" value={form.montant} onChange={(e) => setForm((f) => ({ ...f, montant: e.target.value }))} />
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Catégorie</Label>
-              <Select value={form.categorie} onValueChange={handleCategorieChange}>
-                <SelectTrigger><SelectValue placeholder="Choisir une catégorie" /></SelectTrigger>
-                <SelectContent>
-                  {TRESORERIE_CATEGORIES.filter((c) => !c.auto).map((c) => (
-                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Type de mouvement</Label>
+                <Select value={form.type_operation} onValueChange={(v: "entree" | "sortie") => setForm((f) => ({ ...f, type_operation: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="entree">Entrée</SelectItem>
+                    <SelectItem value="sortie">Sortie</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Catégorie</Label>
+                <Select value={form.categorie} onValueChange={handleCategorieChange}>
+                  <SelectTrigger><SelectValue placeholder="Choisir une catégorie" /></SelectTrigger>
+                  <SelectContent>
+                    {TRESORERIE_CATEGORIES.filter((c) => !c.auto && c.type === form.type_operation).map((c) => (
+                      <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label>Libellé / Description</Label>
