@@ -13,6 +13,7 @@ export default function SuiviDusProfilsPage() {
         <h1 className="text-2xl font-bold">Les suivis</h1>
         <p className="text-sm text-muted-foreground">Suivi des dus Agence-Profils et suivi des demandes</p>
       </div>
+      <RecapTresorerie />
       <Tabs defaultValue="dus" className="w-full">
         <TabsList className="h-auto p-1.5 bg-muted/60 gap-1.5 rounded-xl">
           <TabsTrigger
