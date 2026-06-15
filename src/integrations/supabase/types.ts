@@ -750,6 +750,7 @@ export type Database = {
       }
       operations_caisse: {
         Row: {
+          categorie: string | null
           client_nom: string | null
           created_at: string
           date_operation: string
@@ -765,6 +766,7 @@ export type Database = {
           utilisateur: string | null
         }
         Insert: {
+          categorie?: string | null
           client_nom?: string | null
           created_at?: string
           date_operation?: string
@@ -780,6 +782,7 @@ export type Database = {
           utilisateur?: string | null
         }
         Update: {
+          categorie?: string | null
           client_nom?: string | null
           created_at?: string
           date_operation?: string
@@ -966,6 +969,27 @@ export type Database = {
           type_profil?: string | null
           ville?: string | null
           whatsapp?: string | null
+        }
+        Relationships: []
+      }
+      tresorerie_config: {
+        Row: {
+          date_solde_initial: string | null
+          id: number
+          solde_initial: number
+          updated_at: string
+        }
+        Insert: {
+          date_solde_initial?: string | null
+          id?: number
+          solde_initial?: number
+          updated_at?: string
+        }
+        Update: {
+          date_solde_initial?: string | null
+          id?: number
+          solde_initial?: number
+          updated_at?: string
         }
         Relationships: []
       }
