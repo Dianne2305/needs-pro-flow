@@ -439,17 +439,6 @@ export default function SuiviDusProfils() {
                 {editMission.profil_nom || "—"} · {editMission.nom_client} · {editMission.date_intervention ? format(new Date(editMission.date_intervention), "dd/MM/yyyy") : ""}
               </div>
 
-              <div className="space-y-2">
-                <Label>Règlement profil</Label>
-                <Select value={editForm.statut_paiement} onValueChange={(v) => setEditForm((f) => ({ ...f, statut_paiement: v }))}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {ENCAISSEMENT_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="flex items-center justify-between rounded-md border p-3">
                 <div>
