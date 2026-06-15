@@ -80,17 +80,28 @@ export default function TresorerieTab() {
     },
   });
 
-  const { data: encaissementsAuto = [] } = useQuery({
-    queryKey: ["facturation", "tresorerie_auto"],
+  const { data: missionsAll = [] } = useQuery({
+    queryKey: ["facturation", "tresorerie_all"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("facturation")
-        .select("id, date_intervention, nom_client, montant_paye_client, statut_paiement")
-        .eq("statut_paiement", "paye")
-        .gt("montant_paye_client", 0);
-      return data || [];
+      const { data } = await supabase.from("facturation").select("*");
+      return (data || []) as unknown as Facturation[];
     },
   });
+
+  const encaissementsAuto = useMemo(
+    () => missionsAll.filter((m: any) => m.statut_paiement === "paye" && Number(m.montant_paye_client) > 0),
+    [missionsAll]
+  );
+
+  const caTotals = useMemo(() => {
+    let ca = 0, partAg = 0;
+    missionsAll.forEach((m) => {
+      if ((m as any).statut_mission === "facturation_annulee") return;
+      ca += Number((m as any).montant_total) || 0;
+      partAg += partAgence(m);
+    });
+    return { ca, partAg };
+  }, [missionsAll]);
 
   const rows: Row[] = useMemo(() => {
     const manual: Row[] = (ops as any[]).map((o) => ({
