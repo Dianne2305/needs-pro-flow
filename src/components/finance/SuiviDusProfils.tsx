@@ -56,7 +56,7 @@ export default function SuiviDusProfils() {
   useEffect(() => {
     if (editMission) {
       setEditForm({
-        statut_paiement: editMission.statut_paiement || "non_paye",
+        statut_paiement: editMission.statut_paiement || "debiteur",
         part_profil_versee: !!editMission.part_profil_versee,
         date_versement_profil: editMission.date_versement_profil || "",
         commentaire: editMission.commentaire || "",
