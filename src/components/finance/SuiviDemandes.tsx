@@ -3,7 +3,7 @@
  * Onglet Suivi des demandes : vue tableau orientée demande/prestation.
  */
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Search, CalendarIcon, X, Download, Check, Minus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Search, CalendarIcon, X, Download, Check, Minus, Pencil } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -48,10 +52,42 @@ type DemandeRow = {
 };
 
 export default function SuiviDemandes() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [editRow, setEditRow] = useState<{ demande: DemandeRow; fact: Facturation | null } | null>(null);
+  const [editForm, setEditForm] = useState({ statut_paiement: "en_attente", commentaire: "" });
+
+  const openEdit = (d: DemandeRow, f: Facturation | null) => {
+    setEditRow({ demande: d, fact: f });
+    setEditForm({
+      statut_paiement: f?.statut_paiement || "en_attente",
+      commentaire: f?.commentaire || "",
+    });
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editRow?.fact) throw new Error("Aucune facturation liée à cette demande");
+      const { error } = await supabase
+        .from("facturation")
+        .update({
+          statut_paiement: editForm.statut_paiement,
+          commentaire: editForm.commentaire || null,
+        })
+        .eq("id", editRow.fact.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facturation"] });
+      toast({ title: "Statut mis à jour" });
+      setEditRow(null);
+    },
+    onError: (e: any) => toast({ title: "Erreur", description: e.message, variant: "destructive" }),
+  });
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "suivi_demandes"],
@@ -277,12 +313,13 @@ export default function SuiviDemandes() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Chargé opé.</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Profil assigné</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Note</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={16} className="text-center text-muted-foreground py-10">Aucune demande</TableCell>
+                <TableCell colSpan={17} className="text-center text-muted-foreground py-10">Aucune demande</TableCell>
               </TableRow>
             ) : filtered.map((d) => {
               const f = factByDemande[d.id];
@@ -318,12 +355,60 @@ export default function SuiviDemandes() {
                   <TableCell className="text-sm">{d.confirmation_ope || "—"}</TableCell>
                   <TableCell className="text-sm font-medium">{d.candidat_nom || "—"}</TableCell>
                   <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate" title={note}>{note || "—"}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={() => openEdit(d, f || null)}
+                      title={f ? "Modifier le statut paiement" : "Aucune facturation liée"}
+                      disabled={!f}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               );
             })}
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editRow} onOpenChange={(o) => !o && setEditRow(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier le statut de paiement</DialogTitle>
+          </DialogHeader>
+          {editRow && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {editRow.demande.nom || "—"} · {editRow.demande.type_service || "—"} · {editRow.demande.date_prestation ? format(new Date(editRow.demande.date_prestation), "dd/MM/yyyy") : ""}
+              </div>
+              <div className="space-y-2">
+                <Label>Statut paiement</Label>
+                <Select value={editForm.statut_paiement} onValueChange={(v) => setEditForm((f) => ({ ...f, statut_paiement: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ENCAISSEMENT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Remarque</Label>
+                <Textarea rows={3} value={editForm.commentaire} onChange={(e) => setEditForm((f) => ({ ...f, commentaire: e.target.value }))} placeholder="Note interne…" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRow(null)}>Annuler</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
