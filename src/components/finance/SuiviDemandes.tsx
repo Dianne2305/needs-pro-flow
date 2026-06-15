@@ -373,6 +373,42 @@ export default function SuiviDemandes() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editRow} onOpenChange={(o) => !o && setEditRow(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier le statut de paiement</DialogTitle>
+          </DialogHeader>
+          {editRow && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {editRow.demande.nom || "—"} · {editRow.demande.type_service || "—"} · {editRow.demande.date_prestation ? format(new Date(editRow.demande.date_prestation), "dd/MM/yyyy") : ""}
+              </div>
+              <div className="space-y-2">
+                <Label>Statut paiement</Label>
+                <Select value={editForm.statut_paiement} onValueChange={(v) => setEditForm((f) => ({ ...f, statut_paiement: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ENCAISSEMENT_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Remarque</Label>
+                <Textarea rows={3} value={editForm.commentaire} onChange={(e) => setEditForm((f) => ({ ...f, commentaire: e.target.value }))} placeholder="Note interne…" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRow(null)}>Annuler</Button>
+            <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
