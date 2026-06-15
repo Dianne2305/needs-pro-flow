@@ -373,7 +373,14 @@ export default function SuiviDusProfils() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{m.type_service || "—"}</TableCell>
                   <TableCell className="text-sm text-right">{heures || "—"}</TableCell>
-                  <TableCell className="text-sm text-right">{taux > 0 ? fmt(taux) : "—"}</TableCell>
+                  <TableCell className="text-sm text-right">
+                    {(() => {
+                      const std = getTauxStandard(m.type_service, heures);
+                      if (std.forfait) return <span className="text-xs text-muted-foreground italic">Forfait</span>;
+                      if (std.value != null) return `${std.value} DH/h`;
+                      return taux > 0 ? fmt(taux) : "—";
+                    })()}
+                  </TableCell>
                   <TableCell className="text-sm text-right font-semibold text-emerald-700">{fmt(pp)}</TableCell>
                   <TableCell className="text-sm text-right font-semibold text-sky-700">{fmt(pa)}</TableCell>
                   <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
