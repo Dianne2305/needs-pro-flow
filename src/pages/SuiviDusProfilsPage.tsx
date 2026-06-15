@@ -4,7 +4,6 @@
  */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuiviDusProfils from "@/components/finance/SuiviDusProfils";
-import SuiviDemandes from "@/components/finance/SuiviDemandes";
 import RecapTresorerie from "@/components/finance/RecapTresorerie";
 
 export default function SuiviDusProfilsPage() {
@@ -12,7 +11,7 @@ export default function SuiviDusProfilsPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Les suivis</h1>
-        <p className="text-sm text-muted-foreground">Suivi des dus Agence-Profils et suivi des demandes</p>
+        <p className="text-sm text-muted-foreground">Suivi des dus Agence-Profils</p>
       </div>
       <Tabs defaultValue="dus" className="w-full">
         <TabsList className="h-auto p-1.5 bg-muted/60 gap-1.5 rounded-xl">
@@ -23,12 +22,6 @@ export default function SuiviDusProfilsPage() {
             Suivi des dus Agence-Profils
           </TabsTrigger>
           <TabsTrigger
-            value="demandes"
-            className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
-          >
-            Suivi des demandes
-          </TabsTrigger>
-          <TabsTrigger
             value="recap"
             className="px-5 py-2.5 text-sm font-semibold rounded-lg transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-md"
           >
@@ -37,9 +30,6 @@ export default function SuiviDusProfilsPage() {
         </TabsList>
         <TabsContent value="dus" className="mt-4">
           <SuiviDusProfils />
-        </TabsContent>
-        <TabsContent value="demandes" className="mt-4">
-          <SuiviDemandes />
         </TabsContent>
         <TabsContent value="recap" className="mt-4">
           <RecapTresorerie />
