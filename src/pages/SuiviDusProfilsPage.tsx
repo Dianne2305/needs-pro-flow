@@ -4,6 +4,7 @@
  */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuiviDusProfils from "@/components/finance/SuiviDusProfils";
+import RecapTresorerie from "@/components/finance/RecapTresorerie";
 
 export default function SuiviDusProfilsPage() {
   return (
