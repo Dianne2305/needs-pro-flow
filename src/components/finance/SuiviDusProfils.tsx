@@ -347,6 +347,8 @@ export default function SuiviDusProfils() {
                   <TableCell className="text-sm text-right">{heures || "—"}</TableCell>
                   <TableCell className="text-sm text-right">{taux > 0 ? fmt(taux) : "—"}</TableCell>
                   <TableCell className="text-sm text-right font-semibold text-emerald-700">{fmt(pp)}</TableCell>
+                  <TableCell className="text-sm text-right font-semibold text-sky-700">{fmt(pa)}</TableCell>
+                  <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
                   <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell>
                     {m.part_profil_versee ? (
@@ -355,8 +357,6 @@ export default function SuiviDusProfils() {
                       <Badge className="bg-rose-100 text-rose-800">Non réglé</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm text-right font-semibold text-sky-700">{fmt(pa)}</TableCell>
-                  <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
                   <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate" title={m.commentaire || ""}>{m.commentaire || "—"}</TableCell>
                   <TableCell className="text-sm">
                     {dem?.frequence ? (
