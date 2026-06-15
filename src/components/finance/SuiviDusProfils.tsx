@@ -22,8 +22,8 @@ import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react"
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
 
 const ENCAISSEMENT_OPTIONS = [
-  { value: "paye", label: "Payé", color: "bg-emerald-100 text-emerald-800" },
-  { value: "non_paye", label: "Non payé", color: "bg-rose-100 text-rose-800" },
+  { value: "debiteur", label: "Débiteur", color: "bg-rose-100 text-rose-800" },
+  { value: "crediteur", label: "Créditeur", color: "bg-emerald-100 text-emerald-800" },
 ] as const;
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -56,7 +56,7 @@ export default function SuiviDusProfils() {
   useEffect(() => {
     if (editMission) {
       setEditForm({
-        statut_paiement: editMission.statut_paiement || "non_paye",
+        statut_paiement: editMission.statut_paiement || "debiteur",
         part_profil_versee: !!editMission.part_profil_versee,
         date_versement_profil: editMission.date_versement_profil || "",
         commentaire: editMission.commentaire || "",
@@ -313,10 +313,10 @@ export default function SuiviDusProfils() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Nbre h</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Taux horaire</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Part profil</TableHead>
-              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut encaissement</TableHead>
-              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Règlement FDM</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Part agence</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">CA</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut encais.</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Règlement FDM</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Remarque</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Fréquence</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Action</TableHead>
@@ -347,6 +347,8 @@ export default function SuiviDusProfils() {
                   <TableCell className="text-sm text-right">{heures || "—"}</TableCell>
                   <TableCell className="text-sm text-right">{taux > 0 ? fmt(taux) : "—"}</TableCell>
                   <TableCell className="text-sm text-right font-semibold text-emerald-700">{fmt(pp)}</TableCell>
+                  <TableCell className="text-sm text-right font-semibold text-sky-700">{fmt(pa)}</TableCell>
+                  <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
                   <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell>
                     {m.part_profil_versee ? (
@@ -355,8 +357,6 @@ export default function SuiviDusProfils() {
                       <Badge className="bg-rose-100 text-rose-800">Non réglé</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm text-right font-semibold text-sky-700">{fmt(pa)}</TableCell>
-                  <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
                   <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate" title={m.commentaire || ""}>{m.commentaire || "—"}</TableCell>
                   <TableCell className="text-sm">
                     {dem?.frequence ? (
