@@ -19,7 +19,12 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react";
-import { Facturation, partAgence, partProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
+import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
+
+const ENCAISSEMENT_OPTIONS = [
+  { value: "paye", label: "Payé", color: "bg-emerald-100 text-emerald-800" },
+  { value: "non_paye", label: "Non payé", color: "bg-rose-100 text-rose-800" },
+] as const;
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
