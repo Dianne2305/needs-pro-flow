@@ -470,6 +470,65 @@ export default function SuiviDusProfils() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View summary modal */}
+      <Dialog open={!!viewMission} onOpenChange={(o) => !o && setViewMission(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Résumé de la mission</DialogTitle>
+          </DialogHeader>
+          {viewMission && (() => {
+            const m = viewMission;
+            const dem = demandesMap[m.demande_id];
+            const heures = dem?.duree_heures || 0;
+            const taux = heures > 0 ? m.montant_total / heures : 0;
+            const std = getTauxStandard(m.type_service, heures);
+            const pp = partProfil(m); const pa = partAgence(m);
+            const dc = getEncaissementDC(m);
+            const statutOpt = ENCAISSEMENT_OPTIONS.find((o) => o.value === m.statut_paiement);
+            const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
+              <div className="flex justify-between gap-4 py-2 border-b border-border/50 last:border-0">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">{label}</span>
+                <span className="text-sm font-medium text-right">{value}</span>
+              </div>
+            );
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <div>
+                  <Row label="Date prestation" value={m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"} />
+                  <Row label="Profil (FDM)" value={m.profil_nom || "—"} />
+                  <Row label="Client" value={m.nom_client || "—"} />
+                  <Row label="Ville" value={m.ville || "—"} />
+                  <Row label="Type de service" value={m.type_service || "—"} />
+                  <Row label="Fréquence" value={dem?.frequence ? (FREQ_LABEL[dem.frequence] || dem.frequence) : "—"} />
+                  <Row label="Nbre heures" value={heures || "—"} />
+                  <Row label="Taux horaire" value={std.forfait ? "Forfait" : std.value != null ? `${std.value} DH/h` : (taux > 0 ? fmt(taux) : "—")} />
+                </div>
+                <div>
+                  <Row label="CA total" value={<span className="font-bold">{fmt(m.montant_total || 0)}</span>} />
+                  <Row label="Part agence" value={<span className="text-sky-700 font-semibold">{fmt(pa)}</span>} />
+                  <Row label="Part profil" value={<span className="text-emerald-700 font-semibold">{fmt(pp)}</span>} />
+                  <Row label="Statut paiement" value={<Badge className={statutOpt?.color || "bg-gray-100 text-gray-800"}>{statutOpt?.label || m.statut_paiement}</Badge>} />
+                  <Row label="Statut encaissement" value={dc ? <Badge className={dc.className}>{dc.label}</Badge> : "—"} />
+                  <Row label="Règlement FDM" value={m.part_profil_versee
+                    ? <Badge className="bg-emerald-100 text-emerald-800">Réglé{m.date_versement_profil ? ` · ${format(new Date(m.date_versement_profil), "dd/MM/yyyy")}` : ""}</Badge>
+                    : <Badge className="bg-rose-100 text-rose-800">Non réglé</Badge>} />
+                  <Row label="Remarque" value={<span className="text-xs">{m.commentaire || "—"}</span>} />
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => viewMission && navigate(`/compte-client?id=${viewMission.demande_id}&from=/gestion-financiere/suivi-dus`)}
+            >
+              Voir le compte client
+            </Button>
+            <Button onClick={() => setViewMission(null)}>Fermer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
