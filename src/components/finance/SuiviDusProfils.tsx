@@ -370,6 +370,12 @@ export default function SuiviDusProfils() {
                   <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
                   <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell>
+                    {(() => {
+                      const dc = getEncaissementDC(m);
+                      return dc ? <Badge className={dc.className}>{dc.label}</Badge> : <span className="text-xs text-muted-foreground">—</span>;
+                    })()}
+                  </TableCell>
+                  <TableCell>
                     {m.part_profil_versee ? (
                       <Badge className="bg-emerald-100 text-emerald-800 gap-1"><Wallet className="h-3 w-3" /> Réglé{m.date_versement_profil ? ` · ${format(new Date(m.date_versement_profil), "dd/MM")}` : ""}</Badge>
                     ) : (
@@ -383,9 +389,20 @@ export default function SuiviDusProfils() {
                     ) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setEditMission(m)} title="Modifier">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setEditMission(m)} title="Modifier">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => navigate(`/compte-client?id=${m.demande_id}&from=/gestion-financiere/suivi-dus`)}
+                        title="Voir le compte client"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
