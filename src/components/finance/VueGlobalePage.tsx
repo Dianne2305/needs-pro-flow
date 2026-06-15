@@ -3,18 +3,17 @@
  * Onglet Vue globale : KPIs financiers (CA, commissions, pertes) et graphiques.
  */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart3, ArrowDownLeft, ArrowUpRight, FileText, Users, HandCoins } from "lucide-react";
+import { BarChart3, ArrowDownLeft, ArrowUpRight, FileText, Users } from "lucide-react";
 import VueGlobale from "@/components/finance/VueGlobale";
 import DebitTab from "@/components/finance/DebitTab";
 import CreditTab from "@/components/finance/CreditTab";
 import HistoriqueMissions from "@/components/finance/HistoriqueMissions";
 import ComptesProfils from "@/components/finance/ComptesProfils";
-import SuiviDusProfils from "@/components/finance/SuiviDusProfils";
 
 export default function VueGlobalePage() {
   return (
     <Tabs defaultValue="vue-globale" className="space-y-4">
-      <TabsList className="flex w-full justify-center h-12 bg-muted/60 p-1 rounded-lg gap-1 flex-wrap">
+      <TabsList className="flex w-full justify-center h-12 bg-muted/60 p-1 rounded-lg gap-1">
         <TabsTrigger value="vue-globale" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-emerald-600 data-[state=active]:text-white">
           <BarChart3 className="h-4 w-4" /> Vue globale
         </TabsTrigger>
@@ -26,9 +25,6 @@ export default function VueGlobalePage() {
         </TabsTrigger>
         <TabsTrigger value="suivi-facturation" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-amber-500 data-[state=active]:text-white">
           <FileText className="h-4 w-4" /> Suivi Facturation
-        </TabsTrigger>
-        <TabsTrigger value="suivi-dus" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-teal-600 data-[state=active]:text-white">
-          <HandCoins className="h-4 w-4" /> Suivi des dus Agence-Profils
         </TabsTrigger>
         <TabsTrigger value="comptes-profils" className="flex items-center justify-center gap-2 px-5 text-sm font-semibold data-[state=active]:bg-violet-600 data-[state=active]:text-white">
           <Users className="h-4 w-4" /> Comptes Profils
@@ -46,9 +42,6 @@ export default function VueGlobalePage() {
       </TabsContent>
       <TabsContent value="suivi-facturation">
         <HistoriqueMissions />
-      </TabsContent>
-      <TabsContent value="suivi-dus">
-        <SuiviDusProfils />
       </TabsContent>
       <TabsContent value="comptes-profils">
         <ComptesProfils />
