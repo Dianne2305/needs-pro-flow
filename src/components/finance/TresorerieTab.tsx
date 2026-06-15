@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Facturation, partAgence } from "@/lib/finance-types";
 
 export const TRESORERIE_CATEGORIES = [
   { value: "encaissement_client", label: "Encaissement client (auto)", type: "entree" as const, auto: true },
