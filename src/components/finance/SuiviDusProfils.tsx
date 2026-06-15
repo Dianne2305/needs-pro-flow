@@ -57,6 +57,7 @@ const FREQ_LABEL: Record<string, string> = {
 export default function SuiviDusProfils() {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterReglement, setFilterReglement] = useState("all");
