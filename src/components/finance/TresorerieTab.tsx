@@ -257,36 +257,10 @@ export default function TresorerieTab() {
         </div>
       </div>
 
-      {/* Solde initial bar */}
-      <div className="rounded-lg border bg-amber-50 px-4 py-2.5 flex items-center justify-between gap-3 text-sm">
-        <span className="text-xs italic text-muted-foreground">Entrées liées automatiquement depuis le suivi des demandes — Sorties à saisir manuellement</span>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-amber-700 uppercase text-xs">Solde initial (à saisir une seule fois) →</span>
-          {editSolde ? (
-            <>
-              <Input
-                type="number"
-                value={soldeInput}
-                onChange={(e) => setSoldeInput(e.target.value)}
-                className="h-8 w-32"
-                autoFocus
-              />
-              <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-700" onClick={() => soldeMutation.mutate(Number(soldeInput) || 0)}>
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditSolde(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </>
-          ) : (
-            <>
-              <span className="font-bold tabular-nums">{fmt(Number(config?.solde_initial) || 0)}</span>
-              <Button size="sm" variant="ghost" className="h-7 text-xs italic text-muted-foreground" onClick={() => setEditSolde(true)}>
-                ← Saisir le solde de caisse actuel
-              </Button>
-            </>
-          )}
-        </div>
+      <div className="flex justify-end">
+        <Button onClick={openAdd} className="gap-1.5">
+          <Plus className="h-4 w-4" /> Ajouter un mouvement
+        </Button>
       </div>
 
       <div className="flex justify-end">
