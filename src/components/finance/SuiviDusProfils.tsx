@@ -34,6 +34,15 @@ const getEncaissementDC = (m: Facturation): { label: string; className: string }
   return null;
 };
 
+const getTauxStandard = (typeService: string | null | undefined, heures: number): { value: number | null; forfait: boolean } => {
+  const t = (typeService || "").toLowerCase();
+  if (t.includes("auxiliaire") || t.includes("placement")) return { value: null, forfait: true };
+  if (t.includes("airbnb")) return { value: heures > 2 ? 30 : 40, forfait: false };
+  if (t.includes("standard") || t.includes("bureau")) return { value: 30, forfait: false };
+  if (t.includes("grand") || t.includes("chantier") || t.includes("sinistre")) return { value: 40, forfait: false };
+  return { value: null, forfait: false };
+};
+
 const ENCAISSEMENT_OPTIONS = [
   { value: "en_attente", label: "Paiement en attente", color: "bg-amber-100 text-amber-800" },
   { value: "agence_payee_client", label: "Agence payée/client", color: "bg-sky-100 text-sky-800" },
