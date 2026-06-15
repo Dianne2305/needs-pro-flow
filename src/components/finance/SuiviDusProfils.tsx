@@ -414,8 +414,8 @@ export default function SuiviDusProfils() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-primary"
-                        onClick={() => navigate(`/compte-client?id=${m.demande_id}&from=/gestion-financiere/suivi-dus`)}
-                        title="Voir le compte client"
+                        onClick={() => setViewMission(m)}
+                        title="Voir le résumé"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
