@@ -4,6 +4,7 @@
  */
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuiviDusProfils from "@/components/finance/SuiviDusProfils";
+import SuiviDemandes from "@/components/finance/SuiviDemandes";
 import RecapTresorerie from "@/components/finance/RecapTresorerie";
 
 export default function SuiviDusProfilsPage() {
@@ -38,9 +39,7 @@ export default function SuiviDusProfilsPage() {
           <SuiviDusProfils />
         </TabsContent>
         <TabsContent value="demandes" className="mt-4">
-          <div className="rounded-lg border bg-card p-10 text-center text-muted-foreground">
-            Suivi des demandes — bientôt disponible
-          </div>
+          <SuiviDemandes />
         </TabsContent>
         <TabsContent value="recap" className="mt-4">
           <RecapTresorerie />
