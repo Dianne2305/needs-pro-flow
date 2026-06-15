@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X, Download, Check, Minus, Pencil } from "lucide-react";
+import { Search, CalendarIcon, X, Download, Check, Minus, Pencil, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
