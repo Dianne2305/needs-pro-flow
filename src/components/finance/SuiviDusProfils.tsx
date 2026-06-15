@@ -344,7 +344,7 @@ export default function SuiviDusProfils() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-muted-foreground py-10">Aucune mission</TableCell>
+                <TableCell colSpan={15} className="text-center text-muted-foreground py-10">Aucune mission</TableCell>
               </TableRow>
             ) : filtered.map((m) => {
               const dem = demandesMap[m.demande_id];
