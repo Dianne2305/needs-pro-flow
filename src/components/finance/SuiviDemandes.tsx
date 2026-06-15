@@ -54,6 +54,7 @@ type DemandeRow = {
 
 export default function SuiviDemandes() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
