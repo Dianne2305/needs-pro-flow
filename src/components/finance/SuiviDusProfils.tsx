@@ -19,7 +19,12 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react";
-import { Facturation, partAgence, partProfil, STATUT_PAIEMENT_OPTIONS } from "@/lib/finance-types";
+import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
+
+const ENCAISSEMENT_OPTIONS = [
+  { value: "paye", label: "Payé", color: "bg-emerald-100 text-emerald-800" },
+  { value: "non_paye", label: "Non payé", color: "bg-rose-100 text-rose-800" },
+] as const;
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -162,7 +167,7 @@ export default function SuiviDusProfils() {
   }, [filtered]);
 
   const getStatutBadge = (s: string) => {
-    const opt = STATUT_PAIEMENT_OPTIONS.find((o) => o.value === s);
+    const opt = ENCAISSEMENT_OPTIONS.find((o) => o.value === s);
     return <Badge className={opt?.color || "bg-gray-100 text-gray-800"}>{opt?.label || s}</Badge>;
   };
 
@@ -181,7 +186,7 @@ export default function SuiviDusProfils() {
         heures ? String(heures) : "—",
         taux.toFixed(2),
         partProfil(m).toFixed(2),
-        STATUT_PAIEMENT_OPTIONS.find((o) => o.value === m.statut_paiement)?.label || m.statut_paiement,
+        ENCAISSEMENT_OPTIONS.find((o) => o.value === m.statut_paiement)?.label || m.statut_paiement,
         m.part_profil_versee ? "Réglé" : "Non réglé",
         partAgence(m).toFixed(2),
         (m.montant_total || 0).toFixed(2),
@@ -248,7 +253,7 @@ export default function SuiviDusProfils() {
               <SelectTrigger className="w-56"><SelectValue placeholder="Statut encaissement" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                {STATUT_PAIEMENT_OPTIONS.map((o) => (
+                {ENCAISSEMENT_OPTIONS.map((o) => (
                   <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                 ))}
               </SelectContent>
@@ -387,7 +392,7 @@ export default function SuiviDusProfils() {
                 <Select value={editForm.statut_paiement} onValueChange={(v) => setEditForm((f) => ({ ...f, statut_paiement: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {STATUT_PAIEMENT_OPTIONS.map((o) => (
+                    {ENCAISSEMENT_OPTIONS.map((o) => (
                       <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                     ))}
                   </SelectContent>
