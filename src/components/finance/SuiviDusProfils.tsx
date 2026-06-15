@@ -18,8 +18,21 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X, Download, Wallet, Pencil } from "lucide-react";
+import { Search, CalendarIcon, X, Download, Wallet, Pencil, Eye } from "lucide-react";
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
+import { useNavigate } from "react-router-dom";
+
+const getEncaissementDC = (m: Facturation): { label: string; className: string } | null => {
+  if (m.part_profil_versee) return null;
+  const s = m.statut_paiement;
+  if (s === "agence_payee_client" || s === "paye") {
+    return { label: "Débiteur", className: "bg-rose-100 text-rose-800" };
+  }
+  if (s === "profil_paye_client") {
+    return { label: "Créditeur", className: "bg-emerald-100 text-emerald-800" };
+  }
+  return null;
+};
 
 const ENCAISSEMENT_OPTIONS = [
   { value: "en_attente", label: "Paiement en attente", color: "bg-amber-100 text-amber-800" },
@@ -44,6 +57,7 @@ const FREQ_LABEL: Record<string, string> = {
 export default function SuiviDusProfils() {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterReglement, setFilterReglement] = useState("all");
@@ -320,6 +334,7 @@ export default function SuiviDusProfils() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Part agence</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">CA</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut paiem.</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut encais.</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Règlement FDM</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Remarque</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Fréquence</TableHead>
@@ -329,7 +344,7 @@ export default function SuiviDusProfils() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={14} className="text-center text-muted-foreground py-10">Aucune mission</TableCell>
+                <TableCell colSpan={15} className="text-center text-muted-foreground py-10">Aucune mission</TableCell>
               </TableRow>
             ) : filtered.map((m) => {
               const dem = demandesMap[m.demande_id];
@@ -355,6 +370,12 @@ export default function SuiviDusProfils() {
                   <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
                   <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
                   <TableCell>
+                    {(() => {
+                      const dc = getEncaissementDC(m);
+                      return dc ? <Badge className={dc.className}>{dc.label}</Badge> : <span className="text-xs text-muted-foreground">—</span>;
+                    })()}
+                  </TableCell>
+                  <TableCell>
                     {m.part_profil_versee ? (
                       <Badge className="bg-emerald-100 text-emerald-800 gap-1"><Wallet className="h-3 w-3" /> Réglé{m.date_versement_profil ? ` · ${format(new Date(m.date_versement_profil), "dd/MM")}` : ""}</Badge>
                     ) : (
@@ -368,9 +389,20 @@ export default function SuiviDusProfils() {
                     ) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setEditMission(m)} title="Modifier">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setEditMission(m)} title="Modifier">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => navigate(`/compte-client?id=${m.demande_id}&from=/gestion-financiere/suivi-dus`)}
+                        title="Voir le compte client"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
