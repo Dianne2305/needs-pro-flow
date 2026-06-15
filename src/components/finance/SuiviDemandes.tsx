@@ -52,10 +52,42 @@ type DemandeRow = {
 };
 
 export default function SuiviDemandes() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [editRow, setEditRow] = useState<{ demande: DemandeRow; fact: Facturation | null } | null>(null);
+  const [editForm, setEditForm] = useState({ statut_paiement: "en_attente", commentaire: "" });
+
+  const openEdit = (d: DemandeRow, f: Facturation | null) => {
+    setEditRow({ demande: d, fact: f });
+    setEditForm({
+      statut_paiement: f?.statut_paiement || "en_attente",
+      commentaire: f?.commentaire || "",
+    });
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!editRow?.fact) throw new Error("Aucune facturation liée à cette demande");
+      const { error } = await supabase
+        .from("facturation")
+        .update({
+          statut_paiement: editForm.statut_paiement,
+          commentaire: editForm.commentaire || null,
+        })
+        .eq("id", editRow.fact.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["facturation"] });
+      toast({ title: "Statut mis à jour" });
+      setEditRow(null);
+    },
+    onError: (e: any) => toast({ title: "Erreur", description: e.message, variant: "destructive" }),
+  });
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "suivi_demandes"],
