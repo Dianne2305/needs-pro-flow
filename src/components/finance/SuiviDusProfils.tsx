@@ -315,7 +315,7 @@ export default function SuiviDusProfils() {
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Part profil</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Part agence</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">CA</TableHead>
-              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut encais.</TableHead>
+              <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Statut paiem.</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Règlement FDM</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Remarque</TableHead>
               <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Fréquence</TableHead>
