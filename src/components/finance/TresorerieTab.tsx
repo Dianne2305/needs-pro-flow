@@ -128,6 +128,7 @@ export default function TresorerieTab() {
       saisi_par: o.utilisateur,
       notes: o.notes,
       auto: false,
+      created_at: o.created_at || o.date_operation || "",
     }));
     const auto: Row[] = (encaissementsAuto as any[]).map((f) => ({
       id: `auto-${f.id}`,
@@ -139,6 +140,7 @@ export default function TresorerieTab() {
       saisi_par: "Système",
       notes: "Auto depuis Suivi des demandes",
       auto: true,
+      created_at: f.date_paiement_client || f.date_intervention || "",
     }));
     return [...auto, ...manual].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }, [ops, encaissementsAuto]);
