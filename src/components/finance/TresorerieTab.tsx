@@ -37,9 +37,11 @@ export const TRESORERIE_CATEGORIES = [
   { value: "publicite_marketing", label: "Publicité & Marketing", type: "sortie" as const },
 ];
 
-const catLabel = (v: string) => TRESORERIE_CATEGORIES.find((c) => c.value === v)?.label || v;
+const catLabel = (v: string) => TRESORERIE_CATEGORIES.find((c) => c.value === v)?.label || "Non catégorisé";
 
 const fmt = (n: number) => (n || 0).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+
+const PAGE_SIZE = 25;
 
 interface Row {
   id: string;
