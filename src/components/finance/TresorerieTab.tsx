@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Plus, Pencil, Trash2, Check, X, Search, FileDown, FileSpreadsheet, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Search, FileDown, FileSpreadsheet, Info, ChevronLeft, ChevronRight, Receipt, Percent, ArrowDownToLine, ArrowUpFromLine, Wallet, Store, Landmark, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Facturation, partAgence } from "@/lib/finance-types";
