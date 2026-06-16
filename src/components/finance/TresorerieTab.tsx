@@ -328,6 +328,7 @@ export default function TresorerieTab() {
   }, [editSolde, config]);
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="space-y-4">
       {/* KPI bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -336,7 +337,19 @@ export default function TresorerieTab() {
           <p className="text-xl font-bold mt-1 text-cyan-800">{fmt(caTotals.ca)}</p>
         </div>
         <div className="rounded-lg border bg-amber-50 p-4">
-          <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-amber-700/70 hover:text-amber-800">
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[260px]">
+                Commission revenant à l'agence sur l'ensemble des missions facturées (CA × % commission), hors facturations annulées.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <p className="text-xl font-bold mt-1 text-amber-800">{fmt(caTotals.partAg)}</p>
         </div>
         <div className="rounded-lg border bg-emerald-50 p-4">
