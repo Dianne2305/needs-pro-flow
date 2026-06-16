@@ -535,12 +535,6 @@ export default function SuiviDusProfils() {
             );
           })()}
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => viewMission && navigate(`/compte-client?id=${viewMission.demande_id}&from=/gestion-financiere/suivi-dus`)}
-            >
-              Voir le compte client
-            </Button>
             <Button onClick={() => setViewMission(null)}>Fermer</Button>
           </DialogFooter>
         </DialogContent>
