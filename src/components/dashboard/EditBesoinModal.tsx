@@ -420,12 +420,12 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       // Set encaisse_par based on new status
       if (statutPaiement === "agence_payee_client" || statutPaiement === "paye") {
         factUpdates.encaisse_par = "agence";
-      } else if (statutPaiement === "profil_paye_client") {
+      } else if ((statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client")) {
         factUpdates.encaisse_par = "profil";
       }
 
       // Store profil_doit / agence_doit amounts
-      if (statutPaiement === "profil_paye_client") {
+      if ((statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client")) {
         factUpdates.montant_profil_doit = montantProfilDoit ? Number(montantProfilDoit) : null;
       } else if (statutPaiement === "agence_payee_client") {
         factUpdates.montant_agence_doit = montantAgenceDoit ? Number(montantAgenceDoit) : null;
@@ -675,7 +675,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     <Select value={statutPaiement} onValueChange={(val) => {
                       setStatutPaiement(val);
                       // Auto-fill amounts when status changes (only from existing parts, no 50% default)
-                      if (val === "profil_paye_client") {
+                      if ((val === "profil_paye_client" || val === "commercial_paye_client")) {
                         const agencePart = Number(partAgence) || 0;
                         if (agencePart > 0) {
                           setMontantProfilDoit(String(agencePart));
@@ -712,7 +712,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
 
                 {/* Dépôt commercial effectué (uniquement si Commercial/Profil payé par client) */}
-                {statutPaiement === "profil_paye_client" && (
+                {(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") && (
                   <div className="mt-4 p-4 rounded-lg border border-amber-300 bg-amber-50 space-y-3">
                     <h4 className="text-sm font-bold text-amber-800">
                       Confirmation du versement du commercial à l'agence
@@ -842,12 +842,12 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     <ChevronDown className={`h-4 w-4 text-emerald-600 transition-transform duration-200 ${gestionPartsOpen ? "rotate-180" : ""}`} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-4">
-                    {statutPaiement === "profil_paye_client" && (
+                    {(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") && (
                       <div className="p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-800">
                         🔒 <strong>Gestion des parts indisponible.</strong> Le partage des parts entre l'agence et le profil intervenant ne peut être effectué que lorsque le statut de paiement est « Agence payée par le client ». Confirmez d'abord le dépôt du commercial à l'agence.
                       </div>
                     )}
-                    <div className={statutPaiement === "profil_paye_client" ? "opacity-40 pointer-events-none space-y-4" : "space-y-4"}>
+                    <div className={(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") ? "opacity-40 pointer-events-none space-y-4" : "space-y-4"}>
 
                     {/* Montant total (read-only) */}
                     <div className="grid grid-cols-2 gap-4">
