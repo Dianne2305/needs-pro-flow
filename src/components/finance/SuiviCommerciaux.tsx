@@ -5,11 +5,13 @@
  */
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { Facturation, partAgence } from "@/lib/finance-types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Users, Wallet, BadgePercent, Trophy, Table as TableIcon, Filter, X, ArrowLeft, CalendarDays } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Users, Wallet, BadgePercent, Trophy, Table as TableIcon, Filter, X, ArrowLeft, CalendarDays, Download, FileSpreadsheet, FileText } from "lucide-react";
 
 const COMMISSION_COMMERCIAL_PCT = 10; // % de la part agence
 
@@ -212,9 +214,65 @@ export default function SuiviCommerciaux() {
     return { months, quarters, years, totalCa, totalDossiers, totalCommission, moisTravailles, moyenneMensuelle };
   }, [activeCommercial, factus, fromDate, toDate]);
 
+  const periodLabel = period === "mois" ? "Ce_mois" : period === "trimestre" ? "Ce_trimestre" : period === "annee" ? "Cette_annee" : `${dateFrom}_${dateTo}`;
+
+  const exportData = (format: "xlsx" | "csv") => {
+    const wb = XLSX.utils.book_new();
+    const periodInfo = `${toISO(fromDate)} → ${toISO(toDate)}`;
+
+    if (activeCommercial && detailCommercial) {
+      const meta = [
+        ["Commercial", activeCommercial],
+        ["Période", periodInfo],
+        ["Total réalisations (DH)", Math.round(detailCommercial.totalCa)],
+        ["Mois travaillés", detailCommercial.moisTravailles],
+        ["Moyenne / mois travaillé (DH)", Math.round(detailCommercial.moyenneMensuelle)],
+        ["Dossiers", detailCommercial.totalDossiers],
+        ["Commission agence (DH)", Math.round(detailCommercial.totalCommission)],
+      ];
+      const wsMeta = XLSX.utils.aoa_to_sheet(meta);
+      XLSX.utils.book_append_sheet(wb, wsMeta, "Synthèse");
+
+      const buildRows = (rows: { label: string; ca: number; dossiers: number; commission: number }[]) => [
+        ["Période", "Réalisation (DH)", "Dossiers", "Commission agence (DH)"],
+        ...rows.map((r) => [r.label, Math.round(r.ca), r.dossiers, Math.round(r.commission)]),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRows(detailCommercial.months)), "Par mois");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRows(detailCommercial.quarters)), "Par trimestre");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRows(detailCommercial.years)), "Par année");
+    } else {
+      const rows = [
+        ["Période", periodInfo],
+        [],
+        ["Commercial", "CA réalisé (DH)", "Part (%)", "Dossiers", "Commission agence (DH)"],
+        ...agg.map((r) => [r.commercial, Math.round(r.caMois), Number(r.taux.toFixed(2)), r.dossiersMois, Math.round(r.commissionMois)]),
+        [],
+        ["TOTAL", Math.round(totals.caTotal), "", agg.reduce((s, r) => s + r.dossiersMois, 0), Math.round(totals.commissionTotal)],
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Commerciaux");
+    }
+
+    const baseName = activeCommercial
+      ? `Realisations_${activeCommercial.replace(/\s+/g, "_")}_${periodLabel}`
+      : `Suivi_Commerciaux_${periodLabel}`;
+
+    if (format === "csv") {
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const csv = XLSX.utils.sheet_to_csv(ws, { FS: ";" });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${baseName}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      XLSX.writeFile(wb, `${baseName}.xlsx`);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-sm text-muted-foreground p-6">Chargement…</div>;
   }
+
 
   return (
     <div className="space-y-6">
@@ -271,11 +329,28 @@ export default function SuiviCommerciaux() {
             </SelectContent>
           </Select>
         </div>
-        {hasActiveFilter && (
-          <Button variant="ghost" size="sm" onClick={resetFilters} className="ml-auto text-muted-foreground">
-            <X className="h-4 w-4 mr-1" /> Réinitialiser
-          </Button>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {hasActiveFilter && (
+            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground">
+              <X className="h-4 w-4 mr-1" /> Réinitialiser
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-1" /> Exporter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover z-50">
+              <DropdownMenuItem onClick={() => exportData("xlsx")}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportData("csv")}>
+                <FileText className="h-4 w-4 mr-2" /> CSV (.csv)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {activeCommercial && detailCommercial ? (
