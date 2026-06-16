@@ -504,6 +504,7 @@ export default function TresorerieTab() {
               <TableHead className="text-white uppercase text-[11px]">N°</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Date</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Catégorie</TableHead>
+              <TableHead className="text-white uppercase text-[11px]">Libellé</TableHead>
               <TableHead className="text-white uppercase text-[11px] text-right">Montant (DH)</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Type</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Saisi par</TableHead>
