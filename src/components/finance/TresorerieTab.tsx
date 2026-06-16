@@ -326,14 +326,17 @@ export default function TresorerieTab() {
 
   const openAdd = () => {
     setEditing(null);
+    setSelectedFile(null);
     setForm({
       date_operation: format(new Date(), "yyyy-MM-dd"),
       libelle: "",
       categorie: "",
       montant: "",
       type_operation: "entree",
+      mode_paiement: "especes",
       utilisateur: "",
       notes: "",
+      justificatif_url: "",
     });
     setModalOpen(true);
   };
@@ -343,14 +346,17 @@ export default function TresorerieTab() {
     const op = (ops as any[]).find((o) => o.id === r.id);
     if (!op) return;
     setEditing(op);
+    setSelectedFile(null);
     setForm({
       date_operation: op.date_operation,
       libelle: op.libelle || "",
       categorie: op.categorie || "",
       montant: String(op.montant || ""),
       type_operation: op.type_operation,
+      mode_paiement: op.mode_paiement || "especes",
       utilisateur: op.utilisateur || "",
       notes: op.notes || "",
+      justificatif_url: op.justificatif_url || "",
     });
     setModalOpen(true);
   };
