@@ -210,6 +210,53 @@ export default function SuiviCommerciaux() {
 
   return (
     <div className="space-y-6">
+      {/* Filtres */}
+      <div className="flex flex-wrap items-end gap-3 p-4 border rounded-xl bg-card">
+        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mr-2">
+          <Filter className="h-4 w-4" /> Filtres
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Période</label>
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[180px] capitalize"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {filterOptions.months.map((m) => (
+                <SelectItem key={m} value={m} className="capitalize">{monthLabel(m)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Commercial</label>
+          <Select value={commercialFilter} onValueChange={setCommercialFilter}>
+            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Tous les commerciaux</SelectItem>
+              {filterOptions.commerciaux.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Ville</label>
+          <Select value={villeFilter} onValueChange={setVilleFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Toutes les villes</SelectItem>
+              {filterOptions.villes.map((v) => (
+                <SelectItem key={v} value={v}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {hasActiveFilter && (
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="ml-auto text-muted-foreground">
+            <X className="h-4 w-4 mr-1" /> Réinitialiser
+          </Button>
+        )}
+      </div>
+
       {/* KPIs globaux */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <KpiCard icon={<Users className="h-4 w-4" />} label="Commerciaux actifs" value={String(agg.length)} />
