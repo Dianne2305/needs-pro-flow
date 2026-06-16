@@ -270,7 +270,6 @@ export default function TresorerieTab() {
             <TableRow className="bg-[hsl(220,40%,20%)] hover:bg-[hsl(220,40%,20%)]">
               <TableHead className="text-white uppercase text-[11px]">N°</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Date</TableHead>
-              <TableHead className="text-white uppercase text-[11px]">Libellé / Description</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Catégorie</TableHead>
               <TableHead className="text-white uppercase text-[11px] text-right">Montant (DH)</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Type</TableHead>
