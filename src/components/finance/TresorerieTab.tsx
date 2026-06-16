@@ -165,10 +165,17 @@ export default function TresorerieTab() {
 
   useEffect(() => { setPage(1); }, [search, typeFilter, saisiParFilter, dateFrom, dateTo]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const sortedRows = useMemo(
+    () => [...filteredRows].sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (a.created_at || "") < (b.created_at || "") ? 1 : -1;
+    }),
+    [filteredRows]
+  );
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
   const pagedRows = useMemo(
-    () => filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [filteredRows, page]
+    () => sortedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [sortedRows, page]
   );
 
 
