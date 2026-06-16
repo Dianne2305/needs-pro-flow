@@ -53,22 +53,68 @@ function monthKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function monthLabel(key: string) {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+}
+
 export default function SuiviCommerciaux() {
   const now = new Date();
-  const currentMonth = monthKey(now);
-  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevMonth = monthKey(prev);
+  const defaultMonth = monthKey(now);
+
+  const [monthFilter, setMonthFilter] = useState<string>(defaultMonth);
+  const [commercialFilter, setCommercialFilter] = useState<string>("all");
+  const [villeFilter, setVilleFilter] = useState<string>("all");
+
+  const [yy, mm] = monthFilter.split("-").map(Number);
+  const currentMonth = monthFilter;
+  const prevMonth = monthKey(new Date(yy, mm - 2, 1));
 
   const { data: factus = [], isLoading } = useQuery({
     queryKey: ["facturation-suivi-commerciaux"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("facturation")
-        .select("commercial, montant_total, commission_pourcentage, date_intervention, created_at, demande_id");
+        .select("commercial, ville, montant_total, commission_pourcentage, date_intervention, created_at, demande_id");
       if (error) throw error;
       return (data ?? []) as unknown as Facturation[];
     },
   });
+
+  const filterOptions = useMemo(() => {
+    const months = new Set<string>();
+    const commerciaux = new Set<string>();
+    const villes = new Set<string>();
+    for (const f of factus) {
+      const name = (f.commercial || "").trim();
+      if (!name) continue;
+      const d = new Date(f.date_intervention || f.created_at);
+      months.add(monthKey(d));
+      commerciaux.add(name);
+      if (f.ville) villes.add(f.ville);
+    }
+    months.add(defaultMonth);
+    return {
+      months: Array.from(months).sort().reverse(),
+      commerciaux: Array.from(commerciaux).sort(),
+      villes: Array.from(villes).sort(),
+    };
+  }, [factus, defaultMonth]);
+
+  const filteredFactus = useMemo(() => {
+    return factus.filter((f) => {
+      if (commercialFilter !== "all" && (f.commercial || "").trim() !== commercialFilter) return false;
+      if (villeFilter !== "all" && f.ville !== villeFilter) return false;
+      return true;
+    });
+  }, [factus, commercialFilter, villeFilter]);
+
+  const hasActiveFilter = commercialFilter !== "all" || villeFilter !== "all" || monthFilter !== defaultMonth;
+  const resetFilters = () => {
+    setMonthFilter(defaultMonth);
+    setCommercialFilter("all");
+    setVilleFilter("all");
+  };
 
   const { data: statutsCount } = useQuery({
     queryKey: ["demandes-statuts-counts"],
@@ -105,7 +151,7 @@ export default function SuiviCommerciaux() {
       commissionMois: number;
     };
     const map = new Map<string, Row>();
-    for (const f of factus) {
+    for (const f of filteredFactus) {
       const name = (f.commercial || "").trim();
       if (!name) continue;
       const d = new Date(f.date_intervention || f.created_at);
@@ -142,7 +188,7 @@ export default function SuiviCommerciaux() {
     });
     rows.sort((a, b) => b.caMois - a.caMois);
     return rows;
-  }, [factus, currentMonth, prevMonth]);
+  }, [filteredFactus, currentMonth, prevMonth]);
 
   const totals = useMemo(() => {
     const caTotal = agg.reduce((s, r) => s + r.caMois, 0);
