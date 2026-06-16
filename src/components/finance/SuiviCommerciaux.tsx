@@ -312,7 +312,7 @@ export default function SuiviCommerciaux() {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-muted-foreground">Réalisation</span>
                     <span className={`font-bold ${r.taux >= 100 ? "text-emerald-600" : r.taux >= 80 ? "text-amber-600" : "text-rose-600"}`}>
-                      {Math.round(r.taux)}%
+                      {r.taux.toFixed(2).replace(".", ",")}%
                     </span>
                   </div>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
@@ -372,7 +372,7 @@ export default function SuiviCommerciaux() {
                   <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.caMois)}</td>
                   <td className="text-center px-3 py-2">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${tauxBadge(r.taux)}`}>
-                      {Math.round(r.taux)}%
+                      {r.taux.toFixed(2).replace(".", ",")}%
                     </span>
                   </td>
                   <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
