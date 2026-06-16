@@ -367,9 +367,25 @@ export default function SuiviDusProfils() {
                   <TableCell className="text-sm whitespace-nowrap">
                     {m.date_intervention ? format(new Date(m.date_intervention), "dd/MM/yyyy") : "—"}
                   </TableCell>
-                  <TableCell className="text-sm font-medium">{m.profil_nom || "—"}</TableCell>
+                  <TableCell className="text-sm font-medium">
+                    {m.profil_nom ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/compte-profil?id=${m.profil_id}&from=/gestion-financiere/suivi-dus`)}
+                        className="text-primary hover:underline text-left"
+                      >
+                        {m.profil_nom}
+                      </button>
+                    ) : "—"}
+                  </TableCell>
                   <TableCell>
-                    <div className="font-semibold text-sm">{m.nom_client}</div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/compte-client?id=${m.demande_id}&from=/gestion-financiere/suivi-dus`)}
+                      className="font-semibold text-sm text-primary hover:underline text-left"
+                    >
+                      {m.nom_client}
+                    </button>
                     <div className="text-xs text-muted-foreground">{m.ville || ""}</div>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{m.type_service || "—"}</TableCell>
@@ -519,12 +535,6 @@ export default function SuiviDusProfils() {
             );
           })()}
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => viewMission && navigate(`/compte-client?id=${viewMission.demande_id}&from=/gestion-financiere/suivi-dus`)}
-            >
-              Voir le compte client
-            </Button>
             <Button onClick={() => setViewMission(null)}>Fermer</Button>
           </DialogFooter>
         </DialogContent>
