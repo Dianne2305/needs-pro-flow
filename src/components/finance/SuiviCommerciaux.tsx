@@ -153,12 +153,18 @@ export default function SuiviCommerciaux() {
       commissionMois: number;
     };
     const map = new Map<string, Row>();
+    const fromMs = fromDate.getTime();
+    const toMs = toDate.getTime() + 24 * 60 * 60 * 1000 - 1;
+    const prevFromMs = prevFromDate.getTime();
+    const prevToMs = prevToDate.getTime() + 24 * 60 * 60 * 1000 - 1;
     for (const f of filteredFactus) {
       const name = (f.commercial || "").trim();
       if (!name) continue;
       const d = new Date(f.date_intervention || f.created_at);
-      const mk = monthKey(d);
-      if (mk !== currentMonth && mk !== prevMonth) continue;
+      const ts = d.getTime();
+      const inCurrent = ts >= fromMs && ts <= toMs;
+      const inPrev = ts >= prevFromMs && ts <= prevToMs;
+      if (!inCurrent && !inPrev) continue;
       if (!map.has(name)) {
         map.set(name, {
           commercial: name,
@@ -172,7 +178,7 @@ export default function SuiviCommerciaux() {
       const row = map.get(name)!;
       const ca = Number(f.montant_total || 0);
       const partAg = partAgence(f);
-      if (mk === currentMonth) {
+      if (inCurrent) {
         row.caMois += ca;
         row.dossiersMois += 1;
         row.commissionMois += partAg * (COMMISSION_COMMERCIAL_PCT / 100);
@@ -183,21 +189,17 @@ export default function SuiviCommerciaux() {
     }
     const rows = Array.from(map.values()).map((r) => {
       const taux = OBJECTIF_PAR_COMMERCIAL > 0 ? (r.caMois / OBJECTIF_PAR_COMMERCIAL) * 100 : 0;
-      // Conversion = dossiers réalisés / objectif dossiers (proxy : objectif = 15 dossiers)
-      const conversion = Math.min(100, Math.round((r.dossiersMois / 15) * 100));
       const tendance = r.caPrev > 0 ? Math.round(((r.caMois - r.caPrev) / r.caPrev) * 100) : r.caMois > 0 ? 100 : 0;
-      return { ...r, taux, conversion, tendance };
+      return { ...r, taux, tendance };
     });
     rows.sort((a, b) => b.caMois - a.caMois);
     return rows;
-  }, [filteredFactus, currentMonth, prevMonth]);
+  }, [filteredFactus, fromDate, toDate, prevFromDate, prevToDate]);
 
   const totals = useMemo(() => {
     const caTotal = agg.reduce((s, r) => s + r.caMois, 0);
-    const objectifTotal = agg.length * OBJECTIF_PAR_COMMERCIAL;
     const commissionTotal = agg.reduce((s, r) => s + r.commissionMois, 0);
-    const realisationMoy = objectifTotal > 0 ? Math.round((caTotal / objectifTotal) * 100) : 0;
-    return { caTotal, objectifTotal, commissionTotal, realisationMoy };
+    return { caTotal, commissionTotal };
   }, [agg]);
 
   const chartData = agg.map((r) => ({
@@ -218,15 +220,24 @@ export default function SuiviCommerciaux() {
           <Filter className="h-4 w-4" /> Filtres
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Période</label>
-          <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger className="w-[180px] capitalize"><SelectValue /></SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {filterOptions.months.map((m) => (
-                <SelectItem key={m} value={m} className="capitalize">{monthLabel(m)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <label className="text-xs text-muted-foreground">Du</label>
+          <input
+            type="date"
+            value={dateFrom}
+            max={dateTo}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Au</label>
+          <input
+            type="date"
+            value={dateTo}
+            min={dateFrom}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+          />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Commercial</label>
@@ -260,13 +271,12 @@ export default function SuiviCommerciaux() {
       </div>
 
       {/* KPIs globaux */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <KpiCard icon={<Users className="h-4 w-4" />} label="Commerciaux actifs" value={String(agg.length)} />
         <KpiCard icon={<Wallet className="h-4 w-4" />} label="CA total équipe" value={fmt(totals.caTotal)} color="text-emerald-600" />
-        <KpiCard icon={<Target className="h-4 w-4" />} label="Objectif équipe" value={fmt(totals.objectifTotal)} />
-        <KpiCard icon={<Percent className="h-4 w-4" />} label="Réalisation moy." value={`${totals.realisationMoy}%`} color={totals.realisationMoy >= 100 ? "text-emerald-600" : totals.realisationMoy >= 80 ? "text-amber-600" : "text-rose-600"} />
-        <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commissions totales" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
+        <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commission agence" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
       </div>
+
 
 
       {/* Classement du mois */}
