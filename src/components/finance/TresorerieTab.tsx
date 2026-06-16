@@ -581,7 +581,7 @@ export default function TresorerieTab() {
               <Input value={form.libelle} onChange={(e) => setForm((f) => ({ ...f, libelle: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>Saisi par</Label>
+              <Label>Saisi par <span className="text-destructive">*</span></Label>
               <Input value={form.utilisateur} onChange={(e) => setForm((f) => ({ ...f, utilisateur: e.target.value }))} placeholder="Nom de l'utilisateur" />
             </div>
             <div className="space-y-1.5">
@@ -591,7 +591,7 @@ export default function TresorerieTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || saveMutation.isPending}>
+            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || !form.utilisateur.trim() || saveMutation.isPending}>
               {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
             </Button>
           </DialogFooter>
