@@ -474,11 +474,13 @@ export default function TresorerieTab() {
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
-            ) : filteredRows.map((r, i) => (
+            ) : pagedRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
-                <TableCell className="text-sm tabular-nums">{i + 1}</TableCell>
+                <TableCell className="text-sm tabular-nums">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
-                <TableCell className="text-sm">{catLabel(r.categorie)}</TableCell>
+                <TableCell className="text-sm">
+                  {r.categorie ? catLabel(r.categorie) : <span className="italic text-muted-foreground">Non catégorisé</span>}
+                </TableCell>
                 <TableCell className={`text-sm text-right font-semibold tabular-nums ${r.type === "entree" ? "text-emerald-700" : "text-rose-700"}`}>
                   {r.type === "entree" ? "+" : "−"}{fmt(r.montant)}
                 </TableCell>
@@ -487,7 +489,9 @@ export default function TresorerieTab() {
                     {r.type === "entree" ? "Entrée" : "Sortie"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{r.saisi_par || "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {r.saisi_par || <span className="italic">Non renseigné</span>}
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate" title={r.notes || ""}>{r.notes || "—"}</TableCell>
                 <TableCell className="text-right">
                   {r.auto ? (
@@ -514,6 +518,22 @@ export default function TresorerieTab() {
             ))}
           </TableBody>
         </Table>
+        {filteredRows.length > 0 && (
+          <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/30 text-sm">
+            <span className="text-muted-foreground">
+              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredRows.length)} sur {filteredRows.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-8" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground tabular-nums">Page {page} / {totalPages}</span>
+              <Button variant="outline" size="sm" className="h-8" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit modal */}
