@@ -333,9 +333,30 @@ export default function TresorerieTab() {
           <p className="text-xs uppercase tracking-wider text-rose-700">Total sorties</p>
           <p className="text-xl font-bold mt-1 text-rose-700">{fmt(totals.sorties)}</p>
         </div>
-        <div className="rounded-lg border bg-[hsl(220,40%,20%)] text-white p-4">
+        <div className="rounded-lg border bg-[hsl(220,40%,20%)] text-white p-4 relative overflow-hidden">
           <p className="text-xs uppercase tracking-wider text-white/70">Solde net</p>
           <p className={`text-xl font-bold mt-1 ${totals.solde >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{fmt(totals.solde)}</p>
+          {soldeSeries.length > 1 && (
+            <div className="h-10 mt-1 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={soldeSeries}>
+                  <Line
+                    type="monotone"
+                    dataKey="solde"
+                    stroke={totals.solde >= 0 ? "#6ee7b7" : "#fda4af"}
+                    strokeWidth={1.8}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  <RTooltip
+                    contentStyle={{ background: "#0f172a", border: "1px solid #334155", fontSize: 11, color: "#fff" }}
+                    labelFormatter={(l) => (l ? format(new Date(l as string), "dd/MM/yyyy") : "")}
+                    formatter={(v: any) => [fmt(Number(v)), "Solde"]}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
 
