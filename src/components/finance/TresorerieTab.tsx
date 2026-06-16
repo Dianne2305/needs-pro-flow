@@ -381,6 +381,18 @@ export default function TresorerieTab() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Saisi par</Label>
+          <Select value={saisiParFilter} onValueChange={setSaisiParFilter}>
+            <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous</SelectItem>
+              {saisiParOptions.map((u) => (
+                <SelectItem key={u} value={u}>{u}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-1 flex-1 min-w-[200px]">
           <Label className="text-xs">Recherche</Label>
           <div className="relative">
@@ -393,16 +405,22 @@ export default function TresorerieTab() {
             />
           </div>
         </div>
-        {(dateFrom || dateTo || search || typeFilter !== "all") && (
+        {(dateFrom || dateTo || search || typeFilter !== "all" || saisiParFilter !== "all") && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setDateFrom(""); setDateTo(""); setSearch(""); setTypeFilter("all"); }}
+            onClick={() => { setDateFrom(""); setDateTo(""); setSearch(""); setTypeFilter("all"); setSaisiParFilter("all"); }}
           >
             <X className="h-3.5 w-3.5 mr-1" /> Réinitialiser
           </Button>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportExcel} className="gap-1.5 h-9">
+            <FileSpreadsheet className="h-4 w-4" /> Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5 h-9">
+            <FileDown className="h-4 w-4" /> PDF
+          </Button>
           <Button onClick={openAdd} className="gap-1.5 h-9">
             <Plus className="h-4 w-4" /> Ajouter un mouvement
           </Button>
