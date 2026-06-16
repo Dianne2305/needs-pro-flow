@@ -328,7 +328,7 @@ export default function SuiviCommerciaux() {
                     <div className="font-bold">{r.dossiersMois}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Commission</div>
+                    <div className="text-muted-foreground">Commission agence</div>
                     <div className="font-bold text-emerald-600">{fmt(r.commissionMois)}</div>
                   </div>
                 </div>
