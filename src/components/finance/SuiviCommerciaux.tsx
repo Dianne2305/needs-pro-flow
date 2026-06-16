@@ -340,6 +340,8 @@ function KpiCard({ icon, label, value, color = "text-foreground" }: { icon: Reac
       <div className={`text-3xl font-bold tabular-nums ${color}`}>{value}</div>
     </div>
   );
+}
+
 
 function StatutKpiCard({ icon, label, value, gradient }: { icon: React.ReactNode; label: string; value: number; gradient: string }) {
   return (
