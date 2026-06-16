@@ -275,10 +275,53 @@ export default function TresorerieTab() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={openAdd} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Ajouter un mouvement
-        </Button>
+      {/* Filters */}
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Du</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-[150px]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Au</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-[150px]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Type</Label>
+          <Select value={typeFilter} onValueChange={(v: "all" | "entree" | "sortie") => setTypeFilter(v)}>
+            <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="entree">Entrée</SelectItem>
+              <SelectItem value="sortie">Sortie</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1 flex-1 min-w-[200px]">
+          <Label className="text-xs">Recherche</Label>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Libellé, catégorie, notes…"
+              className="h-9 pl-8"
+            />
+          </div>
+        </div>
+        {(dateFrom || dateTo || search || typeFilter !== "all") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setDateFrom(""); setDateTo(""); setSearch(""); setTypeFilter("all"); }}
+          >
+            <X className="h-3.5 w-3.5 mr-1" /> Réinitialiser
+          </Button>
+        )}
+        <div className="ml-auto">
+          <Button onClick={openAdd} className="gap-1.5 h-9">
+            <Plus className="h-4 w-4" /> Ajouter un mouvement
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
