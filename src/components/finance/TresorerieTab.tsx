@@ -83,9 +83,13 @@ export default function TresorerieTab() {
     categorie: "",
     montant: "",
     type_operation: "entree" as "entree" | "sortie",
+    mode_paiement: "especes",
     utilisateur: "",
     notes: "",
+    justificatif_url: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: config } = useQuery({
     queryKey: ["tresorerie_config"],
@@ -272,15 +276,25 @@ export default function TresorerieTab() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      let finalUrl = form.justificatif_url;
+      if (selectedFile) {
+        setUploading(true);
+        const fileName = `${Date.now()}-${selectedFile.name}`;
+        const { error: upErr } = await supabase.storage.from("justificatifs").upload(fileName, selectedFile);
+        setUploading(false);
+        if (upErr) throw upErr;
+        finalUrl = supabase.storage.from("justificatifs").getPublicUrl(fileName).data.publicUrl;
+      }
       const payload = {
         date_operation: form.date_operation,
         libelle: form.libelle,
         categorie: form.categorie,
         montant: Number(form.montant) || 0,
         type_operation: form.type_operation,
-        mode_paiement: "especes",
+        mode_paiement: form.mode_paiement,
         utilisateur: form.utilisateur || null,
         notes: form.notes || null,
+        justificatif_url: finalUrl || null,
       };
       if (editing) {
         const { error } = await supabase.from("operations_caisse").update(payload).eq("id", editing.id);
@@ -295,6 +309,7 @@ export default function TresorerieTab() {
       toast.success(editing ? "Mouvement modifié" : "Mouvement ajouté");
       setModalOpen(false);
       setEditing(null);
+      setSelectedFile(null);
     },
     onError: (e: any) => toast.error(e.message || "Erreur"),
   });
@@ -312,14 +327,17 @@ export default function TresorerieTab() {
 
   const openAdd = () => {
     setEditing(null);
+    setSelectedFile(null);
     setForm({
       date_operation: format(new Date(), "yyyy-MM-dd"),
       libelle: "",
       categorie: "",
       montant: "",
       type_operation: "entree",
+      mode_paiement: "especes",
       utilisateur: "",
       notes: "",
+      justificatif_url: "",
     });
     setModalOpen(true);
   };
@@ -329,14 +347,17 @@ export default function TresorerieTab() {
     const op = (ops as any[]).find((o) => o.id === r.id);
     if (!op) return;
     setEditing(op);
+    setSelectedFile(null);
     setForm({
       date_operation: op.date_operation,
       libelle: op.libelle || "",
       categorie: op.categorie || "",
       montant: String(op.montant || ""),
       type_operation: op.type_operation,
+      mode_paiement: op.mode_paiement || "especes",
       utilisateur: op.utilisateur || "",
       notes: op.notes || "",
+      justificatif_url: op.justificatif_url || "",
     });
     setModalOpen(true);
   };
@@ -657,9 +678,39 @@ export default function TresorerieTab() {
               <Label>Libellé / Description</Label>
               <Input value={form.libelle} onChange={(e) => setForm((f) => ({ ...f, libelle: e.target.value }))} />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Mode de paiement</Label>
+                <Select value={form.mode_paiement} onValueChange={(v) => setForm((f) => ({ ...f, mode_paiement: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="especes">Espèces</SelectItem>
+                    <SelectItem value="virement">Virement</SelectItem>
+                    <SelectItem value="cheque">Chèque</SelectItem>
+                    <SelectItem value="paiement_agence">Paiement agence</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Saisi par <span className="text-destructive">*</span></Label>
+                <Input value={form.utilisateur} onChange={(e) => setForm((f) => ({ ...f, utilisateur: e.target.value }))} placeholder="Nom de l'utilisateur" />
+              </div>
+            </div>
             <div className="space-y-1.5">
-              <Label>Saisi par <span className="text-destructive">*</span></Label>
-              <Input value={form.utilisateur} onChange={(e) => setForm((f) => ({ ...f, utilisateur: e.target.value }))} placeholder="Nom de l'utilisateur" />
+              <Label>Document justificatif (optionnel)</Label>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              />
+              {!selectedFile && form.justificatif_url && (
+                <a href={form.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                  Voir le document actuel
+                </a>
+              )}
+              {selectedFile && (
+                <p className="text-xs text-muted-foreground truncate">{selectedFile.name}</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>Notes</Label>
@@ -668,8 +719,8 @@ export default function TresorerieTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || !form.utilisateur.trim() || saveMutation.isPending}>
-              {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || !form.utilisateur.trim() || saveMutation.isPending || uploading}>
+              {uploading ? "Upload…" : saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
             </Button>
           </DialogFooter>
         </DialogContent>
