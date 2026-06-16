@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Check, X, Search, FileDown, FileSpreadsheet } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Plus, Pencil, Trash2, Check, X, Search, FileDown, FileSpreadsheet, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Facturation, partAgence } from "@/lib/finance-types";
@@ -36,9 +37,11 @@ export const TRESORERIE_CATEGORIES = [
   { value: "publicite_marketing", label: "Publicité & Marketing", type: "sortie" as const },
 ];
 
-const catLabel = (v: string) => TRESORERIE_CATEGORIES.find((c) => c.value === v)?.label || v;
+const catLabel = (v: string) => TRESORERIE_CATEGORIES.find((c) => c.value === v)?.label || "Non catégorisé";
 
 const fmt = (n: number) => (n || 0).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+
+const PAGE_SIZE = 25;
 
 interface Row {
   id: string;
@@ -63,6 +66,7 @@ export default function TresorerieTab() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "entree" | "sortie">("all");
   const [saisiParFilter, setSaisiParFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [form, setForm] = useState({
     date_operation: format(new Date(), "yyyy-MM-dd"),
     libelle: "",
@@ -158,6 +162,16 @@ export default function TresorerieTab() {
       return true;
     });
   }, [rows, search, typeFilter, saisiParFilter, dateFrom, dateTo]);
+
+  useEffect(() => { setPage(1); }, [search, typeFilter, saisiParFilter, dateFrom, dateTo]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const pagedRows = useMemo(
+    () => filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredRows, page]
+  );
+
+
 
   const totals = useMemo(() => {
     let entrees = 0, sorties = 0;
@@ -314,6 +328,7 @@ export default function TresorerieTab() {
   }, [editSolde, config]);
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div className="space-y-4">
       {/* KPI bar */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -322,7 +337,19 @@ export default function TresorerieTab() {
           <p className="text-xl font-bold mt-1 text-cyan-800">{fmt(caTotals.ca)}</p>
         </div>
         <div className="rounded-lg border bg-amber-50 p-4">
-          <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-amber-700/70 hover:text-amber-800">
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[260px]">
+                Commission revenant à l'agence sur l'ensemble des missions facturées (CA × % commission), hors facturations annulées.
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <p className="text-xl font-bold mt-1 text-amber-800">{fmt(caTotals.partAg)}</p>
         </div>
         <div className="rounded-lg border bg-emerald-50 p-4">
@@ -447,11 +474,13 @@ export default function TresorerieTab() {
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
-            ) : filteredRows.map((r, i) => (
+            ) : pagedRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
-                <TableCell className="text-sm tabular-nums">{i + 1}</TableCell>
+                <TableCell className="text-sm tabular-nums">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
-                <TableCell className="text-sm">{catLabel(r.categorie)}</TableCell>
+                <TableCell className="text-sm">
+                  {r.categorie ? catLabel(r.categorie) : <span className="italic text-muted-foreground">Non catégorisé</span>}
+                </TableCell>
                 <TableCell className={`text-sm text-right font-semibold tabular-nums ${r.type === "entree" ? "text-emerald-700" : "text-rose-700"}`}>
                   {r.type === "entree" ? "+" : "−"}{fmt(r.montant)}
                 </TableCell>
@@ -460,7 +489,9 @@ export default function TresorerieTab() {
                     {r.type === "entree" ? "Entrée" : "Sortie"}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{r.saisi_par || "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {r.saisi_par || <span className="italic">Non renseigné</span>}
+                </TableCell>
                 <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate" title={r.notes || ""}>{r.notes || "—"}</TableCell>
                 <TableCell className="text-right">
                   {r.auto ? (
@@ -487,6 +518,22 @@ export default function TresorerieTab() {
             ))}
           </TableBody>
         </Table>
+        {filteredRows.length > 0 && (
+          <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/30 text-sm">
+            <span className="text-muted-foreground">
+              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredRows.length)} sur {filteredRows.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-8" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground tabular-nums">Page {page} / {totalPages}</span>
+              <Button variant="outline" size="sm" className="h-8" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit modal */}
@@ -534,7 +581,7 @@ export default function TresorerieTab() {
               <Input value={form.libelle} onChange={(e) => setForm((f) => ({ ...f, libelle: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label>Saisi par</Label>
+              <Label>Saisi par <span className="text-destructive">*</span></Label>
               <Input value={form.utilisateur} onChange={(e) => setForm((f) => ({ ...f, utilisateur: e.target.value }))} placeholder="Nom de l'utilisateur" />
             </div>
             <div className="space-y-1.5">
@@ -544,12 +591,13 @@ export default function TresorerieTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || saveMutation.isPending}>
+            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || !form.utilisateur.trim() || saveMutation.isPending}>
               {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
