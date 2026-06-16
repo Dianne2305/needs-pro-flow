@@ -423,7 +423,7 @@ export default function SuiviDusProfils() {
                   <TableCell className="text-sm text-right font-semibold text-emerald-700">{fmt(pp)}</TableCell>
                   <TableCell className="text-sm text-right font-semibold text-sky-700">{fmt(pa)}</TableCell>
                   <TableCell className="text-sm text-right font-bold">{fmt(m.montant_total || 0)}</TableCell>
-                  <TableCell>{getStatutBadge(m.statut_paiement)}</TableCell>
+                  <TableCell>{getStatutBadge((m.statut_paiement === "paye" && !m.part_profil_versee) ? "non_paye" : m.statut_paiement)}</TableCell>
                   <TableCell>
                     {(() => {
                       const dc = getEncaissementDC(m);
