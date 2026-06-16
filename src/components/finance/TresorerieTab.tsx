@@ -83,9 +83,13 @@ export default function TresorerieTab() {
     categorie: "",
     montant: "",
     type_operation: "entree" as "entree" | "sortie",
+    mode_paiement: "especes",
     utilisateur: "",
     notes: "",
+    justificatif_url: "",
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { data: config } = useQuery({
     queryKey: ["tresorerie_config"],
