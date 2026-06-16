@@ -263,12 +263,6 @@ export default function TresorerieTab() {
         </Button>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={openAdd} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Ajouter un mouvement
-        </Button>
-      </div>
-
       {/* Table */}
       <div className="rounded-lg border bg-card overflow-x-auto">
         <Table>
@@ -276,7 +270,6 @@ export default function TresorerieTab() {
             <TableRow className="bg-[hsl(220,40%,20%)] hover:bg-[hsl(220,40%,20%)]">
               <TableHead className="text-white uppercase text-[11px]">N°</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Date</TableHead>
-              <TableHead className="text-white uppercase text-[11px]">Libellé / Description</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Catégorie</TableHead>
               <TableHead className="text-white uppercase text-[11px] text-right">Montant (DH)</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Type</TableHead>
@@ -288,13 +281,12 @@ export default function TresorerieTab() {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
+                <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
             ) : rows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
                 <TableCell className="text-sm tabular-nums">{i + 1}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
-                <TableCell className="text-sm font-medium">{r.libelle}</TableCell>
                 <TableCell className="text-sm">{catLabel(r.categorie)}</TableCell>
                 <TableCell className={`text-sm text-right font-semibold tabular-nums ${r.type === "entree" ? "text-emerald-700" : "text-rose-700"}`}>
                   {r.type === "entree" ? "+" : "−"}{fmt(r.montant)}
