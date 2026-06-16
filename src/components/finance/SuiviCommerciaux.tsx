@@ -291,12 +291,14 @@ export default function SuiviCommerciaux() {
 
 function KpiCard({ icon, label, value, color = "text-foreground" }: { icon: React.ReactNode; label: string; value: string; color?: string }) {
   return (
-    <div className="border rounded-lg p-3 bg-card">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
-        {icon}
-        <span>{label}</span>
+    <div className="border rounded-xl p-5 bg-card shadow-sm hover:shadow-md transition">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+        <span className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center [&>svg]:h-5 [&>svg]:w-5">
+          {icon}
+        </span>
+        <span className="font-medium">{label}</span>
       </div>
-      <div className={`text-xl font-bold tabular-nums ${color}`}>{value}</div>
+      <div className={`text-3xl font-bold tabular-nums ${color}`}>{value}</div>
     </div>
   );
 }
