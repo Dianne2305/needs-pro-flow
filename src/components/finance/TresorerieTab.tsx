@@ -133,12 +133,26 @@ export default function TresorerieTab() {
     return [...auto, ...manual].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }, [ops, encaissementsAuto]);
 
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (typeFilter !== "all" && r.type !== typeFilter) return false;
+      if (dateFrom && r.date < dateFrom) return false;
+      if (dateTo && r.date > dateTo) return false;
+      if (q) {
+        const hay = `${r.libelle} ${catLabel(r.categorie)} ${r.saisi_par || ""} ${r.notes || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [rows, search, typeFilter, dateFrom, dateTo]);
+
   const totals = useMemo(() => {
     let entrees = 0, sorties = 0;
-    rows.forEach((r) => (r.type === "entree" ? (entrees += r.montant) : (sorties += r.montant)));
+    filteredRows.forEach((r) => (r.type === "entree" ? (entrees += r.montant) : (sorties += r.montant)));
     const solde = (Number(config?.solde_initial) || 0) + entrees - sorties;
     return { entrees, sorties, solde };
-  }, [rows, config]);
+  }, [filteredRows, config]);
 
   const soldeMutation = useMutation({
     mutationFn: async (val: number) => {
