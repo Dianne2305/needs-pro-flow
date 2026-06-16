@@ -166,10 +166,7 @@ export default function TresorerieTab() {
   useEffect(() => { setPage(1); }, [search, typeFilter, saisiParFilter, dateFrom, dateTo]);
 
   const sortedRows = useMemo(
-    () => [...filteredRows].sort((a, b) => {
-      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
-      return (a.created_at || "") < (b.created_at || "") ? 1 : -1;
-    }),
+    () => [...filteredRows].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)),
     [filteredRows]
   );
   const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
