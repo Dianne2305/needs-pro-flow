@@ -711,7 +711,49 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
 
 
-
+                {/* Dépôt commercial effectué (uniquement si Commercial/Profil payé par client) */}
+                {statutPaiement === "profil_paye_client" && (
+                  <div className="mt-4 p-4 rounded-lg border border-amber-300 bg-amber-50 space-y-3">
+                    <h4 className="text-sm font-bold text-amber-800">
+                      Confirmation du versement du commercial à l'agence
+                    </h4>
+                    <p className="text-xs text-amber-700">
+                      Le commercial a-t-il déposé le montant encaissé auprès de l'agence ?
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Label className="text-amber-800">Dépôt commercial effectué :</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={depotCommercialEffectue ? "default" : "outline"}
+                          className={depotCommercialEffectue ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                          onClick={() => {
+                            setDepotCommercialEffectue(true);
+                            setStatutPaiement("agence_payee_client");
+                            toast.success("Statut mis à jour : Agence payée / Client. Vous pouvez maintenant procéder au partage des parts.");
+                          }}
+                        >
+                          Oui
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={!depotCommercialEffectue ? "default" : "outline"}
+                          className={!depotCommercialEffectue ? "bg-rose-600 hover:bg-rose-700" : ""}
+                          onClick={() => setDepotCommercialEffectue(false)}
+                        >
+                          Non
+                        </Button>
+                      </div>
+                    </div>
+                    {!depotCommercialEffectue && (
+                      <p className="text-xs text-amber-700 italic border-t border-amber-200 pt-2">
+                        ⚠️ Le module Gestion des parts reste indisponible tant que le paiement n'a pas été confirmé comme remis à l'agence.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Payé: info */}
                 {statutPaiement === "paye" && (
