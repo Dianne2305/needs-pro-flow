@@ -54,6 +54,10 @@ export default function TresorerieTab() {
   const [soldeInput, setSoldeInput] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "entree" | "sortie">("all");
   const [form, setForm] = useState({
     date_operation: format(new Date(), "yyyy-MM-dd"),
     libelle: "",
