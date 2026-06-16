@@ -5,11 +5,13 @@
  */
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 import { Facturation, partAgence } from "@/lib/finance-types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Users, Wallet, BadgePercent, Trophy, Table as TableIcon, Filter, X, ArrowLeft, CalendarDays } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Users, Wallet, BadgePercent, Trophy, Table as TableIcon, Filter, X, ArrowLeft, CalendarDays, Download, FileSpreadsheet, FileText } from "lucide-react";
 
 const COMMISSION_COMMERCIAL_PCT = 10; // % de la part agence
 
