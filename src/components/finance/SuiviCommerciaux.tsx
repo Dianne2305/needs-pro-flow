@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Facturation, partAgence } from "@/lib/finance-types";
-import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown, Clock, PlayCircle, CheckCircle2, Archive } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -67,6 +67,31 @@ export default function SuiviCommerciaux() {
       return (data ?? []) as unknown as Facturation[];
     },
   });
+
+  const { data: statutsCount } = useQuery({
+    queryKey: ["demandes-statuts-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("demandes").select("statut");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const r of (data ?? []) as { statut: string | null }[]) {
+        const k = (r.statut || "").toLowerCase();
+        counts[k] = (counts[k] || 0) + 1;
+      }
+      return counts;
+    },
+  });
+
+  const statutKpis = useMemo(() => {
+    const c = statutsCount || {};
+    const sum = (...keys: string[]) => keys.reduce((s, k) => s + (c[k] || 0), 0);
+    return {
+      enAttente: sum("en_attente"),
+      enCours: sum("nouveau_besoin", "en_cours"),
+      confirmee: sum("prestation_terminee", "confirmee"),
+      cloturee: sum("paye", "cloturee", "annulee", "rejetee"),
+    };
+  }, [statutsCount]);
 
   const agg = useMemo(() => {
     type Row = {
