@@ -66,6 +66,7 @@ export default function TresorerieTab() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "entree" | "sortie">("all");
   const [saisiParFilter, setSaisiParFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [form, setForm] = useState({
     date_operation: format(new Date(), "yyyy-MM-dd"),
     libelle: "",
