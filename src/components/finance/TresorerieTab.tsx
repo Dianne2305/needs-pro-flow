@@ -50,11 +50,20 @@ interface Row {
   categorie: string;
   montant: number;
   type: "entree" | "sortie";
+  mode_paiement: string | null;
+  justificatif_url: string | null;
   saisi_par: string | null;
   notes: string | null;
   auto: boolean;
   created_at: string;
 }
+
+const MODE_LABELS: Record<string, string> = {
+  especes: "Espèces",
+  virement: "Virement",
+  cheque: "Chèque",
+  paiement_agence: "Paiement agence",
+};
 
 export default function TresorerieTab() {
   const qc = useQueryClient();
