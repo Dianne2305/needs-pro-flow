@@ -384,30 +384,6 @@ export default function SuiviCommerciaux() {
         </div>
       </div>
 
-      {/* Graphique CA vs objectif */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <BadgePercent className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-bold uppercase tracking-wider">CA réalisé vs Objectif</h3>
-        </div>
-        <div className="border rounded-lg bg-card p-4" style={{ height: 320 }}>
-          {agg.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Aucune donnée</div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(v: number) => fmt(v)} />
-                <Legend />
-                <Bar dataKey="Objectif" fill="hsl(var(--muted-foreground))" opacity={0.4} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="CA réalisé" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
