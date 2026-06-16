@@ -95,11 +95,14 @@ export default function SuiviDusProfils() {
   const updateMutation = useMutation({
     mutationFn: async () => {
       if (!editMission) return;
+      // Quand le règlement FDM/Agence passe à "Réglé", le statut paiement devient automatiquement "Payé"
+      const newStatutPaiement = editForm.part_profil_versee ? "paye" : editForm.statut_paiement;
       const { error } = await supabase
         .from("facturation")
         .update({
-          statut_paiement: editForm.statut_paiement,
+          statut_paiement: newStatutPaiement,
           part_profil_versee: editForm.part_profil_versee,
+          part_agence_reversee: editForm.part_profil_versee ? true : editMission.part_agence_reversee,
           date_versement_profil: editForm.part_profil_versee
             ? (editForm.date_versement_profil || new Date().toISOString().slice(0, 10))
             : null,
@@ -110,7 +113,8 @@ export default function SuiviDusProfils() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["facturation"] });
-      toast({ title: "Mission mise à jour" });
+      qc.invalidateQueries({ queryKey: ["demandes"] });
+      toast({ title: "Mission mise à jour", description: editForm.part_profil_versee ? "Statut paiement passé à Payé sur toutes les pages." : undefined });
       setEditMission(null);
     },
     onError: () => toast({ title: "Erreur lors de la mise à jour", variant: "destructive" }),
