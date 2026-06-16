@@ -96,7 +96,9 @@ export default function SuiviDusProfils() {
     mutationFn: async () => {
       if (!editMission) return;
       // Quand le règlement FDM/Agence passe à "Réglé", le statut paiement devient automatiquement "Payé"
-      const newStatutPaiement = editForm.part_profil_versee ? "paye" : editForm.statut_paiement;
+      const newStatutPaiement = editForm.part_profil_versee
+        ? "paye"
+        : (editForm.statut_paiement === "paye" ? "non_paye" : editForm.statut_paiement);
       const { error } = await supabase
         .from("facturation")
         .update({
