@@ -187,8 +187,9 @@ export default function SuiviCommerciaux() {
         row.dossiersPrev += 1;
       }
     }
+    const totalCa = Array.from(map.values()).reduce((s, r) => s + r.caMois, 0);
     const rows = Array.from(map.values()).map((r) => {
-      const taux = OBJECTIF_PAR_COMMERCIAL > 0 ? (r.caMois / OBJECTIF_PAR_COMMERCIAL) * 100 : 0;
+      const taux = totalCa > 0 ? (r.caMois / totalCa) * 100 : 0;
       const tendance = r.caPrev > 0 ? Math.round(((r.caMois - r.caPrev) / r.caPrev) * 100) : r.caMois > 0 ? 100 : 0;
       return { ...r, taux, tendance };
     });
@@ -311,7 +312,7 @@ export default function SuiviCommerciaux() {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="text-muted-foreground">Réalisation</span>
                     <span className={`font-bold ${r.taux >= 100 ? "text-emerald-600" : r.taux >= 80 ? "text-amber-600" : "text-rose-600"}`}>
-                      {Math.round(r.taux)}%
+                      {r.taux.toFixed(2).replace(".", ",")}%
                     </span>
                   </div>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
@@ -371,7 +372,7 @@ export default function SuiviCommerciaux() {
                   <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.caMois)}</td>
                   <td className="text-center px-3 py-2">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${tauxBadge(r.taux)}`}>
-                      {Math.round(r.taux)}%
+                      {r.taux.toFixed(2).replace(".", ",")}%
                     </span>
                   </td>
                   <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
