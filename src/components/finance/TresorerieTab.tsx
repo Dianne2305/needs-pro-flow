@@ -13,10 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Check, X, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Search, FileDown, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Facturation, partAgence } from "@/lib/finance-types";
+import { LineChart, Line, ResponsiveContainer, Tooltip as RTooltip } from "recharts";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export const TRESORERIE_CATEGORIES = [
   { value: "encaissement_client", label: "Encaissement client (auto)", type: "entree" as const, auto: true },
