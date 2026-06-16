@@ -340,11 +340,11 @@ export default function TresorerieTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.length === 0 ? (
+            {filteredRows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
-            ) : rows.map((r, i) => (
+            ) : filteredRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
                 <TableCell className="text-sm tabular-nums">{i + 1}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
