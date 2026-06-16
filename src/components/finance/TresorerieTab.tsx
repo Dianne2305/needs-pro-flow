@@ -361,7 +361,19 @@ export default function TresorerieTab() {
           <p className="text-xl font-bold mt-1 text-rose-700">{fmt(totals.sorties)}</p>
         </div>
         <div className="rounded-lg border bg-[hsl(220,40%,20%)] text-white p-4 relative overflow-hidden">
-          <p className="text-xs uppercase tracking-wider text-white/70">Solde net</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs uppercase tracking-wider text-white/70">Solde net</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" className="text-white/60 hover:text-white">
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[260px]">
+                Trésorerie disponible = Solde initial + Total entrées − Total sorties (sur la période filtrée).
+              </TooltipContent>
+            </Tooltip>
+          </div>
           <p className={`text-xl font-bold mt-1 ${totals.solde >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{fmt(totals.solde)}</p>
           {soldeSeries.length > 1 && (
             <div className="h-10 mt-1 -mx-1">
