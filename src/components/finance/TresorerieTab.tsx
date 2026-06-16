@@ -53,6 +53,7 @@ interface Row {
   saisi_par: string | null;
   notes: string | null;
   auto: boolean;
+  created_at: string;
 }
 
 export default function TresorerieTab() {
