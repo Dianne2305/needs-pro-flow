@@ -504,6 +504,7 @@ export default function TresorerieTab() {
               <TableHead className="text-white uppercase text-[11px]">N°</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Date</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Catégorie</TableHead>
+              <TableHead className="text-white uppercase text-[11px]">Libellé</TableHead>
               <TableHead className="text-white uppercase text-[11px] text-right">Montant (DH)</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Type</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Saisi par</TableHead>
@@ -514,7 +515,7 @@ export default function TresorerieTab() {
           <TableBody>
             {filteredRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
+                <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
             ) : pagedRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
@@ -523,6 +524,7 @@ export default function TresorerieTab() {
                 <TableCell className="text-sm">
                   {r.categorie ? catLabel(r.categorie) : <span className="italic text-muted-foreground">Non catégorisé</span>}
                 </TableCell>
+                <TableCell className="text-sm font-medium max-w-[220px] truncate" title={r.libelle || ""}>{r.libelle || "—"}</TableCell>
                 <TableCell className={`text-sm text-right font-semibold tabular-nums ${r.type === "entree" ? "text-emerald-700" : "text-rose-700"}`}>
                   {r.type === "entree" ? "+" : "−"}{fmt(r.montant)}
                 </TableCell>
