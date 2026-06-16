@@ -49,26 +49,32 @@ function tauxBadge(taux: number) {
   return "bg-rose-100 text-rose-700";
 }
 
-function monthKey(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+function toISO(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
-
-function monthLabel(key: string) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
 export default function SuiviCommerciaux() {
   const now = new Date();
-  const defaultMonth = monthKey(now);
+  const defaultFrom = toISO(startOfMonth(now));
+  const defaultTo = toISO(now);
 
-  const [monthFilter, setMonthFilter] = useState<string>(defaultMonth);
+  const [dateFrom, setDateFrom] = useState<string>(defaultFrom);
+  const [dateTo, setDateTo] = useState<string>(defaultTo);
   const [commercialFilter, setCommercialFilter] = useState<string>("all");
   const [villeFilter, setVilleFilter] = useState<string>("all");
 
-  const [yy, mm] = monthFilter.split("-").map(Number);
-  const currentMonth = monthFilter;
-  const prevMonth = monthKey(new Date(yy, mm - 2, 1));
+  // Période précédente de même durée pour calcul de tendance
+  const { fromDate, toDate, prevFromDate, prevToDate } = useMemo(() => {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    const spanMs = to.getTime() - from.getTime();
+    const prevTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
+    const prevFrom = new Date(prevTo.getTime() - spanMs);
+    return { fromDate: from, toDate: to, prevFromDate: prevFrom, prevToDate: prevTo };
+  }, [dateFrom, dateTo]);
 
   const { data: factus = [], isLoading } = useQuery({
     queryKey: ["facturation-suivi-commerciaux"],
@@ -82,24 +88,18 @@ export default function SuiviCommerciaux() {
   });
 
   const filterOptions = useMemo(() => {
-    const months = new Set<string>();
     const commerciaux = new Set<string>();
     const villes = new Set<string>();
     for (const f of factus) {
       const name = (f.commercial || "").trim();
-      if (!name) continue;
-      const d = new Date(f.date_intervention || f.created_at);
-      months.add(monthKey(d));
-      commerciaux.add(name);
+      if (name) commerciaux.add(name);
       if (f.ville) villes.add(f.ville);
     }
-    months.add(defaultMonth);
     return {
-      months: Array.from(months).sort().reverse(),
       commerciaux: Array.from(commerciaux).sort(),
       villes: Array.from(villes).sort(),
     };
-  }, [factus, defaultMonth]);
+  }, [factus]);
 
   const filteredFactus = useMemo(() => {
     return factus.filter((f) => {
@@ -109,9 +109,11 @@ export default function SuiviCommerciaux() {
     });
   }, [factus, commercialFilter, villeFilter]);
 
-  const hasActiveFilter = commercialFilter !== "all" || villeFilter !== "all" || monthFilter !== defaultMonth;
+  const hasActiveFilter =
+    commercialFilter !== "all" || villeFilter !== "all" || dateFrom !== defaultFrom || dateTo !== defaultTo;
   const resetFilters = () => {
-    setMonthFilter(defaultMonth);
+    setDateFrom(defaultFrom);
+    setDateTo(defaultTo);
     setCommercialFilter("all");
     setVilleFilter("all");
   };
@@ -151,12 +153,18 @@ export default function SuiviCommerciaux() {
       commissionMois: number;
     };
     const map = new Map<string, Row>();
+    const fromMs = fromDate.getTime();
+    const toMs = toDate.getTime() + 24 * 60 * 60 * 1000 - 1;
+    const prevFromMs = prevFromDate.getTime();
+    const prevToMs = prevToDate.getTime() + 24 * 60 * 60 * 1000 - 1;
     for (const f of filteredFactus) {
       const name = (f.commercial || "").trim();
       if (!name) continue;
       const d = new Date(f.date_intervention || f.created_at);
-      const mk = monthKey(d);
-      if (mk !== currentMonth && mk !== prevMonth) continue;
+      const ts = d.getTime();
+      const inCurrent = ts >= fromMs && ts <= toMs;
+      const inPrev = ts >= prevFromMs && ts <= prevToMs;
+      if (!inCurrent && !inPrev) continue;
       if (!map.has(name)) {
         map.set(name, {
           commercial: name,
@@ -170,7 +178,7 @@ export default function SuiviCommerciaux() {
       const row = map.get(name)!;
       const ca = Number(f.montant_total || 0);
       const partAg = partAgence(f);
-      if (mk === currentMonth) {
+      if (inCurrent) {
         row.caMois += ca;
         row.dossiersMois += 1;
         row.commissionMois += partAg * (COMMISSION_COMMERCIAL_PCT / 100);
@@ -181,21 +189,17 @@ export default function SuiviCommerciaux() {
     }
     const rows = Array.from(map.values()).map((r) => {
       const taux = OBJECTIF_PAR_COMMERCIAL > 0 ? (r.caMois / OBJECTIF_PAR_COMMERCIAL) * 100 : 0;
-      // Conversion = dossiers réalisés / objectif dossiers (proxy : objectif = 15 dossiers)
-      const conversion = Math.min(100, Math.round((r.dossiersMois / 15) * 100));
       const tendance = r.caPrev > 0 ? Math.round(((r.caMois - r.caPrev) / r.caPrev) * 100) : r.caMois > 0 ? 100 : 0;
-      return { ...r, taux, conversion, tendance };
+      return { ...r, taux, tendance };
     });
     rows.sort((a, b) => b.caMois - a.caMois);
     return rows;
-  }, [filteredFactus, currentMonth, prevMonth]);
+  }, [filteredFactus, fromDate, toDate, prevFromDate, prevToDate]);
 
   const totals = useMemo(() => {
     const caTotal = agg.reduce((s, r) => s + r.caMois, 0);
-    const objectifTotal = agg.length * OBJECTIF_PAR_COMMERCIAL;
     const commissionTotal = agg.reduce((s, r) => s + r.commissionMois, 0);
-    const realisationMoy = objectifTotal > 0 ? Math.round((caTotal / objectifTotal) * 100) : 0;
-    return { caTotal, objectifTotal, commissionTotal, realisationMoy };
+    return { caTotal, commissionTotal };
   }, [agg]);
 
   const chartData = agg.map((r) => ({
@@ -216,15 +220,24 @@ export default function SuiviCommerciaux() {
           <Filter className="h-4 w-4" /> Filtres
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Période</label>
-          <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger className="w-[180px] capitalize"><SelectValue /></SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              {filterOptions.months.map((m) => (
-                <SelectItem key={m} value={m} className="capitalize">{monthLabel(m)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <label className="text-xs text-muted-foreground">Du</label>
+          <input
+            type="date"
+            value={dateFrom}
+            max={dateTo}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Au</label>
+          <input
+            type="date"
+            value={dateTo}
+            min={dateFrom}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+          />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Commercial</label>
@@ -258,13 +271,12 @@ export default function SuiviCommerciaux() {
       </div>
 
       {/* KPIs globaux */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <KpiCard icon={<Users className="h-4 w-4" />} label="Commerciaux actifs" value={String(agg.length)} />
         <KpiCard icon={<Wallet className="h-4 w-4" />} label="CA total équipe" value={fmt(totals.caTotal)} color="text-emerald-600" />
-        <KpiCard icon={<Target className="h-4 w-4" />} label="Objectif équipe" value={fmt(totals.objectifTotal)} />
-        <KpiCard icon={<Percent className="h-4 w-4" />} label="Réalisation moy." value={`${totals.realisationMoy}%`} color={totals.realisationMoy >= 100 ? "text-emerald-600" : totals.realisationMoy >= 80 ? "text-amber-600" : "text-rose-600"} />
-        <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commissions totales" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
+        <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commission agence" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
       </div>
+
 
 
       {/* Classement du mois */}
@@ -316,7 +328,7 @@ export default function SuiviCommerciaux() {
                     <div className="font-bold">{r.dossiersMois}</div>
                   </div>
                   <div>
-                    <div className="text-muted-foreground">Commission</div>
+                    <div className="text-muted-foreground">Commission agence</div>
                     <div className="font-bold text-emerald-600">{fmt(r.commissionMois)}</div>
                   </div>
                 </div>
@@ -337,18 +349,16 @@ export default function SuiviCommerciaux() {
             <thead className="bg-muted/60 text-xs uppercase tracking-wider">
               <tr>
                 <th className="text-left px-3 py-2">Commercial</th>
-                <th className="text-right px-3 py-2">Objectif</th>
                 <th className="text-right px-3 py-2">CA réalisé</th>
                 <th className="text-center px-3 py-2">Taux</th>
                 <th className="text-right px-3 py-2">Dossiers</th>
-                <th className="text-right px-3 py-2">Conversion</th>
-                <th className="text-right px-3 py-2">Commission</th>
+                <th className="text-right px-3 py-2">Commission agence</th>
                 <th className="text-right px-3 py-2">Tendance</th>
               </tr>
             </thead>
             <tbody>
               {agg.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
+                <tr><td colSpan={6} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
               ) : agg.map((r) => (
                 <tr key={r.commercial} className="border-t hover:bg-muted/30">
                   <td className="px-3 py-2">
@@ -359,7 +369,6 @@ export default function SuiviCommerciaux() {
                       <span className="font-medium">{r.commercial}</span>
                     </div>
                   </td>
-                  <td className="text-right px-3 py-2 tabular-nums">{fmt(OBJECTIF_PAR_COMMERCIAL)}</td>
                   <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.caMois)}</td>
                   <td className="text-center px-3 py-2">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${tauxBadge(r.taux)}`}>
@@ -367,7 +376,6 @@ export default function SuiviCommerciaux() {
                     </span>
                   </td>
                   <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
-                  <td className="text-right px-3 py-2 tabular-nums">{r.conversion}%</td>
                   <td className="text-right px-3 py-2 tabular-nums text-emerald-600 font-semibold">{fmt(r.commissionMois)}</td>
                   <td className="text-right px-3 py-2">
                     <span className={`inline-flex items-center gap-1 text-xs font-semibold ${r.tendance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
