@@ -25,10 +25,10 @@ import { useNavigate } from "react-router-dom";
 const getEncaissementDC = (m: Facturation): { label: string; className: string } | null => {
   if (m.part_profil_versee) return null;
   const s = m.statut_paiement;
-  if (s === "agence_payee_client" || s === "paye") {
+  if (s === "profil_paye_client") {
     return { label: "Débiteur", className: "bg-rose-100 text-rose-800" };
   }
-  if (s === "profil_paye_client") {
+  if (s === "agence_payee_client") {
     return { label: "Créditeur", className: "bg-emerald-100 text-emerald-800" };
   }
   return null;
@@ -155,6 +155,7 @@ export default function SuiviDusProfils() {
 
   const filtered = useMemo(() => {
     return fdmMissions.filter((m) => {
+      if (m.statut_paiement === "paye") return false;
       if (filterStatut !== "all" && m.statut_paiement !== filterStatut) return false;
       if (filterReglement === "regle" && !m.part_profil_versee) return false;
       if (filterReglement === "non_regle" && m.part_profil_versee) return false;
