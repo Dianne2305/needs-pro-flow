@@ -182,16 +182,25 @@ export default function SuiviDusProfils() {
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
 
   const totals = useMemo(() => {
-    let ca = 0, profil = 0, agence = 0, reglé = 0, dû = 0;
+    let ca = 0, profil = 0, agence = 0;
+    let agenceNonReglee = 0, profilNonReglee = 0;
+    let reverseProfil = 0;
     filtered.forEach((m) => {
+      // Exclure les facturations annulées des montants réels
+      if (m.statut_paiement === "facturation_annulee" || (m as any).statut_mission === "facturation_annulee") return;
       const pa = partAgence(m); const pp = partProfil(m);
-      ca += m.montant_total || 0;
+      ca += (pa + pp);
       profil += pp;
       agence += pa;
-      if (m.part_profil_versee) reglé += pp;
-      else dû += pp;
+      // Part agence non réglée : profil a encaissé et n'a pas reversé à l'agence
+      if (m.encaisse_par === "profil" && !m.part_agence_reversee) agenceNonReglee += pa;
+      // Part profil non réglée : agence a encaissé et n'a pas versé au profil
+      if (m.encaisse_par === "agence" && !m.part_profil_versee) profilNonReglee += pp;
+      // Reversé au profil (effectivement payé)
+      if (m.part_profil_versee) reverseProfil += pp;
     });
-    return { ca, profil, agence, reglé, dû };
+    const profit = ca - reverseProfil;
+    return { ca, profil, agence, profit, agenceNonReglee, profilNonReglee };
   }, [filtered]);
 
   const getStatutBadge = (s: string) => {
@@ -246,10 +255,10 @@ export default function SuiviDusProfils() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-0">
         <div className="bg-[hsl(220,35%,28%)] text-white px-5 py-4">
           <p className="text-2xl font-bold">{fmt(totals.ca)}</p>
-          <p className="text-xs text-white/60">CA total</p>
+          <p className="text-xs text-white/60">Chiffre d'affaires total</p>
         </div>
         <div className="bg-[hsl(220,35%,26%)] text-white px-5 py-4">
           <p className="text-2xl font-bold">{fmt(totals.agence)}</p>
@@ -259,13 +268,19 @@ export default function SuiviDusProfils() {
           <p className="text-2xl font-bold">{fmt(totals.profil)}</p>
           <p className="text-xs text-white/60">Part profils</p>
         </div>
-        <div className="bg-emerald-700 text-white px-5 py-4">
-          <p className="text-2xl font-bold">{fmt(totals.reglé)}</p>
-          <p className="text-xs text-white/80">Réglé aux profils</p>
+        <div className="bg-[hsl(220,35%,22%)] text-white px-5 py-4">
+          <p className="text-2xl font-bold">{fmt(totals.profit)}</p>
+          <p className="text-xs text-white/60">Profit total</p>
         </div>
-        <div className="bg-rose-700 text-white px-5 py-4 rounded-tr-lg">
-          <p className="text-2xl font-bold">{fmt(totals.dû)}</p>
-          <p className="text-xs text-white/80">Dû aux profils</p>
+        <div className="bg-emerald-700 text-white px-5 py-4 relative">
+          <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-emerald-300 ring-2 ring-white/40 animate-pulse" />
+          <p className="text-2xl font-bold">{fmt(totals.agenceNonReglee)}</p>
+          <p className="text-xs text-white/80">Part agence non réglée</p>
+        </div>
+        <div className="bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative">
+          <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-rose-300 ring-2 ring-white/40 animate-pulse" />
+          <p className="text-2xl font-bold">{fmt(totals.profilNonReglee)}</p>
+          <p className="text-xs text-white/80">Part profils non réglée</p>
         </div>
       </div>
 
