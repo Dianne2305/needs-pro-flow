@@ -273,11 +273,28 @@ export default function SuiviCommerciaux() {
             </SelectContent>
           </Select>
         </div>
-        {hasActiveFilter && (
-          <Button variant="ghost" size="sm" onClick={resetFilters} className="ml-auto text-muted-foreground">
-            <X className="h-4 w-4 mr-1" /> Réinitialiser
-          </Button>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {hasActiveFilter && (
+            <Button variant="ghost" size="sm" onClick={resetFilters} className="text-muted-foreground">
+              <X className="h-4 w-4 mr-1" /> Réinitialiser
+            </Button>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-1" /> Exporter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-popover z-50">
+              <DropdownMenuItem onClick={() => exportData("xlsx")}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" /> Excel (.xlsx)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportData("csv")}>
+                <FileText className="h-4 w-4 mr-2" /> CSV (.csv)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {activeCommercial && detailCommercial ? (
