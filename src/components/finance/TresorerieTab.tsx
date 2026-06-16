@@ -330,72 +330,102 @@ export default function TresorerieTab() {
   return (
     <TooltipProvider delayDuration={200}>
     <div className="space-y-4">
-      {/* KPI bar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="rounded-lg border bg-cyan-50 p-4">
-          <p className="text-xs uppercase tracking-wider text-cyan-700">CA total</p>
-          <p className="text-xl font-bold mt-1 text-cyan-800">{fmt(caTotals.ca)}</p>
-        </div>
-        <div className="rounded-lg border bg-amber-50 p-4">
-          <div className="flex items-center gap-1.5">
-            <p className="text-xs uppercase tracking-wider text-amber-700">Part de l'agence</p>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-amber-700/70 hover:text-amber-800">
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[260px]">
-                Commission revenant à l'agence sur l'ensemble des missions facturées (CA × % commission), hors facturations annulées.
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <p className="text-xl font-bold mt-1 text-amber-800">{fmt(caTotals.partAg)}</p>
-        </div>
-        <div className="rounded-lg border bg-emerald-50 p-4">
-          <p className="text-xs uppercase tracking-wider text-emerald-700">Total entrées</p>
-          <p className="text-xl font-bold mt-1 text-emerald-700">{fmt(totals.entrees)}</p>
-        </div>
-        <div className="rounded-lg border bg-rose-50 p-4">
-          <p className="text-xs uppercase tracking-wider text-rose-700">Total sorties</p>
-          <p className="text-xl font-bold mt-1 text-rose-700">{fmt(totals.sorties)}</p>
-        </div>
-        <div className="rounded-lg border bg-[hsl(220,40%,20%)] text-white p-4 relative overflow-hidden">
-          <div className="flex items-center gap-1.5">
-            <p className="text-xs uppercase tracking-wider text-white/70">Solde net</p>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button type="button" className="text-white/60 hover:text-white">
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[260px]">
-                Trésorerie disponible = Solde initial + Total entrées − Total sorties (sur la période filtrée).
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          <p className={`text-xl font-bold mt-1 ${totals.solde >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{fmt(totals.solde)}</p>
-          {soldeSeries.length > 1 && (
-            <div className="h-10 mt-1 -mx-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={soldeSeries}>
-                  <Line
-                    type="monotone"
-                    dataKey="solde"
-                    stroke={totals.solde >= 0 ? "#6ee7b7" : "#fda4af"}
-                    strokeWidth={1.8}
-                    dot={false}
-                    isAnimationActive={false}
-                  />
-                  <RTooltip
-                    contentStyle={{ background: "#0f172a", border: "1px solid #334155", fontSize: 11, color: "#fff" }}
-                    labelFormatter={(l) => (l ? format(new Date(l as string), "dd/MM/yyyy") : "")}
-                    formatter={(v: any) => [fmt(Number(v)), "Solde"]}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+      {/* KPI bar — Vision commerciale + Vision trésorerie sur une seule ligne */}
+      <div className="rounded-xl border bg-card p-4">
+        <div className="flex flex-col xl:flex-row xl:items-stretch gap-6">
+          {/* Vision commerciale */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+              <Store className="h-4 w-4" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Vision commerciale</span>
+              <div className="flex-1 h-px bg-border ml-2" />
             </div>
-          )}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 rounded-lg border bg-muted/30 p-3">
+                <div className="flex items-center gap-1.5">
+                  <Receipt className="h-3.5 w-3.5 text-muted-foreground" />
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">CA total</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-muted-foreground/70 hover:text-foreground"><Info className="h-3 w-3" /></button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[260px]">Chiffre d'affaires total encaissé auprès des clients (hors facturations annulées).</TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-lg font-bold mt-1">{fmt(caTotals.ca)}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Total encaissé clients</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="flex-1 rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-950/30 p-3">
+                <div className="flex items-center gap-1.5">
+                  <Percent className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
+                  <p className="text-[11px] uppercase tracking-wider text-amber-700 dark:text-amber-400">Part de l'agence</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-amber-700/70 hover:text-amber-800"><Info className="h-3 w-3" /></button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[260px]">Commission revenant à l'agence sur l'ensemble des missions facturées (CA × % commission), hors facturations annulées.</TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-lg font-bold mt-1 text-amber-700 dark:text-amber-400">{fmt(caTotals.partAg)}</p>
+                <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">{caTotals.ca > 0 ? Math.round((caTotals.partAg / caTotals.ca) * 100) : 0}% du CA total</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Vision trésorerie */}
+          <div className="flex-[1.4] min-w-0">
+            <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+              <Landmark className="h-4 w-4" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Vision trésorerie</span>
+              <div className="flex-1 h-px bg-border ml-2" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 rounded-lg border border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/30 p-3">
+                <div className="flex items-center gap-1.5">
+                  <ArrowDownToLine className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+                  <p className="text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Total entrées</p>
+                </div>
+                <p className="text-lg font-bold mt-1 text-emerald-700 dark:text-emerald-400">+{fmt(totals.entrees)}</p>
+                <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 mt-0.5">Flux entrants</p>
+              </div>
+              <span className="text-muted-foreground text-lg font-light shrink-0">−</span>
+              <div className="flex-1 rounded-lg border border-rose-500/40 bg-rose-50 dark:bg-rose-950/30 p-3">
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpFromLine className="h-3.5 w-3.5 text-rose-700 dark:text-rose-400" />
+                  <p className="text-[11px] uppercase tracking-wider text-rose-700 dark:text-rose-400">Total sorties</p>
+                </div>
+                <p className="text-lg font-bold mt-1 text-rose-700 dark:text-rose-400">−{fmt(totals.sorties)}</p>
+                <p className="text-[11px] text-rose-700/80 dark:text-rose-400/80 mt-0.5">Flux sortants</p>
+              </div>
+              <span className="text-muted-foreground text-lg font-light shrink-0">=</span>
+              <div className="flex-1 rounded-lg bg-[hsl(220,40%,20%)] text-white p-3 relative overflow-hidden">
+                <div className="flex items-center gap-1.5">
+                  <Wallet className="h-3.5 w-3.5 text-white/70" />
+                  <p className="text-[11px] uppercase tracking-wider text-white/70">Solde net</p>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-white/60 hover:text-white"><Info className="h-3 w-3" /></button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[260px]">Trésorerie disponible = Solde initial + Total entrées − Total sorties (sur la période filtrée).</TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className={`text-lg font-bold mt-1 ${totals.solde >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{fmt(totals.solde)}</p>
+                {soldeSeries.length > 1 ? (
+                  <div className="h-8 mt-0.5 -mx-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={soldeSeries}>
+                        <Line type="monotone" dataKey="solde" stroke={totals.solde >= 0 ? "#6ee7b7" : "#fda4af"} strokeWidth={1.8} dot={false} isAnimationActive={false} />
+                        <RTooltip contentStyle={{ background: "#0f172a", border: "1px solid #334155", fontSize: 11, color: "#fff" }} labelFormatter={(l) => (l ? format(new Date(l as string), "dd/MM/yyyy") : "")} formatter={(v: any) => [fmt(Number(v)), "Solde"]} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-white/60 mt-0.5">{fmt(totals.entrees)} − {fmt(totals.sorties)}</p>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
