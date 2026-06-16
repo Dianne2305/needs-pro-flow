@@ -13,10 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Check, X, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Search, FileDown, FileSpreadsheet } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Facturation, partAgence } from "@/lib/finance-types";
+import { LineChart, Line, ResponsiveContainer, Tooltip as RTooltip } from "recharts";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export const TRESORERIE_CATEGORIES = [
   { value: "encaissement_client", label: "Encaissement client (auto)", type: "entree" as const, auto: true },
@@ -58,6 +62,7 @@ export default function TresorerieTab() {
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "entree" | "sortie">("all");
+  const [saisiParFilter, setSaisiParFilter] = useState<string>("all");
   const [form, setForm] = useState({
     date_operation: format(new Date(), "yyyy-MM-dd"),
     libelle: "",
@@ -133,10 +138,17 @@ export default function TresorerieTab() {
     return [...auto, ...manual].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }, [ops, encaissementsAuto]);
 
+  const saisiParOptions = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r) => { if (r.saisi_par) set.add(r.saisi_par); });
+    return Array.from(set).sort();
+  }, [rows]);
+
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (typeFilter !== "all" && r.type !== typeFilter) return false;
+      if (saisiParFilter !== "all" && (r.saisi_par || "") !== saisiParFilter) return false;
       if (dateFrom && r.date < dateFrom) return false;
       if (dateTo && r.date > dateTo) return false;
       if (q) {
@@ -145,7 +157,7 @@ export default function TresorerieTab() {
       }
       return true;
     });
-  }, [rows, search, typeFilter, dateFrom, dateTo]);
+  }, [rows, search, typeFilter, saisiParFilter, dateFrom, dateTo]);
 
   const totals = useMemo(() => {
     let entrees = 0, sorties = 0;
@@ -153,6 +165,58 @@ export default function TresorerieTab() {
     const solde = (Number(config?.solde_initial) || 0) + entrees - sorties;
     return { entrees, sorties, solde };
   }, [filteredRows, config]);
+
+  const soldeSeries = useMemo(() => {
+    let running = Number(config?.solde_initial) || 0;
+    const byDate = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      running += r.type === "entree" ? r.montant : -r.montant;
+      byDate.set(r.date, running);
+    });
+    return Array.from(byDate.entries()).map(([date, solde]) => ({ date, solde }));
+  }, [filteredRows, config]);
+
+  const exportExcel = () => {
+    const data = filteredRows.map((r, i) => ({
+      "N°": i + 1,
+      Date: r.date ? format(new Date(r.date), "dd/MM/yyyy") : "",
+      Catégorie: catLabel(r.categorie),
+      "Montant (DH)": (r.type === "entree" ? 1 : -1) * r.montant,
+      Type: r.type === "entree" ? "Entrée" : "Sortie",
+      "Saisi par": r.saisi_par || "",
+      Notes: r.notes || "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Trésorerie");
+    XLSX.writeFile(wb, `tresorerie_${format(new Date(), "yyyyMMdd")}.xlsx`);
+    toast.success("Export Excel généré");
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(14);
+    doc.text("Trésorerie — Mouvements", 14, 14);
+    doc.setFontSize(9);
+    doc.text(`Entrées: ${fmt(totals.entrees)}  |  Sorties: ${fmt(totals.sorties)}  |  Solde: ${fmt(totals.solde)}`, 14, 21);
+    autoTable(doc, {
+      startY: 26,
+      head: [["N°", "Date", "Catégorie", "Montant", "Type", "Saisi par", "Notes"]],
+      body: filteredRows.map((r, i) => [
+        i + 1,
+        r.date ? format(new Date(r.date), "dd/MM/yyyy") : "",
+        catLabel(r.categorie),
+        (r.type === "entree" ? "+" : "−") + fmt(r.montant),
+        r.type === "entree" ? "Entrée" : "Sortie",
+        r.saisi_par || "",
+        r.notes || "",
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 50, 80] },
+    });
+    doc.save(`tresorerie_${format(new Date(), "yyyyMMdd")}.pdf`);
+    toast.success("Export PDF généré");
+  };
 
   const soldeMutation = useMutation({
     mutationFn: async (val: number) => {
@@ -269,9 +333,30 @@ export default function TresorerieTab() {
           <p className="text-xs uppercase tracking-wider text-rose-700">Total sorties</p>
           <p className="text-xl font-bold mt-1 text-rose-700">{fmt(totals.sorties)}</p>
         </div>
-        <div className="rounded-lg border bg-[hsl(220,40%,20%)] text-white p-4">
+        <div className="rounded-lg border bg-[hsl(220,40%,20%)] text-white p-4 relative overflow-hidden">
           <p className="text-xs uppercase tracking-wider text-white/70">Solde net</p>
           <p className={`text-xl font-bold mt-1 ${totals.solde >= 0 ? "text-emerald-300" : "text-rose-300"}`}>{fmt(totals.solde)}</p>
+          {soldeSeries.length > 1 && (
+            <div className="h-10 mt-1 -mx-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={soldeSeries}>
+                  <Line
+                    type="monotone"
+                    dataKey="solde"
+                    stroke={totals.solde >= 0 ? "#6ee7b7" : "#fda4af"}
+                    strokeWidth={1.8}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  <RTooltip
+                    contentStyle={{ background: "#0f172a", border: "1px solid #334155", fontSize: 11, color: "#fff" }}
+                    labelFormatter={(l) => (l ? format(new Date(l as string), "dd/MM/yyyy") : "")}
+                    formatter={(v: any) => [fmt(Number(v)), "Solde"]}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
       </div>
 
@@ -296,6 +381,18 @@ export default function TresorerieTab() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Saisi par</Label>
+          <Select value={saisiParFilter} onValueChange={setSaisiParFilter}>
+            <SelectTrigger className="h-9 w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous</SelectItem>
+              {saisiParOptions.map((u) => (
+                <SelectItem key={u} value={u}>{u}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="space-y-1 flex-1 min-w-[200px]">
           <Label className="text-xs">Recherche</Label>
           <div className="relative">
@@ -308,16 +405,22 @@ export default function TresorerieTab() {
             />
           </div>
         </div>
-        {(dateFrom || dateTo || search || typeFilter !== "all") && (
+        {(dateFrom || dateTo || search || typeFilter !== "all" || saisiParFilter !== "all") && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setDateFrom(""); setDateTo(""); setSearch(""); setTypeFilter("all"); }}
+            onClick={() => { setDateFrom(""); setDateTo(""); setSearch(""); setTypeFilter("all"); setSaisiParFilter("all"); }}
           >
             <X className="h-3.5 w-3.5 mr-1" /> Réinitialiser
           </Button>
         )}
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportExcel} className="gap-1.5 h-9">
+            <FileSpreadsheet className="h-4 w-4" /> Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5 h-9">
+            <FileDown className="h-4 w-4" /> PDF
+          </Button>
           <Button onClick={openAdd} className="gap-1.5 h-9">
             <Plus className="h-4 w-4" /> Ajouter un mouvement
           </Button>
