@@ -263,12 +263,6 @@ export default function TresorerieTab() {
         </Button>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={openAdd} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Ajouter un mouvement
-        </Button>
-      </div>
-
       {/* Table */}
       <div className="rounded-lg border bg-card overflow-x-auto">
         <Table>
