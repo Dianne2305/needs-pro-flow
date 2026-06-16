@@ -96,6 +96,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [montantProfilDoit, setMontantProfilDoit] = useState("");
   const [montantAgenceDoit, setMontantAgenceDoit] = useState("");
 
+  // Dépôt commercial à l'agence (confirme le versement du commercial vers l'agence)
+  const [depotCommercialEffectue, setDepotCommercialEffectue] = useState(false);
+
 
 
 
