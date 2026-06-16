@@ -255,32 +255,33 @@ export default function SuiviDusProfils() {
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-0">
-        <div className="bg-[hsl(220,35%,28%)] text-white px-5 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-0">
+        <div className="bg-[hsl(220,35%,28%)] text-white px-5 py-4" title="Chiffre d'affaires total réel : somme de la part agence et de la part profils sur les missions non annulées.">
           <p className="text-2xl font-bold">{fmt(totals.ca)}</p>
           <p className="text-xs text-white/60">Chiffre d'affaires total</p>
+          <p className="text-[10px] text-white/50 mt-1 leading-tight">Part agence + Part profils (hors annulées)</p>
         </div>
-        <div className="bg-[hsl(220,35%,26%)] text-white px-5 py-4">
+        <div className="bg-[hsl(220,35%,26%)] text-white px-5 py-4" title="Part réelle revenant à l'agence sur l'ensemble des missions facturées.">
           <p className="text-2xl font-bold">{fmt(totals.agence)}</p>
           <p className="text-xs text-white/60">Part agence</p>
+          <p className="text-[10px] text-white/50 mt-1 leading-tight">Commission de l'agence (temps réel)</p>
         </div>
-        <div className="bg-[hsl(220,35%,24%)] text-white px-5 py-4">
+        <div className="bg-[hsl(220,35%,24%)] text-white px-5 py-4" title="Part réelle revenant aux profils intervenants sur l'ensemble des missions.">
           <p className="text-2xl font-bold">{fmt(totals.profil)}</p>
           <p className="text-xs text-white/60">Part profils</p>
+          <p className="text-[10px] text-white/50 mt-1 leading-tight">Montant dû aux intervenants (temps réel)</p>
         </div>
-        <div className="bg-[hsl(220,35%,22%)] text-white px-5 py-4">
-          <p className="text-2xl font-bold">{fmt(totals.profit)}</p>
-          <p className="text-xs text-white/60">Profit total</p>
-        </div>
-        <div className="bg-emerald-700 text-white px-5 py-4 relative">
+        <div className="bg-emerald-700 text-white px-5 py-4 relative" title="Voyant vert : montant que les profils doivent reverser à l'agence (profil a encaissé le client mais n'a pas encore remis la part agence).">
           <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-emerald-300 ring-2 ring-white/40 animate-pulse" />
           <p className="text-2xl font-bold">{fmt(totals.agenceNonReglee)}</p>
           <p className="text-xs text-white/80">Part agence non réglée</p>
+          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à percevoir par l'agence</p>
         </div>
-        <div className="bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative">
+        <div className="bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative" title="Voyant rouge : montant que l'agence doit verser aux profils (agence a encaissé le client mais n'a pas encore payé la part profil).">
           <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-rose-300 ring-2 ring-white/40 animate-pulse" />
           <p className="text-2xl font-bold">{fmt(totals.profilNonReglee)}</p>
           <p className="text-xs text-white/80">Part profils non réglée</p>
+          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à verser aux profils</p>
         </div>
       </div>
 
