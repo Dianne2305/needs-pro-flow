@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Facturation, partAgence } from "@/lib/finance-types";
-import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown, Clock, PlayCircle, CheckCircle2, Archive } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -67,6 +67,31 @@ export default function SuiviCommerciaux() {
       return (data ?? []) as unknown as Facturation[];
     },
   });
+
+  const { data: statutsCount } = useQuery({
+    queryKey: ["demandes-statuts-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("demandes").select("statut");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const r of (data ?? []) as { statut: string | null }[]) {
+        const k = (r.statut || "").toLowerCase();
+        counts[k] = (counts[k] || 0) + 1;
+      }
+      return counts;
+    },
+  });
+
+  const statutKpis = useMemo(() => {
+    const c = statutsCount || {};
+    const sum = (...keys: string[]) => keys.reduce((s, k) => s + (c[k] || 0), 0);
+    return {
+      enAttente: sum("en_attente"),
+      enCours: sum("nouveau_besoin", "en_cours"),
+      confirmee: sum("prestation_terminee", "confirmee"),
+      cloturee: sum("paye", "cloturee", "annulee", "rejetee"),
+    };
+  }, [statutsCount]);
 
   const agg = useMemo(() => {
     type Row = {
@@ -144,6 +169,20 @@ export default function SuiviCommerciaux() {
         <KpiCard icon={<Target className="h-4 w-4" />} label="Objectif équipe" value={fmt(totals.objectifTotal)} />
         <KpiCard icon={<Percent className="h-4 w-4" />} label="Réalisation moy." value={`${totals.realisationMoy}%`} color={totals.realisationMoy >= 100 ? "text-emerald-600" : totals.realisationMoy >= 80 ? "text-amber-600" : "text-rose-600"} />
         <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commissions totales" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
+      </div>
+
+      {/* KPIs par statut de demande */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <BadgePercent className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-bold uppercase tracking-wider">KPIs par statut de demande</h3>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard icon={<Clock className="h-4 w-4" />} label="En attente" value={String(statutKpis.enAttente)} color="text-amber-600" />
+          <KpiCard icon={<PlayCircle className="h-4 w-4" />} label="En cours" value={String(statutKpis.enCours)} color="text-sky-600" />
+          <KpiCard icon={<CheckCircle2 className="h-4 w-4" />} label="Confirmée" value={String(statutKpis.confirmee)} color="text-emerald-600" />
+          <KpiCard icon={<Archive className="h-4 w-4" />} label="Clôturée" value={String(statutKpis.cloturee)} color="text-muted-foreground" />
+        </div>
       </div>
 
       {/* Classement du mois */}
