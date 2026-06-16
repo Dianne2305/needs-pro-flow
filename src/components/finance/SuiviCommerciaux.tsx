@@ -49,26 +49,32 @@ function tauxBadge(taux: number) {
   return "bg-rose-100 text-rose-700";
 }
 
-function monthKey(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+function toISO(d: Date) {
+  return d.toISOString().slice(0, 10);
 }
-
-function monthLabel(key: string) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+function startOfMonth(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
 }
 
 export default function SuiviCommerciaux() {
   const now = new Date();
-  const defaultMonth = monthKey(now);
+  const defaultFrom = toISO(startOfMonth(now));
+  const defaultTo = toISO(now);
 
-  const [monthFilter, setMonthFilter] = useState<string>(defaultMonth);
+  const [dateFrom, setDateFrom] = useState<string>(defaultFrom);
+  const [dateTo, setDateTo] = useState<string>(defaultTo);
   const [commercialFilter, setCommercialFilter] = useState<string>("all");
   const [villeFilter, setVilleFilter] = useState<string>("all");
 
-  const [yy, mm] = monthFilter.split("-").map(Number);
-  const currentMonth = monthFilter;
-  const prevMonth = monthKey(new Date(yy, mm - 2, 1));
+  // Période précédente de même durée pour calcul de tendance
+  const { fromDate, toDate, prevFromDate, prevToDate } = useMemo(() => {
+    const from = new Date(dateFrom);
+    const to = new Date(dateTo);
+    const spanMs = to.getTime() - from.getTime();
+    const prevTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
+    const prevFrom = new Date(prevTo.getTime() - spanMs);
+    return { fromDate: from, toDate: to, prevFromDate: prevFrom, prevToDate: prevTo };
+  }, [dateFrom, dateTo]);
 
   const { data: factus = [], isLoading } = useQuery({
     queryKey: ["facturation-suivi-commerciaux"],
@@ -82,24 +88,18 @@ export default function SuiviCommerciaux() {
   });
 
   const filterOptions = useMemo(() => {
-    const months = new Set<string>();
     const commerciaux = new Set<string>();
     const villes = new Set<string>();
     for (const f of factus) {
       const name = (f.commercial || "").trim();
-      if (!name) continue;
-      const d = new Date(f.date_intervention || f.created_at);
-      months.add(monthKey(d));
-      commerciaux.add(name);
+      if (name) commerciaux.add(name);
       if (f.ville) villes.add(f.ville);
     }
-    months.add(defaultMonth);
     return {
-      months: Array.from(months).sort().reverse(),
       commerciaux: Array.from(commerciaux).sort(),
       villes: Array.from(villes).sort(),
     };
-  }, [factus, defaultMonth]);
+  }, [factus]);
 
   const filteredFactus = useMemo(() => {
     return factus.filter((f) => {
@@ -109,9 +109,11 @@ export default function SuiviCommerciaux() {
     });
   }, [factus, commercialFilter, villeFilter]);
 
-  const hasActiveFilter = commercialFilter !== "all" || villeFilter !== "all" || monthFilter !== defaultMonth;
+  const hasActiveFilter =
+    commercialFilter !== "all" || villeFilter !== "all" || dateFrom !== defaultFrom || dateTo !== defaultTo;
   const resetFilters = () => {
-    setMonthFilter(defaultMonth);
+    setDateFrom(defaultFrom);
+    setDateTo(defaultTo);
     setCommercialFilter("all");
     setVilleFilter("all");
   };
