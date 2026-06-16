@@ -1167,6 +1167,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         </Button>
                       </div>
                     </div>
+                    </div>
                   </CollapsibleContent>
                 </Collapsible>
               </div>
