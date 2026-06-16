@@ -187,8 +187,9 @@ export default function SuiviCommerciaux() {
         row.dossiersPrev += 1;
       }
     }
+    const totalCa = Array.from(map.values()).reduce((s, r) => s + r.caMois, 0);
     const rows = Array.from(map.values()).map((r) => {
-      const taux = OBJECTIF_PAR_COMMERCIAL > 0 ? (r.caMois / OBJECTIF_PAR_COMMERCIAL) * 100 : 0;
+      const taux = totalCa > 0 ? (r.caMois / totalCa) * 100 : 0;
       const tendance = r.caPrev > 0 ? Math.round(((r.caMois - r.caPrev) / r.caPrev) * 100) : r.caMois > 0 ? 100 : 0;
       return { ...r, taux, tendance };
     });
