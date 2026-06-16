@@ -353,7 +353,6 @@ export default function SuiviCommerciaux() {
                 <th className="text-center px-3 py-2">Taux</th>
                 <th className="text-right px-3 py-2">Dossiers</th>
                 <th className="text-right px-3 py-2">Commission agence</th>
-                <th className="text-right px-3 py-2">Tendance</th>
               </tr>
             </thead>
             <tbody>
