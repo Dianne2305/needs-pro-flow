@@ -113,7 +113,7 @@ export default function SuiviCommerciaux() {
   }, [factus, commercialFilter]);
 
   const hasActiveFilter =
-    commercialFilter !== "all" || period !== "mois" || (period === "custom" && (dateFrom !== defaultFrom || dateTo !== defaultTo));
+    commercialFilter !== "all" || period !== "mois" || dateFrom !== defaultFrom || dateTo !== defaultTo;
   const resetFilters = () => {
     setPeriod("mois");
     setDateFrom(defaultFrom);
