@@ -50,11 +50,20 @@ interface Row {
   categorie: string;
   montant: number;
   type: "entree" | "sortie";
+  mode_paiement: string | null;
+  justificatif_url: string | null;
   saisi_par: string | null;
   notes: string | null;
   auto: boolean;
   created_at: string;
 }
+
+const MODE_LABELS: Record<string, string> = {
+  especes: "Espèces",
+  virement: "Virement",
+  cheque: "Chèque",
+  paiement_agence: "Paiement agence",
+};
 
 export default function TresorerieTab() {
   const qc = useQueryClient();
@@ -125,6 +134,8 @@ export default function TresorerieTab() {
       categorie: o.categorie || "",
       montant: Number(o.montant) || 0,
       type: o.type_operation,
+      mode_paiement: o.mode_paiement || null,
+      justificatif_url: o.justificatif_url || null,
       saisi_par: o.utilisateur,
       notes: o.notes,
       auto: false,
@@ -137,6 +148,8 @@ export default function TresorerieTab() {
       categorie: "encaissement_client",
       montant: Number(f.montant_paye_client) || 0,
       type: "entree",
+      mode_paiement: f.mode_paiement_reel || null,
+      justificatif_url: f.justificatif_url || null,
       saisi_par: "Système",
       notes: "Auto depuis Suivi des demandes",
       auto: true,
@@ -513,11 +526,13 @@ export default function TresorerieTab() {
             <TableRow className="bg-[hsl(220,40%,20%)] hover:bg-[hsl(220,40%,20%)]">
               <TableHead className="text-white uppercase text-[11px]">N°</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Date</TableHead>
+              <TableHead className="text-white uppercase text-[11px]">Type</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Catégorie</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Libellé</TableHead>
+              <TableHead className="text-white uppercase text-[11px]">Mode</TableHead>
               <TableHead className="text-white uppercase text-[11px] text-right">Montant (DH)</TableHead>
-              <TableHead className="text-white uppercase text-[11px]">Type</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Saisi par</TableHead>
+              <TableHead className="text-white uppercase text-[11px]">Document</TableHead>
               <TableHead className="text-white uppercase text-[11px]">Notes</TableHead>
               <TableHead className="text-white uppercase text-[11px] text-right">Action</TableHead>
             </TableRow>
@@ -525,26 +540,34 @@ export default function TresorerieTab() {
           <TableBody>
             {filteredRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
+                <TableCell colSpan={11} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
             ) : pagedRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
                 <TableCell className="text-sm tabular-nums">{sortedRows.length - ((page - 1) * PAGE_SIZE + i)}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
-                <TableCell className="text-sm">
-                  {r.categorie ? catLabel(r.categorie) : <span className="italic text-muted-foreground">Non catégorisé</span>}
-                </TableCell>
-                <TableCell className="text-sm font-medium max-w-[220px] truncate" title={r.libelle || ""}>{r.libelle || "—"}</TableCell>
-                <TableCell className={`text-sm text-right font-semibold tabular-nums ${r.type === "entree" ? "text-emerald-700" : "text-rose-700"}`}>
-                  {r.type === "entree" ? "+" : "−"}{fmt(r.montant)}
-                </TableCell>
                 <TableCell>
                   <Badge className={r.type === "entree" ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"}>
                     {r.type === "entree" ? "Entrée" : "Sortie"}
                   </Badge>
                 </TableCell>
+                <TableCell className="text-sm">
+                  {r.categorie ? catLabel(r.categorie) : <span className="italic text-muted-foreground">Non catégorisé</span>}
+                </TableCell>
+                <TableCell className="text-sm font-medium max-w-[220px] truncate" title={r.libelle || ""}>{r.libelle || "—"}</TableCell>
+                <TableCell className="text-sm whitespace-nowrap">
+                  {r.mode_paiement ? (MODE_LABELS[r.mode_paiement] || r.mode_paiement) : <span className="italic text-muted-foreground">—</span>}
+                </TableCell>
+                <TableCell className={`text-sm text-right font-semibold tabular-nums ${r.type === "entree" ? "text-emerald-700" : "text-rose-700"}`}>
+                  {r.type === "entree" ? "+" : "−"}{fmt(r.montant)}
+                </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {r.saisi_par || <span className="italic">Non renseigné</span>}
+                </TableCell>
+                <TableCell className="text-sm">
+                  {r.justificatif_url ? (
+                    <a href={r.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-primary underline text-xs">Voir</a>
+                  ) : <span className="text-muted-foreground">—</span>}
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground max-w-[180px] truncate" title={r.notes || ""}>{r.notes || "—"}</TableCell>
                 <TableCell className="text-right">
