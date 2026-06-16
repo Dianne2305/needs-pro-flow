@@ -53,6 +53,7 @@ interface Row {
   saisi_par: string | null;
   notes: string | null;
   auto: boolean;
+  created_at: string;
 }
 
 export default function TresorerieTab() {
@@ -127,6 +128,7 @@ export default function TresorerieTab() {
       saisi_par: o.utilisateur,
       notes: o.notes,
       auto: false,
+      created_at: o.created_at || o.date_operation || "",
     }));
     const auto: Row[] = (encaissementsAuto as any[]).map((f) => ({
       id: `auto-${f.id}`,
@@ -138,6 +140,7 @@ export default function TresorerieTab() {
       saisi_par: "Système",
       notes: "Auto depuis Suivi des demandes",
       auto: true,
+      created_at: f.date_paiement_client || f.date_intervention || "",
     }));
     return [...auto, ...manual].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }, [ops, encaissementsAuto]);
@@ -166,7 +169,10 @@ export default function TresorerieTab() {
   useEffect(() => { setPage(1); }, [search, typeFilter, saisiParFilter, dateFrom, dateTo]);
 
   const sortedRows = useMemo(
-    () => [...filteredRows].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)),
+    () => [...filteredRows].sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (a.created_at || "") < (b.created_at || "") ? 1 : -1;
+    }),
     [filteredRows]
   );
   const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
