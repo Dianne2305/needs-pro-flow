@@ -309,6 +309,7 @@ export default function TresorerieTab() {
       toast.success(editing ? "Mouvement modifié" : "Mouvement ajouté");
       setModalOpen(false);
       setEditing(null);
+      setSelectedFile(null);
     },
     onError: (e: any) => toast.error(e.message || "Erreur"),
   });
