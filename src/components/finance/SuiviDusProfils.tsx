@@ -159,7 +159,6 @@ export default function SuiviDusProfils() {
 
   const filtered = useMemo(() => {
     return fdmMissions.filter((m) => {
-      if (m.statut_paiement === "paye") return false;
       if (filterStatut !== "all" && m.statut_paiement !== filterStatut) return false;
       if (filterReglement === "regle" && !m.part_profil_versee) return false;
       if (filterReglement === "non_regle" && m.part_profil_versee) return false;
