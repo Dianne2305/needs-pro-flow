@@ -349,18 +349,16 @@ export default function SuiviCommerciaux() {
             <thead className="bg-muted/60 text-xs uppercase tracking-wider">
               <tr>
                 <th className="text-left px-3 py-2">Commercial</th>
-                <th className="text-right px-3 py-2">Objectif</th>
                 <th className="text-right px-3 py-2">CA réalisé</th>
                 <th className="text-center px-3 py-2">Taux</th>
                 <th className="text-right px-3 py-2">Dossiers</th>
-                <th className="text-right px-3 py-2">Conversion</th>
-                <th className="text-right px-3 py-2">Commission</th>
+                <th className="text-right px-3 py-2">Commission agence</th>
                 <th className="text-right px-3 py-2">Tendance</th>
               </tr>
             </thead>
             <tbody>
               {agg.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
+                <tr><td colSpan={6} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
               ) : agg.map((r) => (
                 <tr key={r.commercial} className="border-t hover:bg-muted/30">
                   <td className="px-3 py-2">
@@ -371,7 +369,6 @@ export default function SuiviCommerciaux() {
                       <span className="font-medium">{r.commercial}</span>
                     </div>
                   </td>
-                  <td className="text-right px-3 py-2 tabular-nums">{fmt(OBJECTIF_PAR_COMMERCIAL)}</td>
                   <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.caMois)}</td>
                   <td className="text-center px-3 py-2">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${tauxBadge(r.taux)}`}>
@@ -379,7 +376,6 @@ export default function SuiviCommerciaux() {
                     </span>
                   </td>
                   <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
-                  <td className="text-right px-3 py-2 tabular-nums">{r.conversion}%</td>
                   <td className="text-right px-3 py-2 tabular-nums text-emerald-600 font-semibold">{fmt(r.commissionMois)}</td>
                   <td className="text-right px-3 py-2">
                     <span className={`inline-flex items-center gap-1 text-xs font-semibold ${r.tendance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
