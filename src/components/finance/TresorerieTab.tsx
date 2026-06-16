@@ -598,5 +598,6 @@ export default function TresorerieTab() {
         </DialogContent>
       </Dialog>
     </div>
+    </TooltipProvider>
   );
 }
