@@ -171,19 +171,6 @@ export default function SuiviCommerciaux() {
         <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commissions totales" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
       </div>
 
-      {/* KPIs par statut de demande */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <BadgePercent className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-bold uppercase tracking-wider">KPIs par statut de demande</h3>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatutKpiCard icon={<Clock className="h-6 w-6" />} label="En attente" value={statutKpis.enAttente} gradient="from-amber-500 to-orange-500" />
-          <StatutKpiCard icon={<PlayCircle className="h-6 w-6" />} label="En cours" value={statutKpis.enCours} gradient="from-sky-500 to-blue-600" />
-          <StatutKpiCard icon={<CheckCircle2 className="h-6 w-6" />} label="Confirmée" value={statutKpis.confirmee} gradient="from-emerald-500 to-teal-600" />
-          <StatutKpiCard icon={<Archive className="h-6 w-6" />} label="Clôturée" value={statutKpis.cloturee} gradient="from-slate-500 to-slate-700" />
-        </div>
-      </div>
 
       {/* Classement du mois */}
       <div>
