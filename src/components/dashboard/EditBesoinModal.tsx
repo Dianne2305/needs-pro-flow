@@ -96,6 +96,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   const [montantProfilDoit, setMontantProfilDoit] = useState("");
   const [montantAgenceDoit, setMontantAgenceDoit] = useState("");
 
+  // Dépôt commercial à l'agence (confirme le versement du commercial vers l'agence)
+  const [depotCommercialEffectue, setDepotCommercialEffectue] = useState(false);
+
 
 
 
@@ -708,7 +711,49 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
 
 
-
+                {/* Dépôt commercial effectué (uniquement si Commercial/Profil payé par client) */}
+                {statutPaiement === "profil_paye_client" && (
+                  <div className="mt-4 p-4 rounded-lg border border-amber-300 bg-amber-50 space-y-3">
+                    <h4 className="text-sm font-bold text-amber-800">
+                      Confirmation du versement du commercial à l'agence
+                    </h4>
+                    <p className="text-xs text-amber-700">
+                      Le commercial a-t-il déposé le montant encaissé auprès de l'agence ?
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <Label className="text-amber-800">Dépôt commercial effectué :</Label>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={depotCommercialEffectue ? "default" : "outline"}
+                          className={depotCommercialEffectue ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+                          onClick={() => {
+                            setDepotCommercialEffectue(true);
+                            setStatutPaiement("agence_payee_client");
+                            toast.success("Statut mis à jour : Agence payée / Client. Vous pouvez maintenant procéder au partage des parts.");
+                          }}
+                        >
+                          Oui
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={!depotCommercialEffectue ? "default" : "outline"}
+                          className={!depotCommercialEffectue ? "bg-rose-600 hover:bg-rose-700" : ""}
+                          onClick={() => setDepotCommercialEffectue(false)}
+                        >
+                          Non
+                        </Button>
+                      </div>
+                    </div>
+                    {!depotCommercialEffectue && (
+                      <p className="text-xs text-amber-700 italic border-t border-amber-200 pt-2">
+                        ⚠️ Le module Gestion des parts reste indisponible tant que le paiement n'a pas été confirmé comme remis à l'agence.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Payé: info */}
                 {statutPaiement === "paye" && (
@@ -797,6 +842,13 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                     <ChevronDown className={`h-4 w-4 text-emerald-600 transition-transform duration-200 ${gestionPartsOpen ? "rotate-180" : ""}`} />
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-4">
+                    {statutPaiement === "profil_paye_client" && (
+                      <div className="p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-800">
+                        🔒 <strong>Gestion des parts indisponible.</strong> Le partage des parts entre l'agence et le profil intervenant ne peut être effectué que lorsque le statut de paiement est « Agence payée par le client ». Confirmez d'abord le dépôt du commercial à l'agence.
+                      </div>
+                    )}
+                    <div className={statutPaiement === "profil_paye_client" ? "opacity-40 pointer-events-none space-y-4" : "space-y-4"}>
+
                     {/* Montant total (read-only) */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -1114,6 +1166,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                           Valider les parts
                         </Button>
                       </div>
+                    </div>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
