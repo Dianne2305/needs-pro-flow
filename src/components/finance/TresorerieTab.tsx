@@ -138,10 +138,17 @@ export default function TresorerieTab() {
     return [...auto, ...manual].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }, [ops, encaissementsAuto]);
 
+  const saisiParOptions = useMemo(() => {
+    const set = new Set<string>();
+    rows.forEach((r) => { if (r.saisi_par) set.add(r.saisi_par); });
+    return Array.from(set).sort();
+  }, [rows]);
+
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (typeFilter !== "all" && r.type !== typeFilter) return false;
+      if (saisiParFilter !== "all" && (r.saisi_par || "") !== saisiParFilter) return false;
       if (dateFrom && r.date < dateFrom) return false;
       if (dateTo && r.date > dateTo) return false;
       if (q) {
@@ -150,7 +157,7 @@ export default function TresorerieTab() {
       }
       return true;
     });
-  }, [rows, search, typeFilter, dateFrom, dateTo]);
+  }, [rows, search, typeFilter, saisiParFilter, dateFrom, dateTo]);
 
   const totals = useMemo(() => {
     let entrees = 0, sorties = 0;
@@ -158,6 +165,58 @@ export default function TresorerieTab() {
     const solde = (Number(config?.solde_initial) || 0) + entrees - sorties;
     return { entrees, sorties, solde };
   }, [filteredRows, config]);
+
+  const soldeSeries = useMemo(() => {
+    let running = Number(config?.solde_initial) || 0;
+    const byDate = new Map<string, number>();
+    filteredRows.forEach((r) => {
+      running += r.type === "entree" ? r.montant : -r.montant;
+      byDate.set(r.date, running);
+    });
+    return Array.from(byDate.entries()).map(([date, solde]) => ({ date, solde }));
+  }, [filteredRows, config]);
+
+  const exportExcel = () => {
+    const data = filteredRows.map((r, i) => ({
+      "N°": i + 1,
+      Date: r.date ? format(new Date(r.date), "dd/MM/yyyy") : "",
+      Catégorie: catLabel(r.categorie),
+      "Montant (DH)": (r.type === "entree" ? 1 : -1) * r.montant,
+      Type: r.type === "entree" ? "Entrée" : "Sortie",
+      "Saisi par": r.saisi_par || "",
+      Notes: r.notes || "",
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Trésorerie");
+    XLSX.writeFile(wb, `tresorerie_${format(new Date(), "yyyyMMdd")}.xlsx`);
+    toast.success("Export Excel généré");
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(14);
+    doc.text("Trésorerie — Mouvements", 14, 14);
+    doc.setFontSize(9);
+    doc.text(`Entrées: ${fmt(totals.entrees)}  |  Sorties: ${fmt(totals.sorties)}  |  Solde: ${fmt(totals.solde)}`, 14, 21);
+    autoTable(doc, {
+      startY: 26,
+      head: [["N°", "Date", "Catégorie", "Montant", "Type", "Saisi par", "Notes"]],
+      body: filteredRows.map((r, i) => [
+        i + 1,
+        r.date ? format(new Date(r.date), "dd/MM/yyyy") : "",
+        catLabel(r.categorie),
+        (r.type === "entree" ? "+" : "−") + fmt(r.montant),
+        r.type === "entree" ? "Entrée" : "Sortie",
+        r.saisi_par || "",
+        r.notes || "",
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 50, 80] },
+    });
+    doc.save(`tresorerie_${format(new Date(), "yyyyMMdd")}.pdf`);
+    toast.success("Export PDF généré");
+  };
 
   const soldeMutation = useMutation({
     mutationFn: async (val: number) => {
