@@ -214,9 +214,65 @@ export default function SuiviCommerciaux() {
     return { months, quarters, years, totalCa, totalDossiers, totalCommission, moisTravailles, moyenneMensuelle };
   }, [activeCommercial, factus, fromDate, toDate]);
 
+  const periodLabel = period === "mois" ? "Ce_mois" : period === "trimestre" ? "Ce_trimestre" : period === "annee" ? "Cette_annee" : `${dateFrom}_${dateTo}`;
+
+  const exportData = (format: "xlsx" | "csv") => {
+    const wb = XLSX.utils.book_new();
+    const periodInfo = `${toISO(fromDate)} → ${toISO(toDate)}`;
+
+    if (activeCommercial && detailCommercial) {
+      const meta = [
+        ["Commercial", activeCommercial],
+        ["Période", periodInfo],
+        ["Total réalisations (DH)", Math.round(detailCommercial.totalCa)],
+        ["Mois travaillés", detailCommercial.moisTravailles],
+        ["Moyenne / mois travaillé (DH)", Math.round(detailCommercial.moyenneMensuelle)],
+        ["Dossiers", detailCommercial.totalDossiers],
+        ["Commission agence (DH)", Math.round(detailCommercial.totalCommission)],
+      ];
+      const wsMeta = XLSX.utils.aoa_to_sheet(meta);
+      XLSX.utils.book_append_sheet(wb, wsMeta, "Synthèse");
+
+      const buildRows = (rows: { label: string; ca: number; dossiers: number; commission: number }[]) => [
+        ["Période", "Réalisation (DH)", "Dossiers", "Commission agence (DH)"],
+        ...rows.map((r) => [r.label, Math.round(r.ca), r.dossiers, Math.round(r.commission)]),
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRows(detailCommercial.months)), "Par mois");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRows(detailCommercial.quarters)), "Par trimestre");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(buildRows(detailCommercial.years)), "Par année");
+    } else {
+      const rows = [
+        ["Période", periodInfo],
+        [],
+        ["Commercial", "CA réalisé (DH)", "Part (%)", "Dossiers", "Commission agence (DH)"],
+        ...agg.map((r) => [r.commercial, Math.round(r.caMois), Number(r.taux.toFixed(2)), r.dossiersMois, Math.round(r.commissionMois)]),
+        [],
+        ["TOTAL", Math.round(totals.caTotal), "", agg.reduce((s, r) => s + r.dossiersMois, 0), Math.round(totals.commissionTotal)],
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Commerciaux");
+    }
+
+    const baseName = activeCommercial
+      ? `Realisations_${activeCommercial.replace(/\s+/g, "_")}_${periodLabel}`
+      : `Suivi_Commerciaux_${periodLabel}`;
+
+    if (format === "csv") {
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const csv = XLSX.utils.sheet_to_csv(ws, { FS: ";" });
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${baseName}.csv`; a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      XLSX.writeFile(wb, `${baseName}.xlsx`);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-sm text-muted-foreground p-6">Chargement…</div>;
   }
+
 
   return (
     <div className="space-y-6">
