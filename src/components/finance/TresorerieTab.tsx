@@ -276,15 +276,25 @@ export default function TresorerieTab() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      let finalUrl = form.justificatif_url;
+      if (selectedFile) {
+        setUploading(true);
+        const fileName = `${Date.now()}-${selectedFile.name}`;
+        const { error: upErr } = await supabase.storage.from("justificatifs").upload(fileName, selectedFile);
+        setUploading(false);
+        if (upErr) throw upErr;
+        finalUrl = supabase.storage.from("justificatifs").getPublicUrl(fileName).data.publicUrl;
+      }
       const payload = {
         date_operation: form.date_operation,
         libelle: form.libelle,
         categorie: form.categorie,
         montant: Number(form.montant) || 0,
         type_operation: form.type_operation,
-        mode_paiement: "especes",
+        mode_paiement: form.mode_paiement,
         utilisateur: form.utilisateur || null,
         notes: form.notes || null,
+        justificatif_url: finalUrl || null,
       };
       if (editing) {
         const { error } = await supabase.from("operations_caisse").update(payload).eq("id", editing.id);
