@@ -4,11 +4,13 @@
  * détail par commercial et graphique CA vs Objectif.
  * Données calculées depuis la table `facturation` (champ `commercial`).
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Facturation, partAgence } from "@/lib/finance-types";
-import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown, Clock, PlayCircle, CheckCircle2, Archive } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown, Filter, X } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -51,22 +53,68 @@ function monthKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function monthLabel(key: string) {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+}
+
 export default function SuiviCommerciaux() {
   const now = new Date();
-  const currentMonth = monthKey(now);
-  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevMonth = monthKey(prev);
+  const defaultMonth = monthKey(now);
+
+  const [monthFilter, setMonthFilter] = useState<string>(defaultMonth);
+  const [commercialFilter, setCommercialFilter] = useState<string>("all");
+  const [villeFilter, setVilleFilter] = useState<string>("all");
+
+  const [yy, mm] = monthFilter.split("-").map(Number);
+  const currentMonth = monthFilter;
+  const prevMonth = monthKey(new Date(yy, mm - 2, 1));
 
   const { data: factus = [], isLoading } = useQuery({
     queryKey: ["facturation-suivi-commerciaux"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("facturation")
-        .select("commercial, montant_total, commission_pourcentage, date_intervention, created_at, demande_id");
+        .select("commercial, ville, montant_total, commission_pourcentage, date_intervention, created_at, demande_id");
       if (error) throw error;
       return (data ?? []) as unknown as Facturation[];
     },
   });
+
+  const filterOptions = useMemo(() => {
+    const months = new Set<string>();
+    const commerciaux = new Set<string>();
+    const villes = new Set<string>();
+    for (const f of factus) {
+      const name = (f.commercial || "").trim();
+      if (!name) continue;
+      const d = new Date(f.date_intervention || f.created_at);
+      months.add(monthKey(d));
+      commerciaux.add(name);
+      if (f.ville) villes.add(f.ville);
+    }
+    months.add(defaultMonth);
+    return {
+      months: Array.from(months).sort().reverse(),
+      commerciaux: Array.from(commerciaux).sort(),
+      villes: Array.from(villes).sort(),
+    };
+  }, [factus, defaultMonth]);
+
+  const filteredFactus = useMemo(() => {
+    return factus.filter((f) => {
+      if (commercialFilter !== "all" && (f.commercial || "").trim() !== commercialFilter) return false;
+      if (villeFilter !== "all" && f.ville !== villeFilter) return false;
+      return true;
+    });
+  }, [factus, commercialFilter, villeFilter]);
+
+  const hasActiveFilter = commercialFilter !== "all" || villeFilter !== "all" || monthFilter !== defaultMonth;
+  const resetFilters = () => {
+    setMonthFilter(defaultMonth);
+    setCommercialFilter("all");
+    setVilleFilter("all");
+  };
 
   const { data: statutsCount } = useQuery({
     queryKey: ["demandes-statuts-counts"],
@@ -103,7 +151,7 @@ export default function SuiviCommerciaux() {
       commissionMois: number;
     };
     const map = new Map<string, Row>();
-    for (const f of factus) {
+    for (const f of filteredFactus) {
       const name = (f.commercial || "").trim();
       if (!name) continue;
       const d = new Date(f.date_intervention || f.created_at);
@@ -140,7 +188,7 @@ export default function SuiviCommerciaux() {
     });
     rows.sort((a, b) => b.caMois - a.caMois);
     return rows;
-  }, [factus, currentMonth, prevMonth]);
+  }, [filteredFactus, currentMonth, prevMonth]);
 
   const totals = useMemo(() => {
     const caTotal = agg.reduce((s, r) => s + r.caMois, 0);
@@ -162,6 +210,53 @@ export default function SuiviCommerciaux() {
 
   return (
     <div className="space-y-6">
+      {/* Filtres */}
+      <div className="flex flex-wrap items-end gap-3 p-4 border rounded-xl bg-card">
+        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mr-2">
+          <Filter className="h-4 w-4" /> Filtres
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Période</label>
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[180px] capitalize"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {filterOptions.months.map((m) => (
+                <SelectItem key={m} value={m} className="capitalize">{monthLabel(m)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Commercial</label>
+          <Select value={commercialFilter} onValueChange={setCommercialFilter}>
+            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Tous les commerciaux</SelectItem>
+              {filterOptions.commerciaux.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground">Ville</label>
+          <Select value={villeFilter} onValueChange={setVilleFilter}>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Toutes les villes</SelectItem>
+              {filterOptions.villes.map((v) => (
+                <SelectItem key={v} value={v}>{v}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {hasActiveFilter && (
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="ml-auto text-muted-foreground">
+            <X className="h-4 w-4 mr-1" /> Réinitialiser
+          </Button>
+        )}
+      </div>
+
       {/* KPIs globaux */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <KpiCard icon={<Users className="h-4 w-4" />} label="Commerciaux actifs" value={String(agg.length)} />
