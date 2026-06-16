@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Check, X, Search } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Facturation, partAgence } from "@/lib/finance-types";
@@ -54,6 +54,10 @@ export default function TresorerieTab() {
   const [soldeInput, setSoldeInput] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "entree" | "sortie">("all");
   const [form, setForm] = useState({
     date_operation: format(new Date(), "yyyy-MM-dd"),
     libelle: "",
@@ -129,12 +133,26 @@ export default function TresorerieTab() {
     return [...auto, ...manual].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
   }, [ops, encaissementsAuto]);
 
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (typeFilter !== "all" && r.type !== typeFilter) return false;
+      if (dateFrom && r.date < dateFrom) return false;
+      if (dateTo && r.date > dateTo) return false;
+      if (q) {
+        const hay = `${r.libelle} ${catLabel(r.categorie)} ${r.saisi_par || ""} ${r.notes || ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [rows, search, typeFilter, dateFrom, dateTo]);
+
   const totals = useMemo(() => {
     let entrees = 0, sorties = 0;
-    rows.forEach((r) => (r.type === "entree" ? (entrees += r.montant) : (sorties += r.montant)));
+    filteredRows.forEach((r) => (r.type === "entree" ? (entrees += r.montant) : (sorties += r.montant)));
     const solde = (Number(config?.solde_initial) || 0) + entrees - sorties;
     return { entrees, sorties, solde };
-  }, [rows, config]);
+  }, [filteredRows, config]);
 
   const soldeMutation = useMutation({
     mutationFn: async (val: number) => {
@@ -257,10 +275,53 @@ export default function TresorerieTab() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button onClick={openAdd} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Ajouter un mouvement
-        </Button>
+      {/* Filters */}
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-card p-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Du</Label>
+          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-[150px]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Au</Label>
+          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-[150px]" />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Type</Label>
+          <Select value={typeFilter} onValueChange={(v: "all" | "entree" | "sortie") => setTypeFilter(v)}>
+            <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="entree">Entrée</SelectItem>
+              <SelectItem value="sortie">Sortie</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1 flex-1 min-w-[200px]">
+          <Label className="text-xs">Recherche</Label>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Libellé, catégorie, notes…"
+              className="h-9 pl-8"
+            />
+          </div>
+        </div>
+        {(dateFrom || dateTo || search || typeFilter !== "all") && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setDateFrom(""); setDateTo(""); setSearch(""); setTypeFilter("all"); }}
+          >
+            <X className="h-3.5 w-3.5 mr-1" /> Réinitialiser
+          </Button>
+        )}
+        <div className="ml-auto">
+          <Button onClick={openAdd} className="gap-1.5 h-9">
+            <Plus className="h-4 w-4" /> Ajouter un mouvement
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
@@ -279,11 +340,11 @@ export default function TresorerieTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.length === 0 ? (
+            {filteredRows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">Aucun mouvement</TableCell>
               </TableRow>
-            ) : rows.map((r, i) => (
+            ) : filteredRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
                 <TableCell className="text-sm tabular-nums">{i + 1}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
