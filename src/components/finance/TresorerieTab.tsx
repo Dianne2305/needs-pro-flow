@@ -678,9 +678,39 @@ export default function TresorerieTab() {
               <Label>Libellé / Description</Label>
               <Input value={form.libelle} onChange={(e) => setForm((f) => ({ ...f, libelle: e.target.value }))} />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Mode de paiement</Label>
+                <Select value={form.mode_paiement} onValueChange={(v) => setForm((f) => ({ ...f, mode_paiement: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="especes">Espèces</SelectItem>
+                    <SelectItem value="virement">Virement</SelectItem>
+                    <SelectItem value="cheque">Chèque</SelectItem>
+                    <SelectItem value="paiement_agence">Paiement agence</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Saisi par <span className="text-destructive">*</span></Label>
+                <Input value={form.utilisateur} onChange={(e) => setForm((f) => ({ ...f, utilisateur: e.target.value }))} placeholder="Nom de l'utilisateur" />
+              </div>
+            </div>
             <div className="space-y-1.5">
-              <Label>Saisi par <span className="text-destructive">*</span></Label>
-              <Input value={form.utilisateur} onChange={(e) => setForm((f) => ({ ...f, utilisateur: e.target.value }))} placeholder="Nom de l'utilisateur" />
+              <Label>Document justificatif (optionnel)</Label>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              />
+              {!selectedFile && form.justificatif_url && (
+                <a href={form.justificatif_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                  Voir le document actuel
+                </a>
+              )}
+              {selectedFile && (
+                <p className="text-xs text-muted-foreground truncate">{selectedFile.name}</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>Notes</Label>
@@ -689,8 +719,8 @@ export default function TresorerieTab() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || !form.utilisateur.trim() || saveMutation.isPending}>
-              {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+            <Button onClick={() => saveMutation.mutate()} disabled={!form.libelle || !form.categorie || !form.montant || !form.utilisateur.trim() || saveMutation.isPending || uploading}>
+              {uploading ? "Upload…" : saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
             </Button>
           </DialogFooter>
         </DialogContent>
