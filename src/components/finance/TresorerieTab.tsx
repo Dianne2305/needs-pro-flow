@@ -529,7 +529,7 @@ export default function TresorerieTab() {
               </TableRow>
             ) : pagedRows.map((r, i) => (
               <TableRow key={r.id} className={r.auto ? "bg-sky-50/40" : ""}>
-                <TableCell className="text-sm tabular-nums">{(page - 1) * PAGE_SIZE + i + 1}</TableCell>
+                <TableCell className="text-sm tabular-nums">{sortedRows.length - ((page - 1) * PAGE_SIZE + i)}</TableCell>
                 <TableCell className="text-sm whitespace-nowrap">{r.date ? format(new Date(r.date), "dd/MM/yyyy") : "—"}</TableCell>
                 <TableCell className="text-sm">
                   {r.categorie ? catLabel(r.categorie) : <span className="italic text-muted-foreground">Non catégorisé</span>}
