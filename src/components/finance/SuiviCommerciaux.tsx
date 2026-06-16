@@ -1,8 +1,7 @@
 /**
  * SuiviCommerciaux.tsx
- * Tableau de bord de suivi des commerciaux : KPIs équipe, classement du mois,
- * détail par commercial et graphique CA vs Objectif.
- * Données calculées depuis la table `facturation` (champ `commercial`).
+ * Tableau de bord de suivi des commerciaux : KPIs équipe, classement,
+ * détail par commercial. Données calculées depuis la table `facturation`.
  */
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -10,19 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Facturation, partAgence } from "@/lib/finance-types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Users, Wallet, Target, Percent, BadgePercent, Trophy, Table as TableIcon, TrendingUp, TrendingDown, Filter, X } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { Users, Wallet, BadgePercent, Trophy, Table as TableIcon, Filter, X, ArrowLeft, CalendarDays } from "lucide-react";
 
-const OBJECTIF_PAR_COMMERCIAL = 15000; // DH / mois
 const COMMISSION_COMMERCIAL_PCT = 10; // % de la part agence
 
 const fmt = (n: number) =>
@@ -52,29 +40,50 @@ function tauxBadge(taux: number) {
 function toISO(d: Date) {
   return d.toISOString().slice(0, 10);
 }
-function startOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), 1);
+
+type PeriodType = "mois" | "trimestre" | "annee" | "custom";
+
+function getPeriodRange(period: PeriodType, customFrom: string, customTo: string) {
+  const now = new Date();
+  if (period === "mois") {
+    return {
+      from: new Date(now.getFullYear(), now.getMonth(), 1),
+      to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+    };
+  }
+  if (period === "trimestre") {
+    const q = Math.floor(now.getMonth() / 3);
+    return {
+      from: new Date(now.getFullYear(), q * 3, 1),
+      to: new Date(now.getFullYear(), q * 3 + 3, 0),
+    };
+  }
+  if (period === "annee") {
+    return {
+      from: new Date(now.getFullYear(), 0, 1),
+      to: new Date(now.getFullYear(), 11, 31),
+    };
+  }
+  return { from: new Date(customFrom), to: new Date(customTo) };
 }
+
+const MOIS_LABELS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 
 export default function SuiviCommerciaux() {
   const now = new Date();
-  const defaultFrom = toISO(startOfMonth(now));
+  const defaultFrom = toISO(new Date(now.getFullYear(), now.getMonth(), 1));
   const defaultTo = toISO(now);
 
+  const [period, setPeriod] = useState<PeriodType>("mois");
   const [dateFrom, setDateFrom] = useState<string>(defaultFrom);
   const [dateTo, setDateTo] = useState<string>(defaultTo);
   const [commercialFilter, setCommercialFilter] = useState<string>("all");
-  const [villeFilter, setVilleFilter] = useState<string>("all");
+  const [selectedCommercial, setSelectedCommercial] = useState<string | null>(null);
 
-  // Période précédente de même durée pour calcul de tendance
-  const { fromDate, toDate, prevFromDate, prevToDate } = useMemo(() => {
-    const from = new Date(dateFrom);
-    const to = new Date(dateTo);
-    const spanMs = to.getTime() - from.getTime();
-    const prevTo = new Date(from.getTime() - 24 * 60 * 60 * 1000);
-    const prevFrom = new Date(prevTo.getTime() - spanMs);
-    return { fromDate: from, toDate: to, prevFromDate: prevFrom, prevToDate: prevTo };
-  }, [dateFrom, dateTo]);
+  const { fromDate, toDate } = useMemo(() => {
+    const { from, to } = getPeriodRange(period, dateFrom, dateTo);
+    return { fromDate: from, toDate: to };
+  }, [period, dateFrom, dateTo]);
 
   const { data: factus = [], isLoading } = useQuery({
     queryKey: ["facturation-suivi-commerciaux"],
@@ -89,125 +98,119 @@ export default function SuiviCommerciaux() {
 
   const filterOptions = useMemo(() => {
     const commerciaux = new Set<string>();
-    const villes = new Set<string>();
     for (const f of factus) {
       const name = (f.commercial || "").trim();
       if (name) commerciaux.add(name);
-      if (f.ville) villes.add(f.ville);
     }
-    return {
-      commerciaux: Array.from(commerciaux).sort(),
-      villes: Array.from(villes).sort(),
-    };
+    return { commerciaux: Array.from(commerciaux).sort() };
   }, [factus]);
 
   const filteredFactus = useMemo(() => {
     return factus.filter((f) => {
       if (commercialFilter !== "all" && (f.commercial || "").trim() !== commercialFilter) return false;
-      if (villeFilter !== "all" && f.ville !== villeFilter) return false;
       return true;
     });
-  }, [factus, commercialFilter, villeFilter]);
+  }, [factus, commercialFilter]);
 
   const hasActiveFilter =
-    commercialFilter !== "all" || villeFilter !== "all" || dateFrom !== defaultFrom || dateTo !== defaultTo;
+    commercialFilter !== "all" || period !== "mois" || (period === "custom" && (dateFrom !== defaultFrom || dateTo !== defaultTo));
   const resetFilters = () => {
+    setPeriod("mois");
     setDateFrom(defaultFrom);
     setDateTo(defaultTo);
     setCommercialFilter("all");
-    setVilleFilter("all");
+    setSelectedCommercial(null);
   };
-
-  const { data: statutsCount } = useQuery({
-    queryKey: ["demandes-statuts-counts"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("demandes").select("statut");
-      if (error) throw error;
-      const counts: Record<string, number> = {};
-      for (const r of (data ?? []) as { statut: string | null }[]) {
-        const k = (r.statut || "").toLowerCase();
-        counts[k] = (counts[k] || 0) + 1;
-      }
-      return counts;
-    },
-  });
-
-  const statutKpis = useMemo(() => {
-    const c = statutsCount || {};
-    const sum = (...keys: string[]) => keys.reduce((s, k) => s + (c[k] || 0), 0);
-    return {
-      enAttente: sum("en_attente"),
-      enCours: sum("nouveau_besoin", "en_cours"),
-      confirmee: sum("prestation_terminee", "confirmee"),
-      cloturee: sum("paye", "cloturee", "annulee", "rejetee"),
-    };
-  }, [statutsCount]);
 
   const agg = useMemo(() => {
     type Row = {
       commercial: string;
       caMois: number;
-      caPrev: number;
       dossiersMois: number;
-      dossiersPrev: number;
       commissionMois: number;
     };
     const map = new Map<string, Row>();
     const fromMs = fromDate.getTime();
     const toMs = toDate.getTime() + 24 * 60 * 60 * 1000 - 1;
-    const prevFromMs = prevFromDate.getTime();
-    const prevToMs = prevToDate.getTime() + 24 * 60 * 60 * 1000 - 1;
     for (const f of filteredFactus) {
       const name = (f.commercial || "").trim();
       if (!name) continue;
       const d = new Date(f.date_intervention || f.created_at);
       const ts = d.getTime();
-      const inCurrent = ts >= fromMs && ts <= toMs;
-      const inPrev = ts >= prevFromMs && ts <= prevToMs;
-      if (!inCurrent && !inPrev) continue;
+      if (ts < fromMs || ts > toMs) continue;
       if (!map.has(name)) {
-        map.set(name, {
-          commercial: name,
-          caMois: 0,
-          caPrev: 0,
-          dossiersMois: 0,
-          dossiersPrev: 0,
-          commissionMois: 0,
-        });
+        map.set(name, { commercial: name, caMois: 0, dossiersMois: 0, commissionMois: 0 });
       }
       const row = map.get(name)!;
       const ca = Number(f.montant_total || 0);
-      const partAg = partAgence(f);
-      if (inCurrent) {
-        row.caMois += ca;
-        row.dossiersMois += 1;
-        row.commissionMois += partAg * (COMMISSION_COMMERCIAL_PCT / 100);
-      } else {
-        row.caPrev += ca;
-        row.dossiersPrev += 1;
-      }
+      row.caMois += ca;
+      row.dossiersMois += 1;
+      row.commissionMois += partAgence(f) * (COMMISSION_COMMERCIAL_PCT / 100);
     }
     const totalCa = Array.from(map.values()).reduce((s, r) => s + r.caMois, 0);
-    const rows = Array.from(map.values()).map((r) => {
-      const taux = totalCa > 0 ? (r.caMois / totalCa) * 100 : 0;
-      const tendance = r.caPrev > 0 ? Math.round(((r.caMois - r.caPrev) / r.caPrev) * 100) : r.caMois > 0 ? 100 : 0;
-      return { ...r, taux, tendance };
-    });
+    const rows = Array.from(map.values()).map((r) => ({
+      ...r,
+      taux: totalCa > 0 ? (r.caMois / totalCa) * 100 : 0,
+    }));
     rows.sort((a, b) => b.caMois - a.caMois);
     return rows;
-  }, [filteredFactus, fromDate, toDate, prevFromDate, prevToDate]);
+  }, [filteredFactus, fromDate, toDate]);
 
-  const totals = useMemo(() => {
-    const caTotal = agg.reduce((s, r) => s + r.caMois, 0);
-    const commissionTotal = agg.reduce((s, r) => s + r.commissionMois, 0);
-    return { caTotal, commissionTotal };
-  }, [agg]);
+  const totals = useMemo(() => ({
+    caTotal: agg.reduce((s, r) => s + r.caMois, 0),
+    commissionTotal: agg.reduce((s, r) => s + r.commissionMois, 0),
+  }), [agg]);
 
-  const chartData = agg.map((r) => ({
-    name: r.commercial,
-    "CA réalisé": Math.round(r.caMois),
-    "Objectif": OBJECTIF_PAR_COMMERCIAL,
-  }));
+  // Détail d'un commercial sélectionné
+  const activeCommercial = selectedCommercial || (commercialFilter !== "all" ? commercialFilter : null);
+
+  const detailCommercial = useMemo(() => {
+    if (!activeCommercial) return null;
+    const fromMs = fromDate.getTime();
+    const toMs = toDate.getTime() + 24 * 60 * 60 * 1000 - 1;
+    const items = factus.filter((f) => {
+      if ((f.commercial || "").trim() !== activeCommercial) return false;
+      const ts = new Date(f.date_intervention || f.created_at).getTime();
+      return ts >= fromMs && ts <= toMs;
+    });
+
+    const byMonth = new Map<string, { key: string; label: string; ca: number; dossiers: number; commission: number; year: number; month: number }>();
+    const byQuarter = new Map<string, { key: string; label: string; ca: number; dossiers: number; commission: number }>();
+    const byYear = new Map<string, { key: string; label: string; ca: number; dossiers: number; commission: number }>();
+
+    for (const f of items) {
+      const d = new Date(f.date_intervention || f.created_at);
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      const q = Math.floor(m / 3) + 1;
+      const ca = Number(f.montant_total || 0);
+      const com = partAgence(f) * (COMMISSION_COMMERCIAL_PCT / 100);
+
+      const mk = `${y}-${String(m + 1).padStart(2, "0")}`;
+      if (!byMonth.has(mk)) byMonth.set(mk, { key: mk, label: `${MOIS_LABELS[m]} ${y}`, ca: 0, dossiers: 0, commission: 0, year: y, month: m });
+      const mRow = byMonth.get(mk)!; mRow.ca += ca; mRow.dossiers += 1; mRow.commission += com;
+
+      const qk = `${y}-T${q}`;
+      if (!byQuarter.has(qk)) byQuarter.set(qk, { key: qk, label: `T${q} ${y}`, ca: 0, dossiers: 0, commission: 0 });
+      const qRow = byQuarter.get(qk)!; qRow.ca += ca; qRow.dossiers += 1; qRow.commission += com;
+
+      const yk = `${y}`;
+      if (!byYear.has(yk)) byYear.set(yk, { key: yk, label: `${y}`, ca: 0, dossiers: 0, commission: 0 });
+      const yRow = byYear.get(yk)!; yRow.ca += ca; yRow.dossiers += 1; yRow.commission += com;
+    }
+
+    const months = Array.from(byMonth.values()).sort((a, b) => a.key.localeCompare(b.key));
+    const quarters = Array.from(byQuarter.values()).sort((a, b) => a.key.localeCompare(b.key));
+    const years = Array.from(byYear.values()).sort((a, b) => a.key.localeCompare(b.key));
+
+    const totalCa = items.reduce((s, f) => s + Number(f.montant_total || 0), 0);
+    const totalDossiers = items.length;
+    const totalCommission = items.reduce((s, f) => s + partAgence(f) * (COMMISSION_COMMERCIAL_PCT / 100), 0);
+    const moisTravailles = months.length;
+    const moyenneMensuelle = moisTravailles > 0 ? totalCa / moisTravailles : 0;
+
+    return { months, quarters, years, totalCa, totalDossiers, totalCommission, moisTravailles, moyenneMensuelle };
+  }, [activeCommercial, factus, fromDate, toDate]);
 
   if (isLoading) {
     return <div className="text-sm text-muted-foreground p-6">Chargement…</div>;
@@ -221,45 +224,49 @@ export default function SuiviCommerciaux() {
           <Filter className="h-4 w-4" /> Filtres
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Du</label>
-          <input
-            type="date"
-            value={dateFrom}
-            max={dateTo}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-9 px-3 rounded-md border border-input bg-background text-sm"
-          />
+          <label className="text-xs text-muted-foreground">Période</label>
+          <Select value={period} onValueChange={(v) => setPeriod(v as PeriodType)}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="mois">Ce mois</SelectItem>
+              <SelectItem value="trimestre">Ce trimestre</SelectItem>
+              <SelectItem value="annee">Cette année</SelectItem>
+              <SelectItem value="custom">Personnalisé</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Au</label>
-          <input
-            type="date"
-            value={dateTo}
-            min={dateFrom}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-9 px-3 rounded-md border border-input bg-background text-sm"
-          />
-        </div>
+        {period === "custom" && (
+          <>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">Du</label>
+              <input
+                type="date"
+                value={dateFrom}
+                max={dateTo}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-muted-foreground">Au</label>
+              <input
+                type="date"
+                value={dateTo}
+                min={dateFrom}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              />
+            </div>
+          </>
+        )}
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground">Commercial</label>
-          <Select value={commercialFilter} onValueChange={setCommercialFilter}>
+          <Select value={commercialFilter} onValueChange={(v) => { setCommercialFilter(v); setSelectedCommercial(null); }}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent className="bg-popover z-50">
               <SelectItem value="all">Tous les commerciaux</SelectItem>
               {filterOptions.commerciaux.map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground">Ville</label>
-          <Select value={villeFilter} onValueChange={setVilleFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-            <SelectContent className="bg-popover z-50">
-              <SelectItem value="all">Toutes les villes</SelectItem>
-              {filterOptions.villes.map((v) => (
-                <SelectItem key={v} value={v}>{v}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -271,119 +278,133 @@ export default function SuiviCommerciaux() {
         )}
       </div>
 
-      {/* KPIs globaux */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <KpiCard icon={<Users className="h-4 w-4" />} label="Commerciaux actifs" value={String(agg.length)} />
-        <KpiCard icon={<Wallet className="h-4 w-4" />} label="CA total équipe" value={fmt(totals.caTotal)} color="text-emerald-600" />
-        <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commission agence" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
-      </div>
-
-
-
-      {/* Classement du mois */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Trophy className="h-4 w-4 text-amber-500" />
-          <h3 className="text-sm font-bold uppercase tracking-wider">Classement du mois</h3>
-        </div>
-        {agg.length === 0 ? (
-          <div className="text-sm text-muted-foreground border rounded-md p-6 text-center bg-card">
-            Aucun commercial avec des facturations ce mois-ci.
+      {activeCommercial && detailCommercial ? (
+        <CommercialDetail
+          name={activeCommercial}
+          detail={detailCommercial}
+          onBack={() => { setSelectedCommercial(null); if (commercialFilter !== "all") setCommercialFilter("all"); }}
+        />
+      ) : (
+        <>
+          {/* KPIs globaux */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <KpiCard icon={<Users className="h-4 w-4" />} label="Commerciaux actifs" value={String(agg.length)} />
+            <KpiCard icon={<Wallet className="h-4 w-4" />} label="CA total équipe" value={fmt(totals.caTotal)} color="text-emerald-600" />
+            <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Commission agence" value={fmt(totals.commissionTotal)} color="text-emerald-600" />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {agg.map((r, i) => (
-              <div key={r.commercial} className="border rounded-lg p-3 bg-card hover:shadow-md transition">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm">
-                      {initials(r.commercial)}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-sm">{r.commercial}</div>
-                      <div className="text-xs text-muted-foreground">Commercial</div>
-                    </div>
-                  </div>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted">
-                    {i + 1}{i === 0 ? "er" : "e"}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Réalisation</span>
-                    <span className={`font-bold ${r.taux >= 100 ? "text-emerald-600" : r.taux >= 80 ? "text-amber-600" : "text-rose-600"}`}>
-                      {r.taux.toFixed(2).replace(".", ",")}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className={`h-full ${tauxColor(r.taux)}`} style={{ width: `${Math.min(100, r.taux)}%` }} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t text-xs">
-                  <div>
-                    <div className="text-muted-foreground">CA</div>
-                    <div className="font-bold">{fmt(r.caMois)}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Dossiers</div>
-                    <div className="font-bold">{r.dossiersMois}</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Commission agence</div>
-                    <div className="font-bold text-emerald-600">{fmt(r.commissionMois)}</div>
-                  </div>
-                </div>
+
+          {/* Classement */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Trophy className="h-4 w-4 text-amber-500" />
+              <h3 className="text-sm font-bold uppercase tracking-wider">Classement</h3>
+            </div>
+            {agg.length === 0 ? (
+              <div className="text-sm text-muted-foreground border rounded-md p-6 text-center bg-card">
+                Aucun commercial avec des facturations sur cette période.
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Tableau détaillé */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <TableIcon className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-bold uppercase tracking-wider">Détail par commercial</h3>
-        </div>
-        <div className="border rounded-lg overflow-x-auto bg-card">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/60 text-xs uppercase tracking-wider">
-              <tr>
-                <th className="text-left px-3 py-2">Commercial</th>
-                <th className="text-right px-3 py-2">CA réalisé</th>
-                <th className="text-center px-3 py-2">Taux</th>
-                <th className="text-right px-3 py-2">Dossiers</th>
-                <th className="text-right px-3 py-2">Commission agence</th>
-              </tr>
-            </thead>
-            <tbody>
-              {agg.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
-              ) : agg.map((r) => (
-                <tr key={r.commercial} className="border-t hover:bg-muted/30">
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-[10px]">
-                        {initials(r.commercial)}
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {agg.map((r, i) => (
+                  <button
+                    key={r.commercial}
+                    onClick={() => setSelectedCommercial(r.commercial)}
+                    className="text-left border rounded-lg p-3 bg-card hover:shadow-md hover:border-primary/40 transition"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm">
+                          {initials(r.commercial)}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-sm">{r.commercial}</div>
+                          <div className="text-xs text-muted-foreground">Commercial</div>
+                        </div>
                       </div>
-                      <span className="font-medium">{r.commercial}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-muted">
+                        {i + 1}{i === 0 ? "er" : "e"}
+                      </span>
                     </div>
-                  </td>
-                  <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.caMois)}</td>
-                  <td className="text-center px-3 py-2">
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${tauxBadge(r.taux)}`}>
-                      {r.taux.toFixed(2).replace(".", ",")}%
-                    </span>
-                  </td>
-                  <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
-                  <td className="text-right px-3 py-2 tabular-nums text-emerald-600 font-semibold">{fmt(r.commissionMois)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    <div className="mt-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-muted-foreground">Part du CA</span>
+                        <span className={`font-bold ${r.taux >= 100 ? "text-emerald-600" : r.taux >= 80 ? "text-amber-600" : "text-rose-600"}`}>
+                          {r.taux.toFixed(2).replace(".", ",")}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full ${tauxColor(r.taux)}`} style={{ width: `${Math.min(100, r.taux)}%` }} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t text-xs">
+                      <div>
+                        <div className="text-muted-foreground">CA</div>
+                        <div className="font-bold">{fmt(r.caMois)}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Dossiers</div>
+                        <div className="font-bold">{r.dossiersMois}</div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">Commission</div>
+                        <div className="font-bold text-emerald-600">{fmt(r.commissionMois)}</div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
+          {/* Tableau détaillé */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <TableIcon className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold uppercase tracking-wider">Détail par commercial</h3>
+            </div>
+            <div className="border rounded-lg overflow-x-auto bg-card">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/60 text-xs uppercase tracking-wider">
+                  <tr>
+                    <th className="text-left px-3 py-2">Commercial</th>
+                    <th className="text-right px-3 py-2">CA réalisé</th>
+                    <th className="text-center px-3 py-2">Taux</th>
+                    <th className="text-right px-3 py-2">Dossiers</th>
+                    <th className="text-right px-3 py-2">Commission agence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {agg.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
+                  ) : agg.map((r) => (
+                    <tr key={r.commercial} className="border-t hover:bg-muted/30">
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => setSelectedCommercial(r.commercial)}
+                          className="flex items-center gap-2 hover:text-primary transition"
+                        >
+                          <div className="h-7 w-7 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-[10px]">
+                            {initials(r.commercial)}
+                          </div>
+                          <span className="font-medium underline-offset-2 hover:underline">{r.commercial}</span>
+                        </button>
+                      </td>
+                      <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.caMois)}</td>
+                      <td className="text-center px-3 py-2">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${tauxBadge(r.taux)}`}>
+                          {r.taux.toFixed(2).replace(".", ",")}%
+                        </span>
+                      </td>
+                      <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
+                      <td className="text-right px-3 py-2 tabular-nums text-emerald-600 font-semibold">{fmt(r.commissionMois)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -402,21 +423,87 @@ function KpiCard({ icon, label, value, color = "text-foreground" }: { icon: Reac
   );
 }
 
+type DetailData = {
+  months: { key: string; label: string; ca: number; dossiers: number; commission: number }[];
+  quarters: { key: string; label: string; ca: number; dossiers: number; commission: number }[];
+  years: { key: string; label: string; ca: number; dossiers: number; commission: number }[];
+  totalCa: number;
+  totalDossiers: number;
+  totalCommission: number;
+  moisTravailles: number;
+  moyenneMensuelle: number;
+};
 
-function StatutKpiCard({ icon, label, value, gradient }: { icon: React.ReactNode; label: string; value: number; gradient: string }) {
+function CommercialDetail({ name, detail, onBack }: { name: string; detail: DetailData; onBack: () => void }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br ${gradient} text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition`}>
-      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
-      <div className="absolute -right-2 -bottom-8 h-20 w-20 rounded-full bg-white/5" />
-      <div className="relative flex items-center justify-between mb-3">
-        <span className="text-sm font-semibold uppercase tracking-wider opacity-90">{label}</span>
-        <span className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-          {icon}
-        </span>
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Retour
+          </Button>
+          <div className="flex items-center gap-2">
+            <div className="h-10 w-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm">
+              {initials(name)}
+            </div>
+            <div>
+              <div className="font-bold text-base">{name}</div>
+              <div className="text-xs text-muted-foreground">Détail des réalisations</div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="relative">
-        <div className="text-5xl font-extrabold tabular-nums leading-none">{value}</div>
-        <div className="text-xs opacity-80 mt-2">demande{value > 1 ? "s" : ""}</div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <KpiCard icon={<Wallet className="h-4 w-4" />} label="Total réalisations" value={fmt(detail.totalCa)} color="text-emerald-600" />
+        <KpiCard icon={<CalendarDays className="h-4 w-4" />} label="Mois travaillés" value={String(detail.moisTravailles)} />
+        <KpiCard icon={<BadgePercent className="h-4 w-4" />} label="Moyenne / mois travaillé" value={fmt(detail.moyenneMensuelle)} color="text-emerald-600" />
+        <KpiCard icon={<TableIcon className="h-4 w-4" />} label="Dossiers" value={String(detail.totalDossiers)} />
+      </div>
+
+      <DetailTable title="Par mois" rows={detail.months} />
+      <DetailTable title="Par trimestre" rows={detail.quarters} />
+      <DetailTable title="Par année" rows={detail.years} />
+    </div>
+  );
+}
+
+function DetailTable({ title, rows }: { title: string; rows: { key: string; label: string; ca: number; dossiers: number; commission: number }[] }) {
+  const total = rows.reduce((s, r) => s + r.ca, 0);
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2">
+        <CalendarDays className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-bold uppercase tracking-wider">{title}</h3>
+      </div>
+      <div className="border rounded-lg overflow-x-auto bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/60 text-xs uppercase tracking-wider">
+            <tr>
+              <th className="text-left px-3 py-2">Période</th>
+              <th className="text-right px-3 py-2">Réalisation</th>
+              <th className="text-right px-3 py-2">Dossiers</th>
+              <th className="text-right px-3 py-2">Commission agence</th>
+              <th className="text-right px-3 py-2">Part</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 ? (
+              <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
+            ) : rows.map((r) => {
+              const part = total > 0 ? (r.ca / total) * 100 : 0;
+              return (
+                <tr key={r.key} className="border-t hover:bg-muted/30">
+                  <td className="px-3 py-2 font-medium">{r.label}</td>
+                  <td className="text-right px-3 py-2 tabular-nums font-semibold">{fmt(r.ca)}</td>
+                  <td className="text-right px-3 py-2 tabular-nums">{r.dossiers}</td>
+                  <td className="text-right px-3 py-2 tabular-nums text-emerald-600 font-semibold">{fmt(r.commission)}</td>
+                  <td className="text-right px-3 py-2 tabular-nums">{part.toFixed(2).replace(".", ",")}%</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
