@@ -177,11 +177,11 @@ export default function SuiviCommerciaux() {
           <BadgePercent className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-bold uppercase tracking-wider">KPIs par statut de demande</h3>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <KpiCard icon={<Clock className="h-4 w-4" />} label="En attente" value={String(statutKpis.enAttente)} color="text-amber-600" />
-          <KpiCard icon={<PlayCircle className="h-4 w-4" />} label="En cours" value={String(statutKpis.enCours)} color="text-sky-600" />
-          <KpiCard icon={<CheckCircle2 className="h-4 w-4" />} label="Confirmée" value={String(statutKpis.confirmee)} color="text-emerald-600" />
-          <KpiCard icon={<Archive className="h-4 w-4" />} label="Clôturée" value={String(statutKpis.cloturee)} color="text-muted-foreground" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatutKpiCard icon={<Clock className="h-6 w-6" />} label="En attente" value={statutKpis.enAttente} gradient="from-amber-500 to-orange-500" />
+          <StatutKpiCard icon={<PlayCircle className="h-6 w-6" />} label="En cours" value={statutKpis.enCours} gradient="from-sky-500 to-blue-600" />
+          <StatutKpiCard icon={<CheckCircle2 className="h-6 w-6" />} label="Confirmée" value={statutKpis.confirmee} gradient="from-emerald-500 to-teal-600" />
+          <StatutKpiCard icon={<Archive className="h-6 w-6" />} label="Clôturée" value={statutKpis.cloturee} gradient="from-slate-500 to-slate-700" />
         </div>
       </div>
 
@@ -338,6 +338,24 @@ function KpiCard({ icon, label, value, color = "text-foreground" }: { icon: Reac
         <span className="font-medium">{label}</span>
       </div>
       <div className={`text-3xl font-bold tabular-nums ${color}`}>{value}</div>
+    </div>
+  );
+
+function StatutKpiCard({ icon, label, value, gradient }: { icon: React.ReactNode; label: string; value: number; gradient: string }) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br ${gradient} text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition`}>
+      <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10" />
+      <div className="absolute -right-2 -bottom-8 h-20 w-20 rounded-full bg-white/5" />
+      <div className="relative flex items-center justify-between mb-3">
+        <span className="text-sm font-semibold uppercase tracking-wider opacity-90">{label}</span>
+        <span className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+          {icon}
+        </span>
+      </div>
+      <div className="relative">
+        <div className="text-5xl font-extrabold tabular-nums leading-none">{value}</div>
+        <div className="text-xs opacity-80 mt-2">demande{value > 1 ? "s" : ""}</div>
+      </div>
     </div>
   );
 }
