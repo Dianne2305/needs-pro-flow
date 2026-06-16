@@ -163,6 +163,16 @@ export default function TresorerieTab() {
     });
   }, [rows, search, typeFilter, saisiParFilter, dateFrom, dateTo]);
 
+  useEffect(() => { setPage(1); }, [search, typeFilter, saisiParFilter, dateFrom, dateTo]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const pagedRows = useMemo(
+    () => filteredRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [filteredRows, page]
+  );
+
+
+
   const totals = useMemo(() => {
     let entrees = 0, sorties = 0;
     filteredRows.forEach((r) => (r.type === "entree" ? (entrees += r.montant) : (sorties += r.montant)));
