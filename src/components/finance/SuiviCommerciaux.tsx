@@ -357,7 +357,7 @@ export default function SuiviCommerciaux() {
             </thead>
             <tbody>
               {agg.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
+                <tr><td colSpan={5} className="text-center py-6 text-muted-foreground">Aucune donnée</td></tr>
               ) : agg.map((r) => (
                 <tr key={r.commercial} className="border-t hover:bg-muted/30">
                   <td className="px-3 py-2">
@@ -376,12 +376,6 @@ export default function SuiviCommerciaux() {
                   </td>
                   <td className="text-right px-3 py-2 tabular-nums">{r.dossiersMois}</td>
                   <td className="text-right px-3 py-2 tabular-nums text-emerald-600 font-semibold">{fmt(r.commissionMois)}</td>
-                  <td className="text-right px-3 py-2">
-                    <span className={`inline-flex items-center gap-1 text-xs font-semibold ${r.tendance >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                      {r.tendance >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {r.tendance >= 0 ? "+" : ""}{r.tendance}%
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>
