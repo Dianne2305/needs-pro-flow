@@ -46,8 +46,10 @@ export const STATUTS_CLIENT = [
 export const STATUTS_CODE_PROMO = [
   { value: "brouillon", label: "Brouillon" },
   { value: "active", label: "Actif" },
-  { value: "desactivee", label: "Inactif" },
+  { value: "suspendu", label: "Suspendu" },
+  { value: "epuise", label: "Épuisé" },
   { value: "expiree", label: "Expiré" },
+  { value: "archive", label: "Archivé" },
 ] as const;
 
 export const CANAUX_DIFFUSION = [
