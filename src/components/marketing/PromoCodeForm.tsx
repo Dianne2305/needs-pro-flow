@@ -164,13 +164,21 @@ export function PromoCodeForm({ value, onChange, codeError, variant = "bd" }: Pr
 
       <div>
         <Label>Code promo *</Label>
-        <Input
-          placeholder="ex: BIENVENUE10"
-          value={f.code_promo}
-          maxLength={20}
-          onChange={(e) => set({ code_promo: e.target.value.toUpperCase().replace(/\s+/g, "") })}
-          className="font-mono"
-        />
+        <div className="flex gap-2">
+          <Input
+            placeholder="ex: BIENVENUE10"
+            value={f.code_promo}
+            maxLength={20}
+            onChange={(e) => set({ code_promo: e.target.value.toUpperCase().replace(/\s+/g, "") })}
+            className="font-mono"
+          />
+          <Button type="button" variant="outline" size="icon" onClick={copyCode} disabled={!f.code_promo} title="Copier le code">
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button type="button" variant="outline" size="icon" onClick={shareCode} disabled={!f.code_promo} title="Partager le code">
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
         {codeError && <p className="text-xs text-destructive mt-1">{codeError}</p>}
       </div>
 
