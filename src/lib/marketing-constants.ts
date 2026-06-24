@@ -5,7 +5,30 @@
 export const TYPES_REDUCTION = [
   { value: "pourcentage", label: "Pourcentage (%)" },
   { value: "montant_fixe", label: "Montant fixe (MAD)" },
+  { value: "abonnement_offert", label: "1er abonnement offert" },
 ] as const;
+
+/**
+ * Remplace les variables dans un message promo : {prénom}, {code}, {valeur}, {expiration}, {lien}.
+ */
+export function renderPromoMessage(
+  template: string,
+  vars: { prenom?: string; code?: string; valeur?: string; expiration?: string; lien?: string } = {},
+): string {
+  const map: Record<string, string> = {
+    "{prénom}": vars.prenom ?? "Sophie",
+    "{prenom}": vars.prenom ?? "Sophie",
+    "{code}": vars.code ?? "BIENVENUE20",
+    "{valeur}": vars.valeur ?? "20%",
+    "{expiration}": vars.expiration ?? "30/06/2026",
+    "{lien}": vars.lien ?? "https://agence-eclat.ma/p/xyz",
+  };
+  let out = template || "";
+  for (const k of Object.keys(map)) {
+    out = out.split(k).join(map[k]);
+  }
+  return out;
+}
 
 export const SEGMENTS_CLIENT = [
   { value: "particulier", label: "Particulier" },
