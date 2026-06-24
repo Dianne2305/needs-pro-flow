@@ -64,8 +64,6 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
 
   if (!offre) return null;
   const statutInfo = STATUT_OFFRE_COLORS[offre.statut] || STATUT_OFFRE_COLORS.active;
-  const used = offre.nombre_utilisations || 0;
-  const quota = offre.limite_utilisation;
 
   return (
     <Dialog open={!!offre} onOpenChange={(o) => !o && onClose()}>
