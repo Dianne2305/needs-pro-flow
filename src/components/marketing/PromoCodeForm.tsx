@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Copy, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   TYPES_REDUCTION,
   SEGMENTS_CLIENT,
@@ -20,6 +23,8 @@ import {
   CANAUX_DIFFUSION,
   renderPromoMessage,
 } from "@/lib/marketing-constants";
+
+export type PromoFormVariant = "simple" | "bd";
 
 export interface PromoFormState {
   nom: string;
