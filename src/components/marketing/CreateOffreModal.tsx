@@ -18,16 +18,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { PromoCodeForm, defaultPromoForm, validatePromoForm, formToPayload, PromoFormState } from "./PromoCodeForm";
+import { PromoCodeForm, defaultPromoForm, validatePromoForm, formToPayload, PromoFormState, PromoFormVariant } from "./PromoCodeForm";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   /** Pré-remplissage (utilisé par la duplication). */
   initial?: Partial<PromoFormState> | null;
+  /** "simple" = formulaire allégé (sans statut client, limite, canal, message). Défaut "bd". */
+  variant?: PromoFormVariant;
 }
 
-export function CreateOffreModal({ open, onClose, initial }: Props) {
+export function CreateOffreModal({ open, onClose, initial, variant = "bd" }: Props) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<PromoFormState>(() => ({ ...defaultPromoForm(), ...(initial ?? {}) }));
   const [codeError, setCodeError] = useState<string | null>(null);
