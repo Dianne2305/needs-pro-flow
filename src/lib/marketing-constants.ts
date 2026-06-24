@@ -104,10 +104,15 @@ export const SERVICES_MARKETING = [
 ];
 
 export const STATUT_OFFRE_COLORS: Record<string, { label: string; color: string }> = {
-  active: { label: "Active", color: "bg-emerald-100 text-emerald-800" },
+  brouillon: { label: "Brouillon", color: "bg-gray-100 text-gray-800" },
+  active: { label: "Actif", color: "bg-emerald-100 text-emerald-800" },
+  suspendu: { label: "Suspendu", color: "bg-amber-100 text-amber-800" },
+  epuise: { label: "Épuisé", color: "bg-purple-100 text-purple-800" },
+  expiree: { label: "Expiré", color: "bg-red-100 text-red-800" },
+  archive: { label: "Archivé", color: "bg-gray-100 text-gray-600" },
+  // Legacy
   planifiee: { label: "Planifiée", color: "bg-blue-100 text-blue-800" },
-  expiree: { label: "Expirée", color: "bg-red-100 text-red-800" },
-  desactivee: { label: "Désactivée", color: "bg-gray-100 text-gray-800" },
+  desactivee: { label: "Inactif", color: "bg-gray-100 text-gray-800" },
 };
 
 export const STATUT_CAMPAGNE_COLORS: Record<string, { label: string; color: string }> = {
