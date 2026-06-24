@@ -209,7 +209,7 @@ export function PromoCodeForm({ value, onChange, codeError, variant = "bd" }: Pr
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className={isSimple ? "" : "grid grid-cols-2 gap-3"}>
         <div>
           <Label>Segment *</Label>
           <Select value={f.segment_client} onValueChange={(v) => set({ segment_client: v, services: [] })}>
@@ -221,17 +221,19 @@ export function PromoCodeForm({ value, onChange, codeError, variant = "bd" }: Pr
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label>Statut client *</Label>
-          <Select value={f.statut_client} onValueChange={(v) => set({ statut_client: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STATUTS_CLIENT.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!isSimple && (
+          <div>
+            <Label>Statut client *</Label>
+            <Select value={f.statut_client} onValueChange={(v) => set({ statut_client: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUTS_CLIENT.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div>
