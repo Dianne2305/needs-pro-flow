@@ -90,8 +90,6 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
                 : `-${offre.valeur_reduction} MAD`
             }
           />
-          <Kpi label="Utilisations" value={quota ? `${used} / ${quota}` : `${used} (illimité)`} />
-          <Kpi label="Montant remisé" value={`${stats.montant.toLocaleString()} MAD`} />
           <Kpi label="Taux d'ouverture" value={`${stats.tauxOuv.toFixed(1)}%`} />
           <Kpi label="Taux de clic" value={`${stats.tauxClic.toFixed(1)}%`} />
           <Kpi label="Taux de conversion" value={`${stats.tauxConv.toFixed(1)}%`} />
