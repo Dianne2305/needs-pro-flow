@@ -355,6 +355,7 @@ export function OffresTable() {
         open={showModal}
         onClose={() => { setShowModal(false); setInitialDuplicate(null); }}
         initial={initialDuplicate}
+        variant={createVariant}
       />
       <EditOffreModal offre={editOffre} onClose={() => setEditOffre(null)} />
       <OffrePromoDetailModal offre={detailOffre} onClose={() => setDetailOffre(null)} />
