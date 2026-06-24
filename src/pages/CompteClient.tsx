@@ -239,6 +239,7 @@ export default function CompteClient() {
   const [aboNbPersonnes, setAboNbPersonnes] = useState("");
   const [aboNbHeures, setAboNbHeures] = useState("");
   const [activeDemande, setActiveDemande] = useState<Demande | null>(null);
+  const [commercialModalOpen, setCommercialModalOpen] = useState(false);
 
   // Renew form state (pre-filled from current demande)
   const [renewForm, setRenewForm] = useState<Record<string, unknown>>({});
