@@ -5,7 +5,30 @@
 export const TYPES_REDUCTION = [
   { value: "pourcentage", label: "Pourcentage (%)" },
   { value: "montant_fixe", label: "Montant fixe (MAD)" },
+  { value: "abonnement_offert", label: "1er abonnement offert" },
 ] as const;
+
+/**
+ * Remplace les variables dans un message promo : {prénom}, {code}, {valeur}, {expiration}, {lien}.
+ */
+export function renderPromoMessage(
+  template: string,
+  vars: { prenom?: string; code?: string; valeur?: string; expiration?: string; lien?: string } = {},
+): string {
+  const map: Record<string, string> = {
+    "{prénom}": vars.prenom ?? "Sophie",
+    "{prenom}": vars.prenom ?? "Sophie",
+    "{code}": vars.code ?? "BIENVENUE20",
+    "{valeur}": vars.valeur ?? "20%",
+    "{expiration}": vars.expiration ?? "30/06/2026",
+    "{lien}": vars.lien ?? "https://agence-eclat.ma/p/xyz",
+  };
+  let out = template || "";
+  for (const k of Object.keys(map)) {
+    out = out.split(k).join(map[k]);
+  }
+  return out;
+}
 
 export const SEGMENTS_CLIENT = [
   { value: "particulier", label: "Particulier" },
@@ -23,8 +46,10 @@ export const STATUTS_CLIENT = [
 export const STATUTS_CODE_PROMO = [
   { value: "brouillon", label: "Brouillon" },
   { value: "active", label: "Actif" },
-  { value: "desactivee", label: "Inactif" },
+  { value: "suspendu", label: "Suspendu" },
+  { value: "epuise", label: "Épuisé" },
   { value: "expiree", label: "Expiré" },
+  { value: "archive", label: "Archivé" },
 ] as const;
 
 export const CANAUX_DIFFUSION = [
@@ -79,10 +104,15 @@ export const SERVICES_MARKETING = [
 ];
 
 export const STATUT_OFFRE_COLORS: Record<string, { label: string; color: string }> = {
-  active: { label: "Active", color: "bg-emerald-100 text-emerald-800" },
+  brouillon: { label: "Brouillon", color: "bg-gray-100 text-gray-800" },
+  active: { label: "Actif", color: "bg-emerald-100 text-emerald-800" },
+  suspendu: { label: "Suspendu", color: "bg-amber-100 text-amber-800" },
+  epuise: { label: "Épuisé", color: "bg-purple-100 text-purple-800" },
+  expiree: { label: "Expiré", color: "bg-red-100 text-red-800" },
+  archive: { label: "Archivé", color: "bg-gray-100 text-gray-600" },
+  // Legacy
   planifiee: { label: "Planifiée", color: "bg-blue-100 text-blue-800" },
-  expiree: { label: "Expirée", color: "bg-red-100 text-red-800" },
-  desactivee: { label: "Désactivée", color: "bg-gray-100 text-gray-800" },
+  desactivee: { label: "Inactif", color: "bg-gray-100 text-gray-800" },
 };
 
 export const STATUT_CAMPAGNE_COLORS: Record<string, { label: string; color: string }> = {

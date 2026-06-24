@@ -698,12 +698,14 @@ export type Database = {
           message_promotionnel: string | null
           nom: string
           nombre_utilisations: number | null
+          quota_par_client: boolean
           segment_client: string | null
           services_concernes: Json | null
           statut: string
           statut_client: string | null
           type: string
           type_reduction: string
+          updated_at: string
           valeur_reduction: number
         }
         Insert: {
@@ -718,12 +720,14 @@ export type Database = {
           message_promotionnel?: string | null
           nom: string
           nombre_utilisations?: number | null
+          quota_par_client?: boolean
           segment_client?: string | null
           services_concernes?: Json | null
           statut?: string
           statut_client?: string | null
           type?: string
           type_reduction?: string
+          updated_at?: string
           valeur_reduction?: number
         }
         Update: {
@@ -738,12 +742,14 @@ export type Database = {
           message_promotionnel?: string | null
           nom?: string
           nombre_utilisations?: number | null
+          quota_par_client?: boolean
           segment_client?: string | null
           services_concernes?: Json | null
           statut?: string
           statut_client?: string | null
           type?: string
           type_reduction?: string
+          updated_at?: string
           valeur_reduction?: number
         }
         Relationships: []
@@ -971,6 +977,59 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: []
+      }
+      promo_usages: {
+        Row: {
+          canal: string | null
+          client_id: string | null
+          client_nom: string | null
+          created_at: string
+          demande_id: string | null
+          evenement: string
+          id: string
+          metadata: Json | null
+          montant_remise: number | null
+          offre_id: string
+          raison_refus: string | null
+          statut_envoi: string | null
+        }
+        Insert: {
+          canal?: string | null
+          client_id?: string | null
+          client_nom?: string | null
+          created_at?: string
+          demande_id?: string | null
+          evenement: string
+          id?: string
+          metadata?: Json | null
+          montant_remise?: number | null
+          offre_id: string
+          raison_refus?: string | null
+          statut_envoi?: string | null
+        }
+        Update: {
+          canal?: string | null
+          client_id?: string | null
+          client_nom?: string | null
+          created_at?: string
+          demande_id?: string | null
+          evenement?: string
+          id?: string
+          metadata?: Json | null
+          montant_remise?: number | null
+          offre_id?: string
+          raison_refus?: string | null
+          statut_envoi?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_usages_offre_id_fkey"
+            columns: ["offre_id"]
+            isOneToOne: false
+            referencedRelation: "offres_marketing"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tresorerie_config: {
         Row: {
