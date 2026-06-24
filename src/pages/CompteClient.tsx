@@ -564,6 +564,10 @@ export default function CompteClient() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setCommercialModalOpen(true)}>
+            <UserCog className="h-3.5 w-3.5" />
+            Commercial affecté{demande.commercial ? ` : ${demande.commercial}` : ""}
+          </Button>
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => openRenewForDemande(demande)}>
             <RefreshCw className="h-3.5 w-3.5" /> Renouveler
           </Button>
@@ -572,6 +576,12 @@ export default function CompteClient() {
           </Button>
         </div>
       </div>
+
+      <CommercialAffecteModal
+        demande={demande}
+        open={commercialModalOpen}
+        onOpenChange={setCommercialModalOpen}
+      />
 
       {/* Sections */}
       <div className="space-y-3">
