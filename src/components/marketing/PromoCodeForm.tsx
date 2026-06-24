@@ -48,6 +48,8 @@ interface Props {
   onChange: (next: PromoFormState) => void;
   /** Erreur d'unicité du code (renvoyée par le parent après tentative). */
   codeError?: string | null;
+  /** "simple" masque : statut client, limite d'utilisation, canal de diffusion, message. */
+  variant?: PromoFormVariant;
 }
 
 export function defaultPromoForm(): PromoFormState {
