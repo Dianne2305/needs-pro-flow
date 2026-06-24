@@ -277,9 +277,22 @@ export function OffresTable() {
 
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Codes promo & Offres</h3>
-        <Button onClick={() => { setInitialDuplicate(null); setShowModal(true); }} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Créer un code promo
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Créer un code promo
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => { setInitialDuplicate(null); setCreateVariant("simple"); setShowModal(true); }}>
+              Code promo simple
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setInitialDuplicate(null); setCreateVariant("bd"); setShowModal(true); }}>
+              Code promo - BD
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Filters */}
