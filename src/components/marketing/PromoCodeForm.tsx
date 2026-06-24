@@ -92,9 +92,31 @@ export function validatePromoForm(f: PromoFormState): boolean {
 const SMS_LIMIT = 160;
 const SMS_WARN = 145;
 
-export function PromoCodeForm({ value, onChange, codeError }: Props) {
+export function PromoCodeForm({ value, onChange, codeError, variant = "bd" }: Props) {
   const f = value;
   const set = (patch: Partial<PromoFormState>) => onChange({ ...f, ...patch });
+  const isSimple = variant === "simple";
+
+  const copyCode = () => {
+    if (!f.code_promo) return;
+    navigator.clipboard.writeText(f.code_promo);
+    toast.success("Code copié !");
+  };
+
+  const shareCode = async () => {
+    if (!f.code_promo) return;
+    const text = `Profitez du code promo ${f.code_promo} sur Agence Éclat`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Code promo", text });
+        return;
+      } catch {
+        // utilisateur annule, on retombe sur le copier
+      }
+    }
+    navigator.clipboard.writeText(text);
+    toast.success("Lien de partage copié !");
+  };
 
   const servicesDisponibles = useMemo(
     () => (f.segment_client === "entreprise" ? [...SERVICES_ENTREPRISE] : [...SERVICES_PARTICULIER]),
