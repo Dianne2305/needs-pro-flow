@@ -115,6 +115,7 @@ export function OffresTable() {
   const handleDuplicate = (o: any) => {
     const base = rowToForm(o);
     setInitialDuplicate({ ...base, code_promo: "", nom: `${base.nom} (copie)` });
+    setCreateVariant("bd");
     setShowModal(true);
   };
 
