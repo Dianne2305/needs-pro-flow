@@ -139,6 +139,50 @@ export type Database = {
         }
         Relationships: []
       }
+      client_commercial_historique: {
+        Row: {
+          action: string
+          ancien_commercial: string | null
+          client_nom: string | null
+          created_at: string
+          demande_id: string
+          effectue_par: string | null
+          id: string
+          note: string | null
+          nouveau_commercial: string | null
+        }
+        Insert: {
+          action?: string
+          ancien_commercial?: string | null
+          client_nom?: string | null
+          created_at?: string
+          demande_id: string
+          effectue_par?: string | null
+          id?: string
+          note?: string | null
+          nouveau_commercial?: string | null
+        }
+        Update: {
+          action?: string
+          ancien_commercial?: string | null
+          client_nom?: string | null
+          created_at?: string
+          demande_id?: string
+          effectue_par?: string | null
+          id?: string
+          note?: string | null
+          nouveau_commercial?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_commercial_historique_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       demande_historique: {
         Row: {
           action: string
@@ -182,6 +226,8 @@ export type Database = {
           candidat_photo_url: string | null
           candidat_telephone: string | null
           commercial: string | null
+          commercial_affecte_at: string | null
+          commercial_createur: string | null
           confirmation_ope: string | null
           confirmed_at: string | null
           contact_entreprise: string | null
@@ -232,6 +278,8 @@ export type Database = {
           candidat_photo_url?: string | null
           candidat_telephone?: string | null
           commercial?: string | null
+          commercial_affecte_at?: string | null
+          commercial_createur?: string | null
           confirmation_ope?: string | null
           confirmed_at?: string | null
           contact_entreprise?: string | null
@@ -282,6 +330,8 @@ export type Database = {
           candidat_photo_url?: string | null
           candidat_telephone?: string | null
           commercial?: string | null
+          commercial_affecte_at?: string | null
+          commercial_createur?: string | null
           confirmation_ope?: string | null
           confirmed_at?: string | null
           contact_entreprise?: string | null
