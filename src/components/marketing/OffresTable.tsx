@@ -37,6 +37,7 @@ function effectiveStatut(o: any): string {
 
 export function OffresTable() {
   const [showModal, setShowModal] = useState(false);
+  const [createVariant, setCreateVariant] = useState<"simple" | "bd">("bd");
   const [initialDuplicate, setInitialDuplicate] = useState<Partial<PromoFormState> | null>(null);
   const [editOffre, setEditOffre] = useState<any>(null);
   const [detailOffre, setDetailOffre] = useState<any>(null);
