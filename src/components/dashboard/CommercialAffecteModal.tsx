@@ -133,13 +133,18 @@ export function CommercialAffecteModal({ demande, open, onOpenChange }: Props) {
 
   const actionLabel = (a: string) => {
     switch (a) {
-      case "affectation": return { label: "Affectation", cls: "bg-emerald-100 text-emerald-800" };
-      case "reaffectation": return { label: "Réaffectation", cls: "bg-amber-100 text-amber-800" };
-      case "retrait": return { label: "Retrait", cls: "bg-rose-100 text-rose-800" };
-      case "creation": return { label: "Création", cls: "bg-sky-100 text-sky-800" };
-      default: return { label: a, cls: "bg-muted text-muted-foreground" };
+      case "affectation": return { label: "Affectation", cls: "bg-emerald-100 text-emerald-800 border-emerald-200" };
+      case "reaffectation": return { label: "Réaffectation", cls: "bg-amber-100 text-amber-800 border-amber-200" };
+      case "retrait": return { label: "Retrait", cls: "bg-rose-100 text-rose-800 border-rose-200" };
+      case "creation": return { label: "Création", cls: "bg-sky-100 text-sky-800 border-sky-200" };
+      default: return { label: a, cls: "bg-muted text-muted-foreground border-border" };
     }
   };
+
+  // Historique trié du plus récent au plus ancien (anti-chronologique)
+  const sortedHistorique = useMemo(() => {
+    return [...historique].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [historique]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,7 +155,7 @@ export function CommercialAffecteModal({ demande, open, onOpenChange }: Props) {
             Commercial affecté — {demande.nom}
           </DialogTitle>
           <DialogDescription>
-            Gérez l'affectation commerciale du client et consultez l'historique des changements.
+            Gérez l'affectation commerciale du client et consultez l'historique chronologique des changements.
           </DialogDescription>
         </DialogHeader>
 
@@ -212,9 +217,9 @@ export function CommercialAffecteModal({ demande, open, onOpenChange }: Props) {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Note (optionnel)</Label>
+            <Label>Note / Motif (optionnel)</Label>
             <Input
-              placeholder="Motif du changement..."
+              placeholder="Motif de la réaffectation, contexte..."
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
@@ -235,37 +240,67 @@ export function CommercialAffecteModal({ demande, open, onOpenChange }: Props) {
 
         <Separator />
 
-        {/* Historique */}
-        <div className="space-y-2">
+        {/* Historique chronologique */}
+        <div className="space-y-3">
           <h3 className="text-sm font-semibold flex items-center gap-2">
             <History className="h-4 w-4" /> Historique des affectations
           </h3>
-          {historique.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-3 text-center">Aucun changement enregistré.</p>
+          {sortedHistorique.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center bg-muted/30 rounded-lg border border-dashed">
+              Aucun changement enregistré.
+            </p>
           ) : (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {historique.map((h: any) => {
+            <div className="relative pl-5 space-y-3 max-h-72 overflow-y-auto pr-1">
+              {/* Ligne verticale de timeline */}
+              <div className="absolute left-[11px] top-2 bottom-3 w-px bg-border" />
+
+              {sortedHistorique.map((h: any, idx: number) => {
                 const a = actionLabel(h.action);
+                const isLast = idx === sortedHistorique.length - 1;
                 return (
-                  <div key={h.id} className="p-2.5 rounded-md border bg-card text-sm">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`text-[10px] ${a.cls} border-0`}>{a.label}</Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {h.ancien_commercial || "—"} → <strong className="text-foreground">{h.nouveau_commercial || "—"}</strong>
+                  <div key={h.id} className="relative">
+                    {/* Point timeline */}
+                    <div className="absolute -left-[21px] top-2 h-3 w-3 rounded-full border-2 border-background bg-primary" />
+
+                    <div className="rounded-lg border bg-card p-3 text-sm hover:bg-accent/40 transition-colors">
+                      {/* Header : action + date */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <Badge variant="outline" className={`text-[10px] font-semibold ${a.cls}`}>
+                          {a.label}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          {format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}
                         </span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground">
-                        {format(new Date(h.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}
-                      </span>
+
+                      {/* Transition commercial */}
+                      <div className="grid grid-cols-2 gap-3 mb-2">
+                        <div className="rounded bg-muted/50 px-2.5 py-1.5">
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Ancien commercial</p>
+                          <p className="font-medium truncate">{h.ancien_commercial || "Non affecté"}</p>
+                        </div>
+                        <div className="rounded bg-emerald-50/60 px-2.5 py-1.5">
+                          <p className="text-[10px] uppercase tracking-wide text-emerald-700">Nouveau commercial</p>
+                          <p className="font-medium text-emerald-900 truncate">{h.nouveau_commercial || "Retiré"}</p>
+                        </div>
+                      </div>
+
+                      {/* Motif / Effectué par */}
+                      {(h.effectue_par || h.note) && (
+                        <div className="space-y-1 border-t pt-2 mt-1">
+                          {h.effectue_par && (
+                            <p className="text-xs text-muted-foreground">
+                              Effectué par <span className="font-medium text-foreground">{h.effectue_par}</span>
+                            </p>
+                          )}
+                          {h.note && (
+                            <div className="text-xs text-muted-foreground">
+                              <span className="font-medium text-foreground">Motif :</span> {h.note}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    {(h.effectue_par || h.note) && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {h.effectue_par && <span>Par <strong>{h.effectue_par}</strong></span>}
-                        {h.effectue_par && h.note && " — "}
-                        {h.note}
-                      </p>
-                    )}
                   </div>
                 );
               })}
