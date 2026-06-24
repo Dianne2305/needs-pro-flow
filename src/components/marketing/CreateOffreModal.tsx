@@ -72,9 +72,9 @@ export function CreateOffreModal({ open, onClose, initial, variant = "bd" }: Pro
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Créer un code promo</DialogTitle>
+            <DialogTitle>{variant === "simple" ? "Créer un code promo simple" : "Créer un code promo - BD"}</DialogTitle>
           </DialogHeader>
-          <PromoCodeForm value={form} onChange={setForm} codeError={codeError} />
+          <PromoCodeForm value={form} onChange={setForm} codeError={codeError} variant={variant} />
           <DialogFooter className="gap-2 sm:gap-2 flex-col sm:flex-row">
             <Button
               variant="outline"
