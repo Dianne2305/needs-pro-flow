@@ -18,16 +18,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { PromoCodeForm, defaultPromoForm, validatePromoForm, formToPayload, PromoFormState } from "./PromoCodeForm";
+import { PromoCodeForm, defaultPromoForm, validatePromoForm, formToPayload, PromoFormState, PromoFormVariant } from "./PromoCodeForm";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   /** Pré-remplissage (utilisé par la duplication). */
   initial?: Partial<PromoFormState> | null;
+  /** "simple" = formulaire allégé (sans statut client, limite, canal, message). Défaut "bd". */
+  variant?: PromoFormVariant;
 }
 
-export function CreateOffreModal({ open, onClose, initial }: Props) {
+export function CreateOffreModal({ open, onClose, initial, variant = "bd" }: Props) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<PromoFormState>(() => ({ ...defaultPromoForm(), ...(initial ?? {}) }));
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -70,9 +72,9 @@ export function CreateOffreModal({ open, onClose, initial }: Props) {
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Créer un code promo</DialogTitle>
+            <DialogTitle>{variant === "simple" ? "Créer un code promo simple" : "Créer un code promo - BD"}</DialogTitle>
           </DialogHeader>
-          <PromoCodeForm value={form} onChange={setForm} codeError={codeError} />
+          <PromoCodeForm value={form} onChange={setForm} codeError={codeError} variant={variant} />
           <DialogFooter className="gap-2 sm:gap-2 flex-col sm:flex-row">
             <Button
               variant="outline"

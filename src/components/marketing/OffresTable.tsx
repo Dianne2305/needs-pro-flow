@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import {
   Plus, Trash2, Copy, Pencil, Archive, ArchiveRestore,
   ChevronDown, ChevronRight, Eye, PauseCircle, PlayCircle, Files,
@@ -37,6 +38,7 @@ function effectiveStatut(o: any): string {
 
 export function OffresTable() {
   const [showModal, setShowModal] = useState(false);
+  const [createVariant, setCreateVariant] = useState<"simple" | "bd">("bd");
   const [initialDuplicate, setInitialDuplicate] = useState<Partial<PromoFormState> | null>(null);
   const [editOffre, setEditOffre] = useState<any>(null);
   const [detailOffre, setDetailOffre] = useState<any>(null);
@@ -114,6 +116,7 @@ export function OffresTable() {
   const handleDuplicate = (o: any) => {
     const base = rowToForm(o);
     setInitialDuplicate({ ...base, code_promo: "", nom: `${base.nom} (copie)` });
+    setCreateVariant("bd");
     setShowModal(true);
   };
 
@@ -274,9 +277,22 @@ export function OffresTable() {
 
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Codes promo & Offres</h3>
-        <Button onClick={() => { setInitialDuplicate(null); setShowModal(true); }} size="sm">
-          <Plus className="h-4 w-4 mr-1" /> Créer un code promo
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Créer un code promo
+              <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => { setInitialDuplicate(null); setCreateVariant("simple"); setShowModal(true); }}>
+              Code promo simple
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setInitialDuplicate(null); setCreateVariant("bd"); setShowModal(true); }}>
+              Code promo - BD
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Filters */}
@@ -339,6 +355,7 @@ export function OffresTable() {
         open={showModal}
         onClose={() => { setShowModal(false); setInitialDuplicate(null); }}
         initial={initialDuplicate}
+        variant={createVariant}
       />
       <EditOffreModal offre={editOffre} onClose={() => setEditOffre(null)} />
       <OffrePromoDetailModal offre={detailOffre} onClose={() => setDetailOffre(null)} />

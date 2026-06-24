@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Copy, Share2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   TYPES_REDUCTION,
   SEGMENTS_CLIENT,
@@ -20,6 +23,8 @@ import {
   CANAUX_DIFFUSION,
   renderPromoMessage,
 } from "@/lib/marketing-constants";
+
+export type PromoFormVariant = "simple" | "bd";
 
 export interface PromoFormState {
   nom: string;
@@ -43,6 +48,8 @@ interface Props {
   onChange: (next: PromoFormState) => void;
   /** Erreur d'unicité du code (renvoyée par le parent après tentative). */
   codeError?: string | null;
+  /** "simple" masque : statut client, limite d'utilisation, canal de diffusion, message. */
+  variant?: PromoFormVariant;
 }
 
 export function defaultPromoForm(): PromoFormState {
@@ -85,9 +92,31 @@ export function validatePromoForm(f: PromoFormState): boolean {
 const SMS_LIMIT = 160;
 const SMS_WARN = 145;
 
-export function PromoCodeForm({ value, onChange, codeError }: Props) {
+export function PromoCodeForm({ value, onChange, codeError, variant = "bd" }: Props) {
   const f = value;
   const set = (patch: Partial<PromoFormState>) => onChange({ ...f, ...patch });
+  const isSimple = variant === "simple";
+
+  const copyCode = () => {
+    if (!f.code_promo) return;
+    navigator.clipboard.writeText(f.code_promo);
+    toast.success("Code copié !");
+  };
+
+  const shareCode = async () => {
+    if (!f.code_promo) return;
+    const text = `Profitez du code promo ${f.code_promo} sur Agence Éclat`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Code promo", text });
+        return;
+      } catch {
+        // utilisateur annule, on retombe sur le copier
+      }
+    }
+    navigator.clipboard.writeText(text);
+    toast.success("Lien de partage copié !");
+  };
 
   const servicesDisponibles = useMemo(
     () => (f.segment_client === "entreprise" ? [...SERVICES_ENTREPRISE] : [...SERVICES_PARTICULIER]),
@@ -135,13 +164,21 @@ export function PromoCodeForm({ value, onChange, codeError }: Props) {
 
       <div>
         <Label>Code promo *</Label>
-        <Input
-          placeholder="ex: BIENVENUE10"
-          value={f.code_promo}
-          maxLength={20}
-          onChange={(e) => set({ code_promo: e.target.value.toUpperCase().replace(/\s+/g, "") })}
-          className="font-mono"
-        />
+        <div className="flex gap-2">
+          <Input
+            placeholder="ex: BIENVENUE10"
+            value={f.code_promo}
+            maxLength={20}
+            onChange={(e) => set({ code_promo: e.target.value.toUpperCase().replace(/\s+/g, "") })}
+            className="font-mono"
+          />
+          <Button type="button" variant="outline" size="icon" onClick={copyCode} disabled={!f.code_promo} title="Copier le code">
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button type="button" variant="outline" size="icon" onClick={shareCode} disabled={!f.code_promo} title="Partager le code">
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
         {codeError && <p className="text-xs text-destructive mt-1">{codeError}</p>}
       </div>
 
@@ -172,7 +209,7 @@ export function PromoCodeForm({ value, onChange, codeError }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className={isSimple ? "" : "grid grid-cols-2 gap-3"}>
         <div>
           <Label>Segment *</Label>
           <Select value={f.segment_client} onValueChange={(v) => set({ segment_client: v, services: [] })}>
@@ -184,17 +221,19 @@ export function PromoCodeForm({ value, onChange, codeError }: Props) {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <Label>Statut client *</Label>
-          <Select value={f.statut_client} onValueChange={(v) => set({ statut_client: v })}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STATUTS_CLIENT.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {!isSimple && (
+          <div>
+            <Label>Statut client *</Label>
+            <Select value={f.statut_client} onValueChange={(v) => set({ statut_client: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUTS_CLIENT.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div>
@@ -212,74 +251,80 @@ export function PromoCodeForm({ value, onChange, codeError }: Props) {
         )}
       </div>
 
-      {/* Quotas (NOUVEAU CDC) */}
-      <div className="rounded-md border bg-muted/30 p-3 space-y-3">
-        <p className="text-xs font-semibold uppercase text-muted-foreground">Règles d'utilisation</p>
-        <div>
-          <Label className="text-sm">Limite d'utilisations <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
-          <Input
-            type="number"
-            min={1}
-            placeholder="Laisser vide = illimité"
-            value={f.limite_utilisation}
-            onChange={(e) => set({ limite_utilisation: e.target.value })}
-            className="mt-1"
-          />
-          <p className="text-[11px] text-muted-foreground mt-1">Décrémenté à chaque utilisation validée. Bascule en « Épuisé » à 100 %.</p>
-        </div>
-        <label className="flex items-start gap-2 text-sm cursor-pointer">
-          <Checkbox
-            className="mt-0.5"
-            checked={f.quota_par_client}
-            onCheckedChange={(c) => set({ quota_par_client: !!c })}
-          />
-          <span>
-            <span className="font-medium">1 utilisation par client</span>
-            <span className="block text-[11px] text-muted-foreground">Un même client ne pourra pas utiliser ce code deux fois.</span>
-          </span>
-        </label>
-      </div>
-
-      <div>
-        <Label>Canal de diffusion *</Label>
-        <div className="flex flex-wrap gap-4 mt-1">
-          {CANAUX_DIFFUSION.map((c) => (
-            <label key={c.value} className="flex items-center gap-2 text-sm">
-              <Checkbox checked={f.canaux.includes(c.value)} onCheckedChange={() => toggleCanal(c.value)} />
-              {c.label}
-            </label>
-          ))}
-        </div>
-        {f.canaux.length === 0 && (
-          <p className="text-[11px] text-muted-foreground mt-1">Aucun canal coché : code disponible uniquement en saisie manuelle.</p>
-        )}
-      </div>
-
-      <div>
-        <Label>
-          Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span>
-        </Label>
-        <Textarea
-          placeholder="Bonjour {prénom}, profitez de {valeur} avec le code {code}, valable jusqu'au {expiration}."
-          value={f.message_promotionnel}
-          onChange={(e) => set({ message_promotionnel: e.target.value })}
-          rows={3}
-        />
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-[11px] text-muted-foreground">
-            Variables : <code>{"{prénom} {code} {valeur} {expiration} {lien}"}</code>
-          </p>
-          <p className={`text-[11px] font-mono ${counterColor}`}>
-            {len} / {SMS_LIMIT}
-          </p>
-        </div>
-        {f.message_promotionnel && (
-          <div className="mt-2 rounded-md border bg-card p-3">
-            <p className="text-[10px] uppercase text-muted-foreground mb-1">Aperçu</p>
-            <p className="text-sm whitespace-pre-wrap">{apercu}</p>
+      {/* Quotas (NOUVEAU CDC) — masqué en variant "simple" */}
+      {!isSimple && (
+        <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Règles d'utilisation</p>
+          <div>
+            <Label className="text-sm">Limite d'utilisations <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
+            <Input
+              type="number"
+              min={1}
+              placeholder="Laisser vide = illimité"
+              value={f.limite_utilisation}
+              onChange={(e) => set({ limite_utilisation: e.target.value })}
+              className="mt-1"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">Décrémenté à chaque utilisation validée. Bascule en « Épuisé » à 100 %.</p>
           </div>
-        )}
-      </div>
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <Checkbox
+              className="mt-0.5"
+              checked={f.quota_par_client}
+              onCheckedChange={(c) => set({ quota_par_client: !!c })}
+            />
+            <span>
+              <span className="font-medium">1 utilisation par client</span>
+              <span className="block text-[11px] text-muted-foreground">Un même client ne pourra pas utiliser ce code deux fois.</span>
+            </span>
+          </label>
+        </div>
+      )}
+
+      {!isSimple && (
+        <div>
+          <Label>Canal de diffusion *</Label>
+          <div className="flex flex-wrap gap-4 mt-1">
+            {CANAUX_DIFFUSION.map((c) => (
+              <label key={c.value} className="flex items-center gap-2 text-sm">
+                <Checkbox checked={f.canaux.includes(c.value)} onCheckedChange={() => toggleCanal(c.value)} />
+                {c.label}
+              </label>
+            ))}
+          </div>
+          {f.canaux.length === 0 && (
+            <p className="text-[11px] text-muted-foreground mt-1">Aucun canal coché : code disponible uniquement en saisie manuelle.</p>
+          )}
+        </div>
+      )}
+
+      {!isSimple && (
+        <div>
+          <Label>
+            Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span>
+          </Label>
+          <Textarea
+            placeholder="Bonjour {prénom}, profitez de {valeur} avec le code {code}, valable jusqu'au {expiration}."
+            value={f.message_promotionnel}
+            onChange={(e) => set({ message_promotionnel: e.target.value })}
+            rows={3}
+          />
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-[11px] text-muted-foreground">
+              Variables : <code>{"{prénom} {code} {valeur} {expiration} {lien}"}</code>
+            </p>
+            <p className={`text-[11px] font-mono ${counterColor}`}>
+              {len} / {SMS_LIMIT}
+            </p>
+          </div>
+          {f.message_promotionnel && (
+            <div className="mt-2 rounded-md border bg-card p-3">
+              <p className="text-[10px] uppercase text-muted-foreground mb-1">Aperçu</p>
+              <p className="text-sm whitespace-pre-wrap">{apercu}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         <Label>Promotion valable</Label>
