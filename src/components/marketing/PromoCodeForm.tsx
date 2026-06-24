@@ -251,74 +251,80 @@ export function PromoCodeForm({ value, onChange, codeError, variant = "bd" }: Pr
         )}
       </div>
 
-      {/* Quotas (NOUVEAU CDC) */}
-      <div className="rounded-md border bg-muted/30 p-3 space-y-3">
-        <p className="text-xs font-semibold uppercase text-muted-foreground">Règles d'utilisation</p>
-        <div>
-          <Label className="text-sm">Limite d'utilisations <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
-          <Input
-            type="number"
-            min={1}
-            placeholder="Laisser vide = illimité"
-            value={f.limite_utilisation}
-            onChange={(e) => set({ limite_utilisation: e.target.value })}
-            className="mt-1"
-          />
-          <p className="text-[11px] text-muted-foreground mt-1">Décrémenté à chaque utilisation validée. Bascule en « Épuisé » à 100 %.</p>
-        </div>
-        <label className="flex items-start gap-2 text-sm cursor-pointer">
-          <Checkbox
-            className="mt-0.5"
-            checked={f.quota_par_client}
-            onCheckedChange={(c) => set({ quota_par_client: !!c })}
-          />
-          <span>
-            <span className="font-medium">1 utilisation par client</span>
-            <span className="block text-[11px] text-muted-foreground">Un même client ne pourra pas utiliser ce code deux fois.</span>
-          </span>
-        </label>
-      </div>
-
-      <div>
-        <Label>Canal de diffusion *</Label>
-        <div className="flex flex-wrap gap-4 mt-1">
-          {CANAUX_DIFFUSION.map((c) => (
-            <label key={c.value} className="flex items-center gap-2 text-sm">
-              <Checkbox checked={f.canaux.includes(c.value)} onCheckedChange={() => toggleCanal(c.value)} />
-              {c.label}
-            </label>
-          ))}
-        </div>
-        {f.canaux.length === 0 && (
-          <p className="text-[11px] text-muted-foreground mt-1">Aucun canal coché : code disponible uniquement en saisie manuelle.</p>
-        )}
-      </div>
-
-      <div>
-        <Label>
-          Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span>
-        </Label>
-        <Textarea
-          placeholder="Bonjour {prénom}, profitez de {valeur} avec le code {code}, valable jusqu'au {expiration}."
-          value={f.message_promotionnel}
-          onChange={(e) => set({ message_promotionnel: e.target.value })}
-          rows={3}
-        />
-        <div className="flex items-center justify-between mt-1">
-          <p className="text-[11px] text-muted-foreground">
-            Variables : <code>{"{prénom} {code} {valeur} {expiration} {lien}"}</code>
-          </p>
-          <p className={`text-[11px] font-mono ${counterColor}`}>
-            {len} / {SMS_LIMIT}
-          </p>
-        </div>
-        {f.message_promotionnel && (
-          <div className="mt-2 rounded-md border bg-card p-3">
-            <p className="text-[10px] uppercase text-muted-foreground mb-1">Aperçu</p>
-            <p className="text-sm whitespace-pre-wrap">{apercu}</p>
+      {/* Quotas (NOUVEAU CDC) — masqué en variant "simple" */}
+      {!isSimple && (
+        <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">Règles d'utilisation</p>
+          <div>
+            <Label className="text-sm">Limite d'utilisations <span className="text-xs text-muted-foreground">(facultatif)</span></Label>
+            <Input
+              type="number"
+              min={1}
+              placeholder="Laisser vide = illimité"
+              value={f.limite_utilisation}
+              onChange={(e) => set({ limite_utilisation: e.target.value })}
+              className="mt-1"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">Décrémenté à chaque utilisation validée. Bascule en « Épuisé » à 100 %.</p>
           </div>
-        )}
-      </div>
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <Checkbox
+              className="mt-0.5"
+              checked={f.quota_par_client}
+              onCheckedChange={(c) => set({ quota_par_client: !!c })}
+            />
+            <span>
+              <span className="font-medium">1 utilisation par client</span>
+              <span className="block text-[11px] text-muted-foreground">Un même client ne pourra pas utiliser ce code deux fois.</span>
+            </span>
+          </label>
+        </div>
+      )}
+
+      {!isSimple && (
+        <div>
+          <Label>Canal de diffusion *</Label>
+          <div className="flex flex-wrap gap-4 mt-1">
+            {CANAUX_DIFFUSION.map((c) => (
+              <label key={c.value} className="flex items-center gap-2 text-sm">
+                <Checkbox checked={f.canaux.includes(c.value)} onCheckedChange={() => toggleCanal(c.value)} />
+                {c.label}
+              </label>
+            ))}
+          </div>
+          {f.canaux.length === 0 && (
+            <p className="text-[11px] text-muted-foreground mt-1">Aucun canal coché : code disponible uniquement en saisie manuelle.</p>
+          )}
+        </div>
+      )}
+
+      {!isSimple && (
+        <div>
+          <Label>
+            Message promotionnel <span className="text-xs text-muted-foreground">(facultatif)</span>
+          </Label>
+          <Textarea
+            placeholder="Bonjour {prénom}, profitez de {valeur} avec le code {code}, valable jusqu'au {expiration}."
+            value={f.message_promotionnel}
+            onChange={(e) => set({ message_promotionnel: e.target.value })}
+            rows={3}
+          />
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-[11px] text-muted-foreground">
+              Variables : <code>{"{prénom} {code} {valeur} {expiration} {lien}"}</code>
+            </p>
+            <p className={`text-[11px] font-mono ${counterColor}`}>
+              {len} / {SMS_LIMIT}
+            </p>
+          </div>
+          {f.message_promotionnel && (
+            <div className="mt-2 rounded-md border bg-card p-3">
+              <p className="text-[10px] uppercase text-muted-foreground mb-1">Aperçu</p>
+              <p className="text-sm whitespace-pre-wrap">{apercu}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div>
         <Label>Promotion valable</Label>
