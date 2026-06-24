@@ -47,7 +47,6 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
     const clique = usages.filter((u) => u.evenement === "lien_clique").length;
     const applique = usages.filter((u) => u.evenement === "code_applique");
     const refuse = usages.filter((u) => u.evenement === "code_refuse");
-    const montant = applique.reduce((acc, u) => acc + Number(u.montant_remise || 0), 0);
     const tauxOuv = envoye ? (ouvert / envoye) * 100 : 0;
     const tauxClic = ouvert ? (clique / ouvert) * 100 : 0;
     const tauxConv = clique ? (applique.length / clique) * 100 : 0;
@@ -59,13 +58,11 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
     const topRefus = Object.entries(reasons)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
-    return { envoye, ouvert, clique, applique: applique.length, refuse: refuse.length, montant, tauxOuv, tauxClic, tauxConv, topRefus };
+    return { envoye, ouvert, clique, applique: applique.length, refuse: refuse.length, tauxOuv, tauxClic, tauxConv, topRefus };
   }, [usages]);
 
   if (!offre) return null;
   const statutInfo = STATUT_OFFRE_COLORS[offre.statut] || STATUT_OFFRE_COLORS.active;
-  const used = offre.nombre_utilisations || 0;
-  const quota = offre.limite_utilisation;
 
   return (
     <Dialog open={!!offre} onOpenChange={(o) => !o && onClose()}>
@@ -90,8 +87,6 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
                 : `-${offre.valeur_reduction} MAD`
             }
           />
-          <Kpi label="Utilisations" value={quota ? `${used} / ${quota}` : `${used} (illimité)`} />
-          <Kpi label="Montant remisé" value={`${stats.montant.toLocaleString()} MAD`} />
           <Kpi label="Taux d'ouverture" value={`${stats.tauxOuv.toFixed(1)}%`} />
           <Kpi label="Taux de clic" value={`${stats.tauxClic.toFixed(1)}%`} />
           <Kpi label="Taux de conversion" value={`${stats.tauxConv.toFixed(1)}%`} />
