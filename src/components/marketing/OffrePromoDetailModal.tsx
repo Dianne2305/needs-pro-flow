@@ -108,63 +108,8 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
           </div>
         )}
 
-        {/* Journal des utilisations */}
-        <div>
-          <h4 className="text-sm font-semibold mb-2">Journal des utilisations ({usages.length})</h4>
-          <div className="rounded-md border max-h-80 overflow-y-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Événement</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Canal</TableHead>
-                  <TableHead>Détail</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {usages.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                      Aucune utilisation enregistrée.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  usages.map((u: any) => {
-                    const ev = EVENT_LABELS[u.evenement] || { label: u.evenement, color: "bg-gray-100 text-gray-800" };
-                    const detail =
-                      u.evenement === "code_applique" && u.montant_remise
-                        ? `${Number(u.montant_remise).toLocaleString()} MAD`
-                        : u.evenement === "code_refuse"
-                        ? u.raison_refus || "—"
-                        : u.statut_envoi || "—";
-                    return (
-                      <TableRow key={u.id}>
-                        <TableCell className="whitespace-nowrap text-xs">
-                          {format(new Date(u.created_at), "dd/MM/yy HH:mm", { locale: fr })}
-                        </TableCell>
-                        <TableCell><Badge className={ev.color}>{ev.label}</Badge></TableCell>
-                        <TableCell className="text-sm">{u.client_nom || u.client_id || "—"}</TableCell>
-                        <TableCell className="text-sm">{u.canal || "—"}</TableCell>
-                        <TableCell className="text-sm">{detail}</TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function Kpi({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="rounded-md border p-2 bg-card">
-      <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold mt-0.5">{value}</p>
-    </div>
-  );
-}
