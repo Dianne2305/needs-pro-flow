@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { STATUT_OFFRE_COLORS } from "@/lib/marketing-constants";
 
-import { STATUT_OFFRE_COLORS } from "@/lib/marketing-constants";
+
 
 interface Props {
   offre: any | null;
