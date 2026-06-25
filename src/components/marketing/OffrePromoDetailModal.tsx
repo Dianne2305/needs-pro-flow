@@ -8,9 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { STATUT_OFFRE_COLORS } from "@/lib/marketing-constants";
+
 import { STATUT_OFFRE_COLORS } from "@/lib/marketing-constants";
 
 interface Props {
