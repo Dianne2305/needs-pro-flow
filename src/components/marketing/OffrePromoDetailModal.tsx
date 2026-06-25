@@ -113,3 +113,13 @@ export function OffrePromoDetailModal({ offre, onClose }: Props) {
   );
 }
 
+function Kpi({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-md border p-2 bg-card">
+      <p className="text-[10px] uppercase text-muted-foreground">{label}</p>
+      <p className="text-sm font-semibold mt-0.5">{value}</p>
+    </div>
+  );
+}
+
+
