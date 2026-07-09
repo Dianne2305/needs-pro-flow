@@ -243,6 +243,9 @@ export default function Profils() {
                       <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => navigate(`/compte-profil?id=${p.id}`)}>
                         <UserCheck className="h-3.5 w-3.5" /> Compte Profil
                       </Button>
+                      <Button size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setPostulerProfil(p)}>
+                        <UserPlus className="h-3.5 w-3.5" /> Affectation
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -261,6 +264,15 @@ export default function Profils() {
       </div>
 
       <AddProfilModal open={addOpen} onOpenChange={setAddOpen} onSuccess={() => refetch()} />
+
+      {/* Raccourci Affectation : ouvre le modal Postuler pour ce profil */}
+      {postulerProfil && (
+        <PostulerModal
+          open={!!postulerProfil}
+          onOpenChange={(o) => !o && setPostulerProfil(null)}
+          profil={postulerProfil}
+        />
+      )}
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteProfilId} onOpenChange={(o) => !o && setDeleteProfilId(null)}>
