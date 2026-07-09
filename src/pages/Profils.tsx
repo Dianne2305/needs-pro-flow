@@ -13,13 +13,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2 } from "lucide-react";
+import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2, UserPlus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PostulerModal } from "@/components/profils/PostulerModal";
 import { PROFIL_FILTER_TABS, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
@@ -35,6 +36,7 @@ export default function Profils() {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [addOpen, setAddOpen] = useState(false);
   const [deleteProfilId, setDeleteProfilId] = useState<string | null>(null);
+  const [postulerProfil, setPostulerProfil] = useState<any | null>(null);
 
   const deleteProfilMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -100,7 +102,7 @@ export default function Profils() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Listing Profils</h1>
+        <h1 className="text-xl font-bold text-foreground">Liste des femmes de ménage</h1>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" /> Actualiser
@@ -241,6 +243,9 @@ export default function Profils() {
                       <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => navigate(`/compte-profil?id=${p.id}`)}>
                         <UserCheck className="h-3.5 w-3.5" /> Compte Profil
                       </Button>
+                      <Button size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setPostulerProfil(p)}>
+                        <UserPlus className="h-3.5 w-3.5" /> Affectation
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -259,6 +264,15 @@ export default function Profils() {
       </div>
 
       <AddProfilModal open={addOpen} onOpenChange={setAddOpen} onSuccess={() => refetch()} />
+
+      {/* Raccourci Affectation : ouvre le modal Postuler pour ce profil */}
+      {postulerProfil && (
+        <PostulerModal
+          open={!!postulerProfil}
+          onOpenChange={(o) => !o && setPostulerProfil(null)}
+          profil={postulerProfil}
+        />
+      )}
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteProfilId} onOpenChange={(o) => !o && setDeleteProfilId(null)}>

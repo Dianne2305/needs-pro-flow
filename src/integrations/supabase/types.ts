@@ -917,16 +917,21 @@ export type Database = {
       profils: {
         Row: {
           a_des_enfants: boolean | null
+          allergie_animaux: boolean | null
           attestation_url: string | null
           cin_url: string | null
+          conge_debut: string | null
+          conge_fin: string | null
           corpulence: string | null
           created_at: string
+          date_enregistrement: string | null
           date_naissance: string | null
           dispo_7j7: boolean | null
           dispo_journee: boolean | null
           dispo_jours_feries: boolean | null
           dispo_soiree: boolean | null
           dispo_urgences: boolean | null
+          disponibilite_calendrier: Json | null
           experience_annees: number | null
           experience_mois: number | null
           experiences: Json | null
@@ -940,12 +945,16 @@ export type Database = {
           note_operateur: string | null
           numero_cin: string | null
           photo_url: string | null
+          pointure_chaussures: number | null
           prenom: string
           presentation_physique: string | null
           quartier: string | null
+          remarque_recruteur: string | null
           sait_lire_ecrire: boolean | null
           sexe: string | null
           situation_matrimoniale: string | null
+          standby_debut: string | null
+          standby_jours: number | null
           statut_profil: string | null
           telephone: string | null
           type_profil: string | null
@@ -954,16 +963,21 @@ export type Database = {
         }
         Insert: {
           a_des_enfants?: boolean | null
+          allergie_animaux?: boolean | null
           attestation_url?: string | null
           cin_url?: string | null
+          conge_debut?: string | null
+          conge_fin?: string | null
           corpulence?: string | null
           created_at?: string
+          date_enregistrement?: string | null
           date_naissance?: string | null
           dispo_7j7?: boolean | null
           dispo_journee?: boolean | null
           dispo_jours_feries?: boolean | null
           dispo_soiree?: boolean | null
           dispo_urgences?: boolean | null
+          disponibilite_calendrier?: Json | null
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
@@ -977,12 +991,16 @@ export type Database = {
           note_operateur?: string | null
           numero_cin?: string | null
           photo_url?: string | null
+          pointure_chaussures?: number | null
           prenom: string
           presentation_physique?: string | null
           quartier?: string | null
+          remarque_recruteur?: string | null
           sait_lire_ecrire?: boolean | null
           sexe?: string | null
           situation_matrimoniale?: string | null
+          standby_debut?: string | null
+          standby_jours?: number | null
           statut_profil?: string | null
           telephone?: string | null
           type_profil?: string | null
@@ -991,16 +1009,21 @@ export type Database = {
         }
         Update: {
           a_des_enfants?: boolean | null
+          allergie_animaux?: boolean | null
           attestation_url?: string | null
           cin_url?: string | null
+          conge_debut?: string | null
+          conge_fin?: string | null
           corpulence?: string | null
           created_at?: string
+          date_enregistrement?: string | null
           date_naissance?: string | null
           dispo_7j7?: boolean | null
           dispo_journee?: boolean | null
           dispo_jours_feries?: boolean | null
           dispo_soiree?: boolean | null
           dispo_urgences?: boolean | null
+          disponibilite_calendrier?: Json | null
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
@@ -1014,12 +1037,16 @@ export type Database = {
           note_operateur?: string | null
           numero_cin?: string | null
           photo_url?: string | null
+          pointure_chaussures?: number | null
           prenom?: string
           presentation_physique?: string | null
           quartier?: string | null
+          remarque_recruteur?: string | null
           sait_lire_ecrire?: boolean | null
           sexe?: string | null
           situation_matrimoniale?: string | null
+          standby_debut?: string | null
+          standby_jours?: number | null
           statut_profil?: string | null
           telephone?: string | null
           type_profil?: string | null
