@@ -13,13 +13,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2 } from "lucide-react";
+import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2, UserPlus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PostulerModal } from "@/components/profils/PostulerModal";
 import { PROFIL_FILTER_TABS, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
