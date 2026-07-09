@@ -1,6 +1,9 @@
 /**
  * AddProfilModal.tsx
- * Modal de création d'un nouveau profil candidat (multi-étapes).
+ * Modal de création d'un nouveau profil Femme de ménage (FDM).
+ * Statut & Blacklisté en tête. Calendrier de disponibilité obligatoire.
+ * Champs ajoutés : allergie animaux, pointure, remarque recruteur, date d'enregistrement.
+ * Champs retirés : formation requise, note opérateur.
  */
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,8 +22,12 @@ import { Plus, Save, X, Upload } from "lucide-react";
 import {
   LANGUES, NIVEAUX_ETUDE, SITUATIONS_MATRIMONIALES, NATIONALITES,
   PRESENTATIONS_PHYSIQUES, CORPULENCES, TYPES_PROFIL, TYPES_POSTE_EXPERIENCE,
-  LIEUX_TRAVAIL, TACHES_MENAGE,
+  LIEUX_TRAVAIL, TACHES_MENAGE, DEFAULT_DISPONIBILITE_CALENDRIER,
+  type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
+import { AvailabilityCalendar } from "./AvailabilityCalendar";
+import { StatutProfilField, type StatutProfilValue } from "./StatutProfilField";
+import { format } from "date-fns";
 
 interface Props {
   open: boolean;
@@ -39,6 +46,12 @@ interface ExperienceForm {
 
 export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   const [saving, setSaving] = useState(false);
+
+  // Statut & Blacklisté (en haut)
+  const [statut, setStatut] = useState<StatutProfilValue>({ statut: "nouveau" });
+  const [blackliste, setBlackliste] = useState(false);
+
+  // Identité
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [quartier, setQuartier] = useState("");
@@ -56,26 +69,33 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   const [niveauEtude, setNiveauEtude] = useState("");
   const [expAnnees, setExpAnnees] = useState(0);
   const [expMois, setExpMois] = useState(0);
-  const [statutProfil, setStatutProfil] = useState("disponible");
   const [typeProfil, setTypeProfil] = useState("");
-  const [formationRequise, setFormationRequise] = useState("");
   const [saitLireEcrire, setSaitLireEcrire] = useState(false);
   const [maladieHandicap, setMaladieHandicap] = useState("");
   const [presentationPhysique, setPresentationPhysique] = useState("");
   const [corpulence, setCorpulence] = useState("");
+
+  // Nouveaux champs
+  const [allergieAnimaux, setAllergieAnimaux] = useState(false);
+  const [pointureChaussures, setPointureChaussures] = useState<string>("");
+  const [remarqueRecruteur, setRemarqueRecruteur] = useState("");
+  const [calendrier, setCalendrier] = useState<DisponibiliteCalendrier>(DEFAULT_DISPONIBILITE_CALENDRIER);
+  const dateEnregistrement = format(new Date(), "dd/MM/yyyy");
+
+  // Dispos rapides
   const [dispoUrgences, setDispoUrgences] = useState(false);
   const [dispoJournee, setDispoJournee] = useState(false);
   const [dispoSoiree, setDispoSoiree] = useState(false);
   const [dispo7j7, setDispo7j7] = useState(false);
   const [dispoJoursFeries, setDispoJoursFeries] = useState(false);
-  const [noteOperateur, setNoteOperateur] = useState("");
+
   const [experiences, setExperiences] = useState<ExperienceForm[]>([]);
   const [showExpForm, setShowExpForm] = useState(false);
   const [currentExp, setCurrentExp] = useState<ExperienceForm>({
     poste: "", duree_menage: "", lieux_travail: [], allergies: false, taches: [], grand_menage: false,
   });
 
-  // Media files
+  // Media
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [cinFile, setCinFile] = useState<File | null>(null);
   const [attestationFile, setAttestationFile] = useState<File | null>(null);
@@ -102,31 +122,46 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
     return data.publicUrl;
   };
 
+  const calendrierAuMoinsUnJour = Object.values(calendrier).some(j => j.actif);
+
   const handleSave = async () => {
     if (!nom.trim() || !prenom.trim()) {
       toast({ title: "Erreur", description: "Nom et prénom sont requis.", variant: "destructive" });
       return;
     }
+    if (!calendrierAuMoinsUnJour) {
+      toast({ title: "Disponibilité manquante", description: "Cochez au moins un jour dans le calendrier de disponibilité.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const finalNationalite = nationalite === "Autre" ? nationaliteAutre : nationalite;
+      const finalStatut = blackliste ? "blackliste" : statut.statut;
       const { data: inserted, error } = await supabase.from("profils").insert({
         nom: nom.trim(), prenom: prenom.trim(), quartier: quartier || null, ville,
         numero_cin: numeroCin || null, date_naissance: dateNaissance || null,
         sexe: sexe || null, telephone: telephone || null, whatsapp: whatsapp || null,
         situation_matrimoniale: situationMatrimoniale || null, a_des_enfants: aDesEnfants,
         nationalite: finalNationalite, langue: langues as any, niveau_etude: niveauEtude || null,
-        experience_annees: expAnnees, experience_mois: expMois, statut_profil: statutProfil,
-        type_profil: typeProfil || null, formation_requise: formationRequise || null,
+        experience_annees: expAnnees, experience_mois: expMois,
+        statut_profil: finalStatut,
+        standby_jours: finalStatut === "stand_by" ? statut.standbyJours ?? null : null,
+        standby_debut: finalStatut === "stand_by" ? new Date().toISOString() : null,
+        conge_debut: finalStatut === "en_conge" ? statut.congeDebut ?? null : null,
+        conge_fin: finalStatut === "en_conge" ? statut.congeFin ?? null : null,
+        type_profil: typeProfil || null,
         sait_lire_ecrire: saitLireEcrire, maladie_handicap: maladieHandicap || null,
         presentation_physique: presentationPhysique || null, corpulence: corpulence || null,
         dispo_urgences: dispoUrgences, dispo_journee: dispoJournee, dispo_soiree: dispoSoiree,
         dispo_7j7: dispo7j7, dispo_jours_feries: dispoJoursFeries,
-        note_operateur: noteOperateur || null, experiences: experiences as any,
+        disponibilite_calendrier: calendrier as any,
+        allergie_animaux: allergieAnimaux,
+        pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
+        remarque_recruteur: remarqueRecruteur || null,
+        experiences: experiences as any,
       } as any).select("id").single();
       if (error) throw error;
 
-      // Upload media files
       const updates: Record<string, string> = {};
       if (photoFile && inserted) updates.photo_url = await uploadFile(photoFile, inserted.id, "photo");
       if (cinFile && inserted) updates.cin_url = await uploadFile(cinFile, inserted.id, "cin");
@@ -149,10 +184,25 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="text-lg font-bold">Ajouter un profil</DialogTitle>
+          <DialogTitle className="text-lg font-bold">Ajouter une femme de ménage</DialogTitle>
         </DialogHeader>
         <ScrollArea className="px-6 pb-6 max-h-[75vh]">
           <div className="space-y-6">
+            {/* Statut & Blacklisté — EN HAUT */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border bg-muted/30">
+              <StatutProfilField value={statut} onChange={setStatut} idPrefix="add" />
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-semibold">Blacklisté</Label>
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-background">
+                  <Checkbox id="add-blackliste" checked={blackliste} onCheckedChange={v => setBlackliste(!!v)} />
+                  <Label htmlFor="add-blackliste" className="text-sm cursor-pointer">Marquer ce profil comme blacklisté</Label>
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  Date d'enregistrement : <span className="font-medium">{dateEnregistrement}</span> (auto)
+                </div>
+              </div>
+            </div>
+
             {/* Informations personnelles */}
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-3">Informations personnelles</h3>
@@ -212,7 +262,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               </div>
             </div>
 
-            {/* Education & Expérience */}
+            {/* Éducation & Expérience */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
                 <Label className="text-xs">Niveau d'étude</Label>
@@ -223,16 +273,6 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               </div>
               <div><Label className="text-xs">Expérience (années)</Label><Input type="number" min={0} value={expAnnees} onChange={e => setExpAnnees(Number(e.target.value))} /></div>
               <div><Label className="text-xs">Expérience (mois)</Label><Input type="number" min={0} max={11} value={expMois} onChange={e => setExpMois(Number(e.target.value))} /></div>
-              <div>
-                <Label className="text-xs">Statut profil</Label>
-                <Select value={statutProfil} onValueChange={setStatutProfil}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="disponible">Disponible</SelectItem>
-                    <SelectItem value="non_disponible">Non disponible</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <Label className="text-xs">Type de profil</Label>
                 <Select value={typeProfil} onValueChange={setTypeProfil}>
@@ -246,10 +286,6 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-3">Caractéristiques</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="col-span-2 sm:col-span-3">
-                  <Label className="text-xs">Formation requise</Label>
-                  <Textarea value={formationRequise} onChange={e => setFormationRequise(e.target.value)} rows={2} placeholder="Détails de la formation..." className="resize-none" />
-                </div>
                 <div className="flex items-center gap-2">
                   <Checkbox checked={saitLireEcrire} onCheckedChange={v => setSaitLireEcrire(!!v)} id="lire" />
                   <Label htmlFor="lire" className="text-xs">Sait lire et écrire</Label>
@@ -269,12 +305,33 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
                     <SelectContent>{CORPULENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label className="text-xs">Pointure de chaussures</Label>
+                  <Input type="number" min={30} max={50} value={pointureChaussures} onChange={e => setPointureChaussures(e.target.value)} placeholder="Ex: 38" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} id="allergie-anim" />
+                  <Label htmlFor="allergie-anim" className="text-xs">Allergie aux animaux</Label>
+                </div>
               </div>
             </div>
 
-            {/* Disponibilité */}
+            {/* Calendrier de disponibilité */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Disponibilité</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Calendrier de disponibilité <span className="text-destructive">*</span>
+                </h3>
+                {!calendrierAuMoinsUnJour && (
+                  <span className="text-[11px] text-destructive">Au moins un jour requis</span>
+                )}
+              </div>
+              <AvailabilityCalendar value={calendrier} onChange={setCalendrier} />
+            </div>
+
+            {/* Dispos rapides */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Disponibilités additionnelles</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[
                   { id: "urg", label: "Disponible pour les urgences", checked: dispoUrgences, set: setDispoUrgences },
@@ -291,10 +348,16 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               </div>
             </div>
 
-            {/* Note opérateur */}
+            {/* Remarque du recruteur */}
             <div>
-              <Label className="text-xs">Note de l'opérateur</Label>
-              <Textarea value={noteOperateur} onChange={e => setNoteOperateur(e.target.value)} rows={2} placeholder="Remarques..." className="resize-none" />
+              <Label className="text-xs font-semibold">Remarque du recruteur</Label>
+              <Textarea
+                value={remarqueRecruteur}
+                onChange={e => setRemarqueRecruteur(e.target.value)}
+                rows={3}
+                placeholder="Visible uniquement sur le profil interne et sur la fiche envoyée au client..."
+                className="resize-none mt-1"
+              />
             </div>
 
             <Separator />

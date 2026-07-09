@@ -1,6 +1,11 @@
 /**
  * EditProfilModal.tsx
- * Modal d'édition d'un profil existant.
+ * Modal d'édition d'un profil Femme de ménage.
+ * Structure alignée sur AddProfilModal :
+ *  - Statut & Blacklisté en haut.
+ *  - Calendrier de disponibilité obligatoire.
+ *  - Champs : allergie animaux, pointure, remarque recruteur.
+ *  - Retirés : formation requise, note opérateur.
  */
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,8 +24,12 @@ import { Plus, Save, X } from "lucide-react";
 import {
   LANGUES, NIVEAUX_ETUDE, SITUATIONS_MATRIMONIALES, NATIONALITES,
   PRESENTATIONS_PHYSIQUES, CORPULENCES, TYPES_PROFIL, TYPES_POSTE_EXPERIENCE,
-  LIEUX_TRAVAIL, TACHES_MENAGE,
+  LIEUX_TRAVAIL, TACHES_MENAGE, DEFAULT_DISPONIBILITE_CALENDRIER,
+  type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
+import { AvailabilityCalendar } from "./AvailabilityCalendar";
+import { StatutProfilField, type StatutProfilValue } from "./StatutProfilField";
+import { format } from "date-fns";
 
 interface Props {
   open: boolean;
@@ -40,6 +49,10 @@ interface ExperienceForm {
 
 export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props) {
   const [saving, setSaving] = useState(false);
+
+  const [statut, setStatut] = useState<StatutProfilValue>({ statut: "nouveau" });
+  const [blackliste, setBlackliste] = useState(false);
+
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [quartier, setQuartier] = useState("");
@@ -57,19 +70,24 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
   const [niveauEtude, setNiveauEtude] = useState("");
   const [expAnnees, setExpAnnees] = useState(0);
   const [expMois, setExpMois] = useState(0);
-  const [statutProfil, setStatutProfil] = useState("disponible");
   const [typeProfil, setTypeProfil] = useState("");
-  const [formationRequise, setFormationRequise] = useState("");
   const [saitLireEcrire, setSaitLireEcrire] = useState(false);
   const [maladieHandicap, setMaladieHandicap] = useState("");
   const [presentationPhysique, setPresentationPhysique] = useState("");
   const [corpulence, setCorpulence] = useState("");
+
+  const [allergieAnimaux, setAllergieAnimaux] = useState(false);
+  const [pointureChaussures, setPointureChaussures] = useState<string>("");
+  const [remarqueRecruteur, setRemarqueRecruteur] = useState("");
+  const [calendrier, setCalendrier] = useState<DisponibiliteCalendrier>(DEFAULT_DISPONIBILITE_CALENDRIER);
+  const [dateEnregistrement, setDateEnregistrement] = useState<string>("");
+
   const [dispoUrgences, setDispoUrgences] = useState(false);
   const [dispoJournee, setDispoJournee] = useState(false);
   const [dispoSoiree, setDispoSoiree] = useState(false);
   const [dispo7j7, setDispo7j7] = useState(false);
   const [dispoJoursFeries, setDispoJoursFeries] = useState(false);
-  const [noteOperateur, setNoteOperateur] = useState("");
+
   const [experiences, setExperiences] = useState<ExperienceForm[]>([]);
   const [showExpForm, setShowExpForm] = useState(false);
   const [currentExp, setCurrentExp] = useState<ExperienceForm>({
@@ -78,6 +96,15 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
 
   useEffect(() => {
     if (profil && open) {
+      const s = profil.statut_profil || "nouveau";
+      setBlackliste(s === "blackliste");
+      setStatut({
+        statut: s === "blackliste" ? "nouveau" : s,
+        standbyJours: profil.standby_jours ?? null,
+        congeDebut: profil.conge_debut ?? null,
+        congeFin: profil.conge_fin ?? null,
+      });
+
       setNom(profil.nom || "");
       setPrenom(profil.prenom || "");
       setQuartier(profil.quartier || "");
@@ -90,30 +117,31 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
       setSituationMatrimoniale(profil.situation_matrimoniale || "");
       setADesEnfants(!!profil.a_des_enfants);
       const nat = profil.nationalite || "Marocaine";
-      if (NATIONALITES.includes(nat as any)) {
-        setNationalite(nat);
-        setNationaliteAutre("");
+      if ((NATIONALITES as readonly string[]).includes(nat)) {
+        setNationalite(nat); setNationaliteAutre("");
       } else {
-        setNationalite("Autre");
-        setNationaliteAutre(nat);
+        setNationalite("Autre"); setNationaliteAutre(nat);
       }
       setLangues(Array.isArray(profil.langue) ? profil.langue : []);
       setNiveauEtude(profil.niveau_etude || "");
       setExpAnnees(profil.experience_annees || 0);
       setExpMois(profil.experience_mois || 0);
-      setStatutProfil(profil.statut_profil || "disponible");
       setTypeProfil(profil.type_profil || "");
-      setFormationRequise(profil.formation_requise || "");
       setSaitLireEcrire(!!profil.sait_lire_ecrire);
       setMaladieHandicap(profil.maladie_handicap || "");
       setPresentationPhysique(profil.presentation_physique || "");
       setCorpulence(profil.corpulence || "");
+      setAllergieAnimaux(!!profil.allergie_animaux);
+      setPointureChaussures(profil.pointure_chaussures ? String(profil.pointure_chaussures) : "");
+      setRemarqueRecruteur(profil.remarque_recruteur || "");
+      setCalendrier({ ...DEFAULT_DISPONIBILITE_CALENDRIER, ...(profil.disponibilite_calendrier || {}) });
+      const d = profil.date_enregistrement || profil.created_at;
+      setDateEnregistrement(d ? format(new Date(d), "dd/MM/yyyy") : "");
       setDispoUrgences(!!profil.dispo_urgences);
       setDispoJournee(!!profil.dispo_journee);
       setDispoSoiree(!!profil.dispo_soiree);
       setDispo7j7(!!profil.dispo_7j7);
       setDispoJoursFeries(!!profil.dispo_jours_feries);
-      setNoteOperateur(profil.note_operateur || "");
       setExperiences(Array.isArray(profil.experiences) ? profil.experiences : []);
     }
   }, [profil, open]);
@@ -128,27 +156,45 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
   const addExperience = () => { if (!currentExp.poste) return; setExperiences(prev => [...prev, currentExp]); setCurrentExp({ poste: "", duree_menage: "", lieux_travail: [], allergies: false, taches: [], grand_menage: false }); setShowExpForm(false); };
   const removeExperience = (idx: number) => setExperiences(prev => prev.filter((_, i) => i !== idx));
 
+  const calendrierAuMoinsUnJour = Object.values(calendrier).some(j => j.actif);
+
   const handleSave = async () => {
     if (!nom.trim() || !prenom.trim()) {
       toast({ title: "Erreur", description: "Nom et prénom sont requis.", variant: "destructive" });
       return;
     }
+    if (!calendrierAuMoinsUnJour) {
+      toast({ title: "Disponibilité manquante", description: "Cochez au moins un jour dans le calendrier.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const finalNationalite = nationalite === "Autre" ? nationaliteAutre : nationalite;
+      const finalStatut = blackliste ? "blackliste" : statut.statut;
+      const wasStandby = profil.statut_profil === "stand_by";
+      const nowIso = new Date().toISOString();
       const { error } = await supabase.from("profils").update({
         nom: nom.trim(), prenom: prenom.trim(), quartier: quartier || null, ville,
         numero_cin: numeroCin || null, date_naissance: dateNaissance || null,
         sexe: sexe || null, telephone: telephone || null, whatsapp: whatsapp || null,
         situation_matrimoniale: situationMatrimoniale || null, a_des_enfants: aDesEnfants,
         nationalite: finalNationalite, langue: langues as any, niveau_etude: niveauEtude || null,
-        experience_annees: expAnnees, experience_mois: expMois, statut_profil: statutProfil,
-        type_profil: typeProfil || null, formation_requise: formationRequise || null,
+        experience_annees: expAnnees, experience_mois: expMois,
+        statut_profil: finalStatut,
+        standby_jours: finalStatut === "stand_by" ? statut.standbyJours ?? null : null,
+        standby_debut: finalStatut === "stand_by" ? (wasStandby ? profil.standby_debut : nowIso) : null,
+        conge_debut: finalStatut === "en_conge" ? statut.congeDebut ?? null : null,
+        conge_fin: finalStatut === "en_conge" ? statut.congeFin ?? null : null,
+        type_profil: typeProfil || null,
         sait_lire_ecrire: saitLireEcrire, maladie_handicap: maladieHandicap || null,
         presentation_physique: presentationPhysique || null, corpulence: corpulence || null,
         dispo_urgences: dispoUrgences, dispo_journee: dispoJournee, dispo_soiree: dispoSoiree,
         dispo_7j7: dispo7j7, dispo_jours_feries: dispoJoursFeries,
-        note_operateur: noteOperateur || null, experiences: experiences as any,
+        disponibilite_calendrier: calendrier as any,
+        allergie_animaux: allergieAnimaux,
+        pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
+        remarque_recruteur: remarqueRecruteur || null,
+        experiences: experiences as any,
       } as any).eq("id", profil.id);
       if (error) throw error;
 
@@ -170,10 +216,27 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] p-0">
         <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="text-lg font-bold">Modifier le profil</DialogTitle>
+          <DialogTitle className="text-lg font-bold">Modifier la femme de ménage</DialogTitle>
         </DialogHeader>
         <ScrollArea className="px-6 pb-6 max-h-[75vh]">
           <div className="space-y-6">
+            {/* Statut & Blacklisté */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border bg-muted/30">
+              <StatutProfilField value={statut} onChange={setStatut} idPrefix="edit" />
+              <div className="flex flex-col gap-2">
+                <Label className="text-xs font-semibold">Blacklisté</Label>
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-background">
+                  <Checkbox id="edit-blackliste" checked={blackliste} onCheckedChange={v => setBlackliste(!!v)} />
+                  <Label htmlFor="edit-blackliste" className="text-sm cursor-pointer">Marquer ce profil comme blacklisté</Label>
+                </div>
+                {dateEnregistrement && (
+                  <div className="text-[11px] text-muted-foreground">
+                    Date d'enregistrement : <span className="font-medium">{dateEnregistrement}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Informations personnelles */}
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-3">Informations personnelles</h3>
@@ -233,7 +296,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
               </div>
             </div>
 
-            {/* Education & Expérience */}
+            {/* Éducation & Expérience */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
                 <Label className="text-xs">Niveau d'étude</Label>
@@ -244,16 +307,6 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
               </div>
               <div><Label className="text-xs">Expérience (années)</Label><Input type="number" min={0} value={expAnnees} onChange={e => setExpAnnees(Number(e.target.value))} /></div>
               <div><Label className="text-xs">Expérience (mois)</Label><Input type="number" min={0} max={11} value={expMois} onChange={e => setExpMois(Number(e.target.value))} /></div>
-              <div>
-                <Label className="text-xs">Statut profil</Label>
-                <Select value={statutProfil} onValueChange={setStatutProfil}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="disponible">Disponible</SelectItem>
-                    <SelectItem value="non_disponible">Non disponible</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <Label className="text-xs">Type de profil</Label>
                 <Select value={typeProfil} onValueChange={setTypeProfil}>
@@ -267,10 +320,6 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
             <div>
               <h3 className="text-sm font-semibold text-foreground mb-3">Caractéristiques</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="col-span-2 sm:col-span-3">
-                  <Label className="text-xs">Formation requise</Label>
-                  <Textarea value={formationRequise} onChange={e => setFormationRequise(e.target.value)} rows={2} placeholder="Détails de la formation..." className="resize-none" />
-                </div>
                 <div className="flex items-center gap-2">
                   <Checkbox checked={saitLireEcrire} onCheckedChange={v => setSaitLireEcrire(!!v)} id="edit-lire" />
                   <Label htmlFor="edit-lire" className="text-xs">Sait lire et écrire</Label>
@@ -290,12 +339,33 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
                     <SelectContent>{CORPULENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label className="text-xs">Pointure de chaussures</Label>
+                  <Input type="number" min={30} max={50} value={pointureChaussures} onChange={e => setPointureChaussures(e.target.value)} placeholder="Ex: 38" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} id="edit-allergie-anim" />
+                  <Label htmlFor="edit-allergie-anim" className="text-xs">Allergie aux animaux</Label>
+                </div>
               </div>
             </div>
 
-            {/* Disponibilité */}
+            {/* Calendrier */}
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Disponibilité</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Calendrier de disponibilité <span className="text-destructive">*</span>
+                </h3>
+                {!calendrierAuMoinsUnJour && (
+                  <span className="text-[11px] text-destructive">Au moins un jour requis</span>
+                )}
+              </div>
+              <AvailabilityCalendar value={calendrier} onChange={setCalendrier} />
+            </div>
+
+            {/* Dispos rapides */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Disponibilités additionnelles</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {[
                   { id: "edit-urg", label: "Disponible pour les urgences", checked: dispoUrgences, set: setDispoUrgences },
@@ -312,10 +382,16 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
               </div>
             </div>
 
-            {/* Note opérateur */}
+            {/* Remarque recruteur */}
             <div>
-              <Label className="text-xs">Note de l'opérateur</Label>
-              <Textarea value={noteOperateur} onChange={e => setNoteOperateur(e.target.value)} rows={2} placeholder="Remarques..." className="resize-none" />
+              <Label className="text-xs font-semibold">Remarque du recruteur</Label>
+              <Textarea
+                value={remarqueRecruteur}
+                onChange={e => setRemarqueRecruteur(e.target.value)}
+                rows={3}
+                placeholder="Visible sur le profil interne et sur la fiche envoyée au client..."
+                className="resize-none mt-1"
+              />
             </div>
 
             <Separator />
