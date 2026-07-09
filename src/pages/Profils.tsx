@@ -102,7 +102,7 @@ export default function Profils() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">Listing Profils</h1>
+        <h1 className="text-xl font-bold text-foreground">Liste des femmes de ménage</h1>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5">
             <RefreshCw className="h-3.5 w-3.5" /> Actualiser
