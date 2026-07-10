@@ -10,7 +10,8 @@
  *  - Factures à générer
  *  - Factures impayées
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,6 +119,8 @@ export default function GestionAbonnement() {
   const navigate = useNavigate();
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const tomorrow = useMemo(() => addDays(today, 1), [today]);
+  const [actionState, setActionState] = useState<{ demande: Demande; action: AbonnementAction } | null>(null);
+  const openAction = (demande: Demande, action: AbonnementAction) => setActionState({ demande, action });
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "gestion-abonnement"],
@@ -239,13 +242,13 @@ export default function GestionAbonnement() {
         </TabsList>
 
         <TabsContent value="actifs">
-          <AbonnementTable rows={abosActifs} navigate={navigate} facturations={facturations} today={today} />
+          <AbonnementTable rows={abosActifs} navigate={navigate} facturations={facturations} today={today} openAction={openAction} />
         </TabsContent>
         <TabsContent value="echeance">
-          <AbonnementTable rows={abosEcheance} navigate={navigate} facturations={facturations} today={today} highlightEcheance />
+          <AbonnementTable rows={abosEcheance} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} />
         </TabsContent>
         <TabsContent value="suspendus">
-          <AbonnementTable rows={abosSuspendus} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" />
+          <AbonnementTable rows={abosSuspendus} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} />
         </TabsContent>
         <TabsContent value="today">
           <InterventionTable rows={interventionsToday} navigate={navigate} />
@@ -260,6 +263,12 @@ export default function GestionAbonnement() {
           <FactureImpayeeTable rows={facturesImpayees} navigate={navigate} />
         </TabsContent>
       </Tabs>
+
+      <AbonnementActionsModal
+        demande={actionState?.demande ?? null}
+        action={actionState?.action ?? null}
+        onClose={() => setActionState(null)}
+      />
     </div>
   );
 }
@@ -282,7 +291,7 @@ function KpiCard({ label, value, icon, gradient, onClick }: { label: string; val
 }
 
 function AbonnementTable({
-  rows, navigate, highlightEcheance, forceStatut, facturations = [], today,
+  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction,
 }: {
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
   navigate: ReturnType<typeof useNavigate>;
@@ -290,6 +299,7 @@ function AbonnementTable({
   forceStatut?: "actif" | "echeance" | "suspendu";
   facturations?: Facturation[];
   today: Date;
+  openAction: (d: Demande, action: AbonnementAction) => void;
 }) {
   if (!rows.length) return <EmptyState label="Aucun abonnement" />;
   return (
@@ -444,7 +454,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => navigate(`/compte-client?id=${d.id}&action=suspendre`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => openAction(d, "suspendre")}>
                             <Pause className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -452,7 +462,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => navigate(`/compte-client?id=${d.id}&action=renouveler`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => openAction(d, "renouveler")}>
                             <RefreshCw className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -460,7 +470,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => navigate(`/gestion-financiere`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => openAction(d, "facturer")}>
                             <Receipt className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
