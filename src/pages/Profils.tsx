@@ -336,6 +336,32 @@ export default function Profils() {
                       <Button size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setPostulerProfil(p)}>
                         <UserPlus className="h-3.5 w-3.5" /> Affectation
                       </Button>
+                      {p.statut_profil === "blackliste" || p.statut_profil === "stand_by" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={() => pauseMutation.mutate({ id: p.id, statut: "disponible" })}
+                        >
+                          <PlayCircle className="h-3.5 w-3.5" /> Réactiver
+                        </Button>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1">
+                              <Pause className="h-3.5 w-3.5" /> Mise en pause
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "blackliste" })}>
+                              <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "stand_by" })}>
+                              <Pause className="h-4 w-4 mr-2" /> Stand-by
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
