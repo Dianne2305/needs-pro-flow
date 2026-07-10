@@ -415,36 +415,48 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
 
             {/* ==== Caractéristiques ==== */}
             <div>
-              <h3 className="text-base font-semibold text-foreground mb-3">Caratéristiques</h3>
+              <h3 className="text-base font-bold text-foreground mb-3">Caractéristiques</h3>
               <div className="rounded-xl border bg-muted/40 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-2 md:pt-6">
-                  <span className="text-sm text-muted-foreground">—</span>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Maladie / Handicap</Label>
+                  <Input
+                    value={maladieHandicap}
+                    onChange={e => setMaladieHandicap(e.target.value)}
+                    placeholder="Aucun"
+                    className="mt-1 bg-background"
+                  />
                 </div>
                 <div>
-                  <Label className="text-xs">Maladie / Handicap</Label>
-                  <Input value={maladieHandicap} onChange={e => setMaladieHandicap(e.target.value)} placeholder="Aucun" className="mt-1" />
-                </div>
-                <div>
-                  <Label className="text-xs">Présentation physique</Label>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Présentation physique</Label>
                   <Select value={presentationPhysique} onValueChange={setPresentationPhysique}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectTrigger className="mt-1 bg-background"><SelectValue placeholder="Choisir" /></SelectTrigger>
                     <SelectContent>{PRESENTATIONS_PHYSIQUES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">Corpulence</Label>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Corpulence</Label>
                   <Select value={corpulence} onValueChange={setCorpulence}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectTrigger className="mt-1 bg-background"><SelectValue placeholder="Choisir" /></SelectTrigger>
                     <SelectContent>{CORPULENCES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs">Pointure de chaussures</Label>
-                  <Input type="number" min={30} max={50} value={pointureChaussures} onChange={e => setPointureChaussures(e.target.value)} placeholder="Ex: 38" className="mt-1" />
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Pointure de chaussures</Label>
+                  <Input
+                    type="number"
+                    min={30}
+                    max={50}
+                    value={pointureChaussures}
+                    onChange={e => setPointureChaussures(e.target.value)}
+                    placeholder="Ex: 38"
+                    className="mt-1 bg-background"
+                  />
                 </div>
-                <div className="flex items-center gap-2 md:pt-6">
-                  <Checkbox id="add-allergie-anim" checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} />
-                  <Label htmlFor="add-allergie-anim" className="text-sm cursor-pointer">Allergie aux animaux</Label>
+                <div className="flex flex-col justify-end">
+                  <div className="flex items-center gap-2 h-9 bg-background rounded-md border px-3">
+                    <Checkbox id="add-allergie-anim" checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} />
+                    <Label htmlFor="add-allergie-anim" className="text-sm cursor-pointer">Allergie aux animaux</Label>
+                  </div>
                 </div>
               </div>
             </div>
