@@ -127,6 +127,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   const [corpulence, setCorpulence] = useState("");
   const [allergieAnimaux, setAllergieAnimaux] = useState(false);
   const [pointureChaussures, setPointureChaussures] = useState<string>("");
+  const [fume, setFume] = useState<string>("non");
 
   // Statut
   const [statut, setStatut] = useState<StatutProfilValue>({ statut: "active" });
