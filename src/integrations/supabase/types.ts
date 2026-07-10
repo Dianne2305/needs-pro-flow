@@ -934,6 +934,7 @@ export type Database = {
           dispo_soiree: boolean | null
           dispo_urgences: boolean | null
           disponibilite_calendrier: Json | null
+          disponibilite_intervention: string | null
           experience_annees: number | null
           experience_mois: number | null
           experiences: Json | null
@@ -986,6 +987,7 @@ export type Database = {
           dispo_soiree?: boolean | null
           dispo_urgences?: boolean | null
           disponibilite_calendrier?: Json | null
+          disponibilite_intervention?: string | null
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
@@ -1038,6 +1040,7 @@ export type Database = {
           dispo_soiree?: boolean | null
           dispo_urgences?: boolean | null
           disponibilite_calendrier?: Json | null
+          disponibilite_intervention?: string | null
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null

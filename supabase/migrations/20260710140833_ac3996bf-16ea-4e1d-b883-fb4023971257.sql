@@ -1,0 +1,2 @@
+ALTER TABLE public.profils ADD COLUMN IF NOT EXISTS disponibilite_intervention text DEFAULT 'disponible';
+UPDATE public.profils SET disponibilite_intervention = 'disponible' WHERE disponibilite_intervention IS NULL;

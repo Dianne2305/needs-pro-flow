@@ -32,7 +32,7 @@ import {
   LANGUES, SITUATIONS_MATRIMONIALES, NATIONALITES,
   PRESENTATIONS_PHYSIQUES, CORPULENCES, TYPES_PROFIL, TYPES_POSTE_EXPERIENCE,
   LIEUX_TRAVAIL, TACHES_MENAGE, DEFAULT_DISPONIBILITE_CALENDRIER,
-  JOURS_SEMAINE,
+  JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS,
   type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
@@ -130,6 +130,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
 
   // Statut
   const [statut, setStatut] = useState<StatutProfilValue>({ statut: "active" });
+  const [disponibiliteIntervention, setDisponibiliteIntervention] = useState<string>("disponible");
 
   // Calendrier & dispos rapides
   const [calendrier, setCalendrier] = useState<DisponibiliteCalendrier>(DEFAULT_DISPONIBILITE_CALENDRIER);
@@ -234,6 +235,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
         services_affectables: servicesAffectables as any,
         segment_affectable: segmentAffectable,
         autre_service: autreService || null,
+        disponibilite_intervention: disponibiliteIntervention,
       } as any).select("id").single();
       if (error) throw error;
 
@@ -473,9 +475,20 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               </div>
             </div>
 
-            {/* ==== Statut profil ==== */}
-            <div className="max-w-sm">
-              <StatutProfilField value={statut} onChange={setStatut} idPrefix="add" />
+            {/* ==== Statut profil + Disponibilité d'intervention ==== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <StatutProfilField value={statut} onChange={setStatut} idPrefix="add" />
+              </div>
+              <div>
+                <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Disponibilité d'intervention</Label>
+                <Select value={disponibiliteIntervention} onValueChange={setDisponibiliteIntervention}>
+                  <SelectTrigger className="mt-1 bg-background"><SelectValue placeholder="Choisir" /></SelectTrigger>
+                  <SelectContent>
+                    {DISPONIBILITE_INTERVENTION_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* ==== Calendrier ==== */}
