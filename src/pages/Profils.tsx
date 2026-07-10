@@ -112,6 +112,11 @@ export default function Profils() {
       result = result.filter((p: any) => (p.disponibilite_intervention || "disponible") === dispoInterventionFilter);
     }
 
+    // Fume
+    if (fumeFilter !== "all") {
+      result = result.filter((p: any) => (p.fume || "non") === fumeFilter);
+    }
+
     // Disponibilité
     if (dispoFilter === "jours_feries") result = result.filter((p: any) => p.dispo_jours_feries);
     else if (dispoFilter === "soiree") result = result.filter((p: any) => p.dispo_soiree);
