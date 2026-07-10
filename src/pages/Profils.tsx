@@ -159,7 +159,7 @@ export default function Profils() {
     }
 
     return result;
-  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, dispoInterventionFilter, search, dateFrom, dateTo]);
+  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, dispoInterventionFilter, fumeFilter, search, dateFrom, dateTo]);
 
   return (
     <div className="space-y-4">
