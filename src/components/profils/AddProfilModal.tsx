@@ -474,6 +474,21 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
                     <Label htmlFor="add-allergie-anim" className="text-sm cursor-pointer">Allergie aux animaux</Label>
                   </div>
                 </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Fume</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {FUME_OPTIONS.map(o => (
+                      <Badge
+                        key={o.value}
+                        variant={fume === o.value ? "default" : "outline"}
+                        className="cursor-pointer rounded-full px-4 py-1 text-sm font-normal"
+                        onClick={() => setFume(o.value)}
+                      >
+                        {o.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
