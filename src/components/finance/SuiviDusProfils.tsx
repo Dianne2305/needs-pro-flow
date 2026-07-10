@@ -328,18 +328,35 @@ export default function SuiviDusProfils() {
           <p className="text-xs text-white/60">Part profils</p>
           <p className="text-[10px] text-white/50 mt-1 leading-tight">Montant dû aux intervenants (temps réel)</p>
         </div>
-        <div className="bg-emerald-700 text-white px-5 py-4 relative" title="Voyant vert : montant que les profils doivent reverser à l'agence (profil a encaissé le client mais n'a pas encore remis la part agence).">
+        <button
+          type="button"
+          onClick={() => setQuickFilter((q) => (q === "agence" ? "none" : "agence"))}
+          className={cn(
+            "text-left bg-emerald-700 text-white px-5 py-4 relative transition-all hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-white/60",
+            quickFilter === "agence" && "ring-2 ring-white ring-offset-0 bg-emerald-800"
+          )}
+          title="Cliquer pour filtrer uniquement les montants dus à l'agence non réglés (cliquer à nouveau pour retirer le filtre)."
+        >
           <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-emerald-300 ring-2 ring-white/40 animate-pulse" />
           <p className="text-2xl font-bold">{fmt(totals.agenceNonReglee)}</p>
-          <p className="text-xs text-white/80">Part agence non réglée</p>
-          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à percevoir par l'agence</p>
-        </div>
-        <div className="bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative" title="Voyant rouge : montant que l'agence doit verser aux profils (agence a encaissé le client mais n'a pas encore payé la part profil).">
+          <p className="text-xs text-white/80">Part agence non réglée {quickFilter === "agence" && <span className="ml-1 inline-flex items-center rounded-sm bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">Filtré ×</span>}</p>
+          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à percevoir par l'agence — cliquer pour filtrer</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setQuickFilter((q) => (q === "profil" ? "none" : "profil"))}
+          className={cn(
+            "text-left bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative transition-all hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-white/60",
+            quickFilter === "profil" && "ring-2 ring-white ring-offset-0 bg-rose-800"
+          )}
+          title="Cliquer pour filtrer uniquement les montants dus au profil non réglés (cliquer à nouveau pour retirer le filtre)."
+        >
           <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-rose-300 ring-2 ring-white/40 animate-pulse" />
           <p className="text-2xl font-bold">{fmt(totals.profilNonReglee)}</p>
-          <p className="text-xs text-white/80">Part profils non réglée</p>
-          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à verser aux profils</p>
-        </div>
+          <p className="text-xs text-white/80">Part profils non réglée {quickFilter === "profil" && <span className="ml-1 inline-flex items-center rounded-sm bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">Filtré ×</span>}</p>
+          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à verser aux profils — cliquer pour filtrer</p>
+        </button>
+
       </div>
 
       {/* Filters */}
