@@ -231,6 +231,9 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
         remarque_recruteur: remarqueRecruteur || null,
         experiences: experiences as any,
+        services_affectables: servicesAffectables as any,
+        segment_affectable: segmentAffectable,
+        autre_service: autreService || null,
       } as any).select("id").single();
       if (error) throw error;
 
