@@ -359,9 +359,10 @@ export default function Profils() {
                             <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "blackliste" })}>
                               <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "stand_by" })}>
+                            <DropdownMenuItem onClick={() => { setStandbyDays("7"); setStandbyProfilId(p.id); }}>
                               <Pause className="h-4 w-4 mr-2" /> Stand-by
                             </DropdownMenuItem>
+
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
