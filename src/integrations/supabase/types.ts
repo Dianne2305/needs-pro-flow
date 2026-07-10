@@ -919,6 +919,7 @@ export type Database = {
           a_des_enfants: boolean | null
           allergie_animaux: boolean | null
           attestation_url: string | null
+          autre_service: string | null
           cin_url: string | null
           cin_verso_url: string | null
           conge_debut: string | null
@@ -954,6 +955,8 @@ export type Database = {
           quartier: string | null
           remarque_recruteur: string | null
           sait_lire_ecrire: boolean | null
+          segment_affectable: string | null
+          services_affectables: string[] | null
           sexe: string | null
           situation_matrimoniale: string | null
           standby_debut: string | null
@@ -968,6 +971,7 @@ export type Database = {
           a_des_enfants?: boolean | null
           allergie_animaux?: boolean | null
           attestation_url?: string | null
+          autre_service?: string | null
           cin_url?: string | null
           cin_verso_url?: string | null
           conge_debut?: string | null
@@ -1003,6 +1007,8 @@ export type Database = {
           quartier?: string | null
           remarque_recruteur?: string | null
           sait_lire_ecrire?: boolean | null
+          segment_affectable?: string | null
+          services_affectables?: string[] | null
           sexe?: string | null
           situation_matrimoniale?: string | null
           standby_debut?: string | null
@@ -1017,6 +1023,7 @@ export type Database = {
           a_des_enfants?: boolean | null
           allergie_animaux?: boolean | null
           attestation_url?: string | null
+          autre_service?: string | null
           cin_url?: string | null
           cin_verso_url?: string | null
           conge_debut?: string | null
@@ -1052,6 +1059,8 @@ export type Database = {
           quartier?: string | null
           remarque_recruteur?: string | null
           sait_lire_ecrire?: boolean | null
+          segment_affectable?: string | null
+          services_affectables?: string[] | null
           sexe?: string | null
           situation_matrimoniale?: string | null
           standby_debut?: string | null
