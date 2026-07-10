@@ -333,6 +333,12 @@ export default function Profils() {
                   </TableCell>
                   <TableCell>
                     {(() => {
+                      const fumeOpt = FUME_OPTIONS.find(o => o.value === (p.fume || "non"));
+                      return <span className="text-xs">{fumeOpt?.label || "—"}</span>;
+                    })()}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
                       const dispoOpt = DISPONIBILITE_INTERVENTION_OPTIONS.find(o => o.value === (p.disponibilite_intervention || "disponible"));
                       return dispoOpt ? (
                         <Badge variant="outline" className={cn("border-0 text-xs", dispoOpt.color)}>{dispoOpt.label}</Badge>
