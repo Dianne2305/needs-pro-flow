@@ -352,7 +352,7 @@ function InterventionTable({ rows, navigate }: { rows: { d: Demande; date: Date 
               <TableCell>{d.ville} {d.quartier ? `— ${d.quartier}` : ""}</TableCell>
               <TableCell>{d.type_prestation}</TableCell>
               <TableCell>{(d as any).profil_nom || <span className="text-muted-foreground">Non affecté</span>}</TableCell>
-              <TableCell>{d.heure_debut || "—"}</TableCell>
+              <TableCell>{(d as any).heure_debut || "—"}</TableCell>
               <TableCell className="font-mono text-xs">{d.telephone_direct}</TableCell>
               <TableCell className="text-right">
                 <Button size="sm" variant="ghost" onClick={() => navigate(`/compte-client?id=${d.id}`)}>
