@@ -25,7 +25,7 @@ import {
   LANGUES, NIVEAUX_ETUDE, SITUATIONS_MATRIMONIALES, NATIONALITES,
   PRESENTATIONS_PHYSIQUES, CORPULENCES, TYPES_PROFIL, TYPES_POSTE_EXPERIENCE,
   LIEUX_TRAVAIL, TACHES_MENAGE, DEFAULT_DISPONIBILITE_CALENDRIER,
-  DISPONIBILITE_INTERVENTION_OPTIONS,
+  DISPONIBILITE_INTERVENTION_OPTIONS, FUME_OPTIONS,
   type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
@@ -80,6 +80,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
 
   const [allergieAnimaux, setAllergieAnimaux] = useState(false);
   const [pointureChaussures, setPointureChaussures] = useState<string>("");
+  const [fume, setFume] = useState<string>("non");
   const [remarqueRecruteur, setRemarqueRecruteur] = useState("");
   const [calendrier, setCalendrier] = useState<DisponibiliteCalendrier>(DEFAULT_DISPONIBILITE_CALENDRIER);
   const [dateEnregistrement, setDateEnregistrement] = useState<string>("");
@@ -145,6 +146,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
       setDispo7j7(!!profil.dispo_7j7);
       setDispoJoursFeries(!!profil.dispo_jours_feries);
       setDisponibiliteIntervention(profil.disponibilite_intervention || "disponible");
+      setFume(profil.fume || "non");
       setExperiences(Array.isArray(profil.experiences) ? profil.experiences : []);
     }
   }, [profil, open]);
@@ -197,6 +199,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
         disponibilite_intervention: disponibiliteIntervention,
         allergie_animaux: allergieAnimaux,
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
+        fume,
         remarque_recruteur: remarqueRecruteur || null,
         experiences: experiences as any,
       } as any).eq("id", profil.id);
@@ -361,6 +364,21 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
                 <div className="flex items-center gap-2">
                   <Checkbox checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} id="edit-allergie-anim" />
                   <Label htmlFor="edit-allergie-anim" className="text-xs">Allergie aux animaux</Label>
+                </div>
+                <div>
+                  <Label className="text-xs">Fume</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {FUME_OPTIONS.map(o => (
+                      <Badge
+                        key={o.value}
+                        variant={fume === o.value ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFume(o.value)}
+                      >
+                        {o.label}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

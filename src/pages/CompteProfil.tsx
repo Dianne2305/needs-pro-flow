@@ -26,7 +26,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Pause, PlayCircle } from "lucide-react";
-import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS, DISPONIBILITE_INTERVENTION_OPTIONS } from "@/lib/profil-constants";
+import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS, DISPONIBILITE_INTERVENTION_OPTIONS, FUME_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
 import { EditProfilModal } from "@/components/profils/EditProfilModal";
 import { partAgence, partProfil } from "@/lib/finance-types";
@@ -336,6 +336,7 @@ export default function CompteProfil() {
             <InfoItem label="Maladie / Handicap" value={p.maladie_handicap || "Aucun"} />
             <InfoItem label="Présentation physique" value={presOpt?.label} />
             <InfoItem label="Corpulence" value={corpOpt?.label} />
+            <InfoItem label="Fume" value={p.fume === "oui" ? "Oui" : p.fume === "non" ? "Non" : "—"} />
           </div>
 
           {/* Disponibilités */}

@@ -1,3 +1,8 @@
+export const FUME_OPTIONS = [
+  { value: "oui", label: "Oui" },
+  { value: "non", label: "Non" },
+] as const;
+
 /**
  * profil-constants.ts
  * Constantes profils : niveaux d'étude, langues, sexes, statuts profil, etc.

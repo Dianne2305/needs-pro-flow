@@ -32,7 +32,7 @@ import {
   LANGUES, SITUATIONS_MATRIMONIALES, NATIONALITES,
   PRESENTATIONS_PHYSIQUES, CORPULENCES, TYPES_PROFIL, TYPES_POSTE_EXPERIENCE,
   LIEUX_TRAVAIL, TACHES_MENAGE, DEFAULT_DISPONIBILITE_CALENDRIER,
-  JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS,
+  JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS, FUME_OPTIONS,
   type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
@@ -127,6 +127,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   const [corpulence, setCorpulence] = useState("");
   const [allergieAnimaux, setAllergieAnimaux] = useState(false);
   const [pointureChaussures, setPointureChaussures] = useState<string>("");
+  const [fume, setFume] = useState<string>("non");
 
   // Statut
   const [statut, setStatut] = useState<StatutProfilValue>({ statut: "active" });
@@ -230,6 +231,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
         disponibilite_calendrier: calendrier as any,
         allergie_animaux: allergieAnimaux,
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
+        fume,
         remarque_recruteur: remarqueRecruteur || null,
         experiences: experiences as any,
         services_affectables: servicesAffectables as any,
@@ -470,6 +472,21 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
                   <div className="flex items-center gap-2 h-9 bg-background rounded-md border px-3">
                     <Checkbox id="add-allergie-anim" checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} />
                     <Label htmlFor="add-allergie-anim" className="text-sm cursor-pointer">Allergie aux animaux</Label>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Fume</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {FUME_OPTIONS.map(o => (
+                      <Badge
+                        key={o.value}
+                        variant={fume === o.value ? "default" : "outline"}
+                        className="cursor-pointer rounded-full px-4 py-1 text-sm font-normal"
+                        onClick={() => setFume(o.value)}
+                      >
+                        {o.label}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </div>

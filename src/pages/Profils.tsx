@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { PostulerModal } from "@/components/profils/PostulerModal";
-import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS } from "@/lib/profil-constants";
+import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS, FUME_OPTIONS } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
@@ -49,6 +49,7 @@ export default function Profils() {
   const [segmentFilter, setSegmentFilter] = useState("all");
   const [jourFilter, setJourFilter] = useState("all");
   const [dispoInterventionFilter, setDispoInterventionFilter] = useState("all");
+  const [fumeFilter, setFumeFilter] = useState("all");
   
 
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
@@ -111,6 +112,11 @@ export default function Profils() {
       result = result.filter((p: any) => (p.disponibilite_intervention || "disponible") === dispoInterventionFilter);
     }
 
+    // Fume
+    if (fumeFilter !== "all") {
+      result = result.filter((p: any) => (p.fume || "non") === fumeFilter);
+    }
+
     // Disponibilité
     if (dispoFilter === "jours_feries") result = result.filter((p: any) => p.dispo_jours_feries);
     else if (dispoFilter === "soiree") result = result.filter((p: any) => p.dispo_soiree);
@@ -153,7 +159,7 @@ export default function Profils() {
     }
 
     return result;
-  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, dispoInterventionFilter, search, dateFrom, dateTo]);
+  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, dispoInterventionFilter, fumeFilter, search, dateFrom, dateTo]);
 
   return (
     <div className="space-y-4">
@@ -199,6 +205,14 @@ export default function Profils() {
           <SelectTrigger className="w-[170px]"><SelectValue placeholder="Disponibilité" /></SelectTrigger>
           <SelectContent>
             {DISPO_OPTIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={fumeFilter} onValueChange={setFumeFilter}>
+          <SelectTrigger className="w-[120px]"><SelectValue placeholder="Fume" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Fume ?</SelectItem>
+            {FUME_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -248,10 +262,10 @@ export default function Profils() {
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all" || dispoInterventionFilter !== "all") && (
+        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all" || dispoInterventionFilter !== "all" || fumeFilter !== "all") && (
           <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
             setDateFrom(undefined); setDateTo(undefined);
-            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all"); setDispoInterventionFilter("all");
+            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all"); setDispoInterventionFilter("all"); setFumeFilter("all");
           }}>
             Réinitialiser
           </Button>
@@ -274,15 +288,16 @@ export default function Profils() {
               <TableHead>Quartier / Ville</TableHead>
               <TableHead>Statut profil</TableHead>
               <TableHead>Disponibilité d'intervention</TableHead>
+              <TableHead>Fume</TableHead>
               <TableHead>Langue</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={14} className="text-center py-10 text-muted-foreground">Chargement...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={15} className="text-center py-10 text-muted-foreground">Chargement...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={14} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
+              <TableRow><TableCell colSpan={15} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
             ) : filtered.map((p: any) => {
               const statutEff = computeStatutEffectif(p);
               const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === statutEff);
@@ -315,6 +330,12 @@ export default function Profils() {
                     {statutOpt ? (
                       <Badge variant="outline" className={cn("border-0 text-xs", statutOpt.color)}>{statutOpt.label}</Badge>
                     ) : <span className="text-xs text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const fumeOpt = FUME_OPTIONS.find(o => o.value === (p.fume || "non"));
+                      return <span className="text-xs">{fumeOpt?.label || "—"}</span>;
+                    })()}
                   </TableCell>
                   <TableCell>
                     {(() => {
