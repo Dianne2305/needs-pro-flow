@@ -641,6 +641,29 @@ export default function SuiviDusProfils() {
                 </TableRow>
               );
             })}
+            {filtered.length > 0 && (() => {
+              const totalPP = filtered.reduce((s, m) => s + partProfil(m), 0);
+              const totalPA = filtered.reduce((s, m) => s + partAgence(m), 0);
+              const totalCA = filtered.reduce((s, m) => s + (m.montant_total || 0), 0);
+              const totalH = filtered.reduce((s, m) => s + (demandesMap[m.demande_id]?.duree_heures || 0), 0);
+              const uniqueProfils = new Set(filtered.map((m) => m.profil_id || `nom:${m.profil_nom || "—"}`)).size;
+              // Libellé contextuel selon filtre Créditeur/Débiteur
+              const contextLabel =
+                filterEncaissementDC === "crediteur" ? "Total crédits (lignes affichées)" :
+                filterEncaissementDC === "debiteur" ? "Total débits (lignes affichées)" :
+                `Totaux (${filtered.length} mission${filtered.length > 1 ? "s" : ""} · ${uniqueProfils} profil${uniqueProfils > 1 ? "s" : ""})`;
+              return (
+                <TableRow className="bg-muted/50 font-bold border-t-2 hover:bg-muted/50">
+                  <TableCell colSpan={4} className="text-sm uppercase tracking-wider text-xs">{contextLabel}</TableCell>
+                  <TableCell className="text-sm text-right">{totalH || "—"}</TableCell>
+                  <TableCell></TableCell>
+                  <TableCell className="text-sm text-right font-bold text-emerald-700">{fmt(totalPP)}</TableCell>
+                  <TableCell className="text-sm text-right font-bold text-sky-700">{fmt(totalPA)}</TableCell>
+                  <TableCell className="text-sm text-right font-bold">{fmt(totalCA)}</TableCell>
+                  <TableCell colSpan={6}></TableCell>
+                </TableRow>
+              );
+            })()}
           </TableBody>
         </Table>
       </div>
