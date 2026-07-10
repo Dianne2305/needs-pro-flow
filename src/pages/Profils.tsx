@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { PostulerModal } from "@/components/profils/PostulerModal";
-import { STATUT_PROFIL_OPTIONS, computeStatutEffectif } from "@/lib/profil-constants";
+import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
@@ -46,6 +46,7 @@ export default function Profils() {
   const [dispoFilter, setDispoFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
+  const [jourFilter, setJourFilter] = useState("all");
   
 
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
@@ -120,6 +121,11 @@ export default function Profils() {
       const end = new Date(dateTo);
       end.setHours(23, 59, 59);
       result = result.filter((p: any) => new Date(p.created_at) <= end);
+    }
+
+    // Jour de disponibilité
+    if (jourFilter !== "all") {
+      result = result.filter((p: any) => p.disponibilite_calendrier?.[jourFilter]?.actif);
     }
 
     return result;
