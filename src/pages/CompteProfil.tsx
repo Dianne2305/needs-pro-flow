@@ -24,6 +24,8 @@ import {
   ShieldBan, Star, ThumbsUp, ThumbsDown, Eye, ClipboardCheck,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Pause, PlayCircle } from "lucide-react";
 import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS, DISPONIBILITE_INTERVENTION_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
 import { EditProfilModal } from "@/components/profils/EditProfilModal";
