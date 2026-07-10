@@ -407,6 +407,42 @@ export default function Profils() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Stand-by days dialog */}
+      <Dialog open={!!standbyProfilId} onOpenChange={(o) => !o && setStandbyProfilId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mise en stand-by</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Nombre de jours</label>
+            <Input
+              type="number"
+              min={1}
+              value={standbyDays}
+              onChange={(e) => setStandbyDays(e.target.value)}
+              placeholder="Ex: 7"
+            />
+            <p className="text-xs text-muted-foreground">
+              Le profil reviendra automatiquement en statut « Active » à l'expiration.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setStandbyProfilId(null)}>Annuler</Button>
+              <Button
+                onClick={() => {
+                  const n = Number(standbyDays);
+                  if (!n || n < 1) { toast({ title: "Nombre de jours invalide", variant: "destructive" }); return; }
+                  if (standbyProfilId) pauseMutation.mutate({ id: standbyProfilId, statut: "stand_by", jours: n });
+                  setStandbyProfilId(null);
+                }}
+              >
+                Confirmer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
