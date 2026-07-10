@@ -23,6 +23,7 @@ import QualiteFeedback from "./pages/QualiteFeedback";
 import FeedbackForm from "./pages/FeedbackForm";
 import Marketing from "./pages/Marketing";
 import Messagerie from "./pages/Messagerie";
+import GestionAbonnement from "./pages/GestionAbonnement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ const App = () => (
                 <Route path="/compte-profil" element={<CompteProfil />} />
                 <Route path="/clients" element={<ListingClients />} />
                 <Route path="/clients/abonnements" element={<SuiviAbonnements />} />
+                <Route path="/gestion-abonnement" element={<GestionAbonnement />} />
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/caisse" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/suivi-dus" element={<SuiviDusProfilsPage />} />

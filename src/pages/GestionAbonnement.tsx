@@ -1,0 +1,462 @@
+/**
+ * GestionAbonnement.tsx
+ * Page "Gestion Abonnement" : vue centralisée des abonnements et interventions.
+ * Onglets :
+ *  - Abonnements actifs
+ *  - Abonnements arrivant à échéance (≤ 7 jours)
+ *  - Abonnements suspendus (paiement non reçu)
+ *  - Interventions prévues aujourd'hui
+ *  - Interventions prévues demain
+ *  - Factures à générer
+ *  - Factures impayées
+ */
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format, addDays, parseISO, differenceInCalendarDays, isSameDay } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+  CalendarCheck, CalendarClock, PauseCircle, CalendarDays,
+  Sun, Sunrise, FileText, FileWarning, Eye,
+} from "lucide-react";
+
+type Demande = Tables<"demandes">;
+type Facturation = Tables<"facturation">;
+
+const FREQ_DAYS: Record<string, number> = {
+  "1_fois_semaine": 7, "2_fois_semaine": 3, "3_fois_semaine": 2, "4_fois_semaine": 2,
+  "5_fois_semaine": 1, "6_fois_semaine": 1, "quotidien": 1,
+  "1_fois_mois": 30, "2_fois_mois": 15, "3_fois_mois": 10, "4_fois_mois": 7,
+};
+
+function isAbonnement(d: Demande) {
+  return !!d.frequence && d.frequence !== "ponctuel";
+}
+
+function getStats(d: Demande) {
+  const planning = d.planning as any;
+  let total = 0, effectuees = 0;
+  let maxDate: Date | null = null;
+  if (planning?.semaines?.length) {
+    for (const sem of planning.semaines) {
+      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
+      for (const j of sem.jours || []) {
+        total++;
+        if (j.statut === "terminee") effectuees++;
+        if (base) {
+          const dt = addDays(base, typeof j.jour === "number" ? j.jour : 0);
+          if (!maxDate || dt > maxDate) maxDate = dt;
+        }
+      }
+    }
+  }
+  return { total, effectuees, restantes: Math.max(0, total - effectuees), dateFin: maxDate };
+}
+
+function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
+  const out: Date[] = [];
+  const planning = d.planning as any;
+  if (planning?.semaines?.length) {
+    for (const sem of planning.semaines) {
+      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
+      if (!base) continue;
+      for (const j of sem.jours || []) {
+        if (j.statut === "terminee") continue;
+        const date = addDays(base, typeof j.jour === "number" ? j.jour : 0);
+        if (date >= from && date <= to) out.push(date);
+      }
+    }
+    return out;
+  }
+  const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : (d.confirmed_at ? new Date(d.confirmed_at) : null);
+  if (!start) return out;
+  const step = FREQ_DAYS[d.frequence || ""] || 7;
+  let cur = new Date(start);
+  while (cur <= to) {
+    if (cur >= from) out.push(new Date(cur));
+    cur = addDays(cur, step);
+  }
+  return out;
+}
+
+export default function GestionAbonnement() {
+  const navigate = useNavigate();
+  const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
+  const tomorrow = useMemo(() => addDays(today, 1), [today]);
+
+  const { data: demandes = [] } = useQuery({
+    queryKey: ["demandes", "gestion-abonnement"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("demandes").select("*").neq("statut", "annulee").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Demande[];
+    },
+  });
+
+  const { data: facturations = [] } = useQuery({
+    queryKey: ["facturation", "gestion-abonnement"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("facturation").select("*").order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as Facturation[];
+    },
+  });
+
+  const abonnements = useMemo(() => demandes.filter(isAbonnement), [demandes]);
+
+  const abosEnriched = useMemo(() => abonnements.map((d) => {
+    const s = getStats(d);
+    const jFin = s.dateFin ? differenceInCalendarDays(s.dateFin, today) : null;
+    return { d, stats: s, joursRestants: jFin };
+  }), [abonnements, today]);
+
+  const abosActifs = useMemo(
+    () => abosEnriched.filter(({ stats, joursRestants }) => (joursRestants === null || joursRestants >= 0) && stats.restantes > 0),
+    [abosEnriched]
+  );
+
+  const abosEcheance = useMemo(
+    () => abosActifs.filter((e) => e.joursRestants !== null && e.joursRestants >= 0 && e.joursRestants <= 7),
+    [abosActifs]
+  );
+
+  const abosSuspendus = useMemo(() => {
+    // Un abonnement est suspendu si au moins une facture liée est impayée (non_paye / paiement_partiel)
+    const impayesDemandeIds = new Set(
+      facturations.filter((f) => ["non_paye", "paiement_partiel"].includes(f.statut_paiement)).map((f) => f.demande_id)
+    );
+    return abosEnriched.filter(({ d }) => impayesDemandeIds.has(d.id));
+  }, [abosEnriched, facturations]);
+
+  const interventionsToday = useMemo(() => {
+    const list: { d: Demande; date: Date }[] = [];
+    for (const { d } of abosEnriched) {
+      for (const date of getInterventionsBetween(d, today, today)) {
+        if (isSameDay(date, today)) list.push({ d, date });
+      }
+    }
+    // Ajouter aussi les demandes ponctuelles prévues aujourd'hui
+    for (const d of demandes) {
+      if (isAbonnement(d)) continue;
+      const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : null;
+      if (start && isSameDay(start, today)) list.push({ d, date: start });
+    }
+    return list;
+  }, [abosEnriched, demandes, today]);
+
+  const interventionsTomorrow = useMemo(() => {
+    const list: { d: Demande; date: Date }[] = [];
+    for (const { d } of abosEnriched) {
+      for (const date of getInterventionsBetween(d, tomorrow, tomorrow)) {
+        if (isSameDay(date, tomorrow)) list.push({ d, date });
+      }
+    }
+    for (const d of demandes) {
+      if (isAbonnement(d)) continue;
+      const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : null;
+      if (start && isSameDay(start, tomorrow)) list.push({ d, date: start });
+    }
+    return list;
+  }, [abosEnriched, demandes, tomorrow]);
+
+  // Factures à générer : prestations terminées sans ligne de facturation
+  const facturesAGenerer = useMemo(() => {
+    const facturationDemandeIds = new Set(facturations.map((f) => f.demande_id));
+    return demandes.filter((d) =>
+      (d.statut === "prestation_effectuee" || d.statut === "termine" || d.statut === "terminee")
+      && !facturationDemandeIds.has(d.id)
+    );
+  }, [demandes, facturations]);
+
+  // Factures impayées
+  const facturesImpayees = useMemo(
+    () => facturations.filter((f) => ["non_paye", "paiement_partiel"].includes(f.statut_paiement)),
+    [facturations]
+  );
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold">Gestion Abonnement</h1>
+        <p className="text-sm text-muted-foreground">Vue centralisée des abonnements, interventions et facturation</p>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" />
+        <KpiCard label="À échéance ≤ 7j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
+        <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
+        <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" />
+        <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" />
+        <KpiCard label="À générer" value={facturesAGenerer.length} icon={<FileText className="h-5 w-5" />} gradient="from-violet-500 to-purple-600" />
+        <KpiCard label="Impayées" value={facturesImpayees.length} icon={<FileWarning className="h-5 w-5" />} gradient="from-rose-500 to-red-600" />
+      </div>
+
+      <Tabs defaultValue="actifs">
+        <TabsList className="flex flex-wrap h-auto">
+          <TabsTrigger value="actifs" className="gap-1.5"><CalendarCheck className="h-4 w-4" />Actifs ({abosActifs.length})</TabsTrigger>
+          <TabsTrigger value="echeance" className="gap-1.5"><CalendarClock className="h-4 w-4" />À échéance ({abosEcheance.length})</TabsTrigger>
+          <TabsTrigger value="suspendus" className="gap-1.5"><PauseCircle className="h-4 w-4" />Suspendus ({abosSuspendus.length})</TabsTrigger>
+          <TabsTrigger value="today" className="gap-1.5"><Sun className="h-4 w-4" />Aujourd'hui ({interventionsToday.length})</TabsTrigger>
+          <TabsTrigger value="tomorrow" className="gap-1.5"><Sunrise className="h-4 w-4" />Demain ({interventionsTomorrow.length})</TabsTrigger>
+          <TabsTrigger value="a-generer" className="gap-1.5"><FileText className="h-4 w-4" />Factures à générer ({facturesAGenerer.length})</TabsTrigger>
+          <TabsTrigger value="impayees" className="gap-1.5"><FileWarning className="h-4 w-4" />Factures impayées ({facturesImpayees.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="actifs">
+          <AbonnementTable rows={abosActifs} navigate={navigate} />
+        </TabsContent>
+        <TabsContent value="echeance">
+          <AbonnementTable rows={abosEcheance} navigate={navigate} highlightEcheance />
+        </TabsContent>
+        <TabsContent value="suspendus">
+          <AbonnementTable rows={abosSuspendus} navigate={navigate} showImpaye facturations={facturations} />
+        </TabsContent>
+        <TabsContent value="today">
+          <InterventionTable rows={interventionsToday} navigate={navigate} />
+        </TabsContent>
+        <TabsContent value="tomorrow">
+          <InterventionTable rows={interventionsTomorrow} navigate={navigate} />
+        </TabsContent>
+        <TabsContent value="a-generer">
+          <FactureAGenererTable rows={facturesAGenerer} navigate={navigate} />
+        </TabsContent>
+        <TabsContent value="impayees">
+          <FactureImpayeeTable rows={facturesImpayees} navigate={navigate} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, icon, gradient, onClick }: { label: string; value: number | string; icon: React.ReactNode; gradient: string; onClick?: () => void }) {
+  return (
+    <Card
+      onClick={onClick}
+      className={`p-3 bg-gradient-to-br ${gradient} text-white border-0 ${onClick ? "cursor-pointer hover:brightness-110 transition" : ""}`}
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="text-xs font-medium opacity-90">{label}</div>
+          <div className="text-2xl font-bold mt-1">{value}</div>
+        </div>
+        <div className="opacity-90">{icon}</div>
+      </div>
+    </Card>
+  );
+}
+
+function AbonnementTable({
+  rows, navigate, highlightEcheance, showImpaye, facturations = [],
+}: {
+  rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
+  navigate: ReturnType<typeof useNavigate>;
+  highlightEcheance?: boolean;
+  showImpaye?: boolean;
+  facturations?: Facturation[];
+}) {
+  if (!rows.length) return <EmptyState label="Aucun abonnement" />;
+  return (
+    <div className="border rounded-lg overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>N°</TableHead>
+            <TableHead>Client</TableHead>
+            <TableHead>Ville</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead>Fréquence</TableHead>
+            <TableHead>Progression</TableHead>
+            <TableHead>Fin prévue</TableHead>
+            {showImpaye && <TableHead>Montant impayé</TableHead>}
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map(({ d, stats, joursRestants }) => {
+            const impaye = showImpaye
+              ? facturations
+                  .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+                  .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0)
+              : 0;
+            return (
+              <TableRow key={d.id}>
+                <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
+                <TableCell className="font-medium">{d.nom}</TableCell>
+                <TableCell>{d.ville}</TableCell>
+                <TableCell>{d.type_prestation}</TableCell>
+                <TableCell><Badge variant="outline">{d.frequence}</Badge></TableCell>
+                <TableCell className="text-sm">{stats.effectuees}/{stats.total}</TableCell>
+                <TableCell>
+                  {stats.dateFin ? (
+                    <div className="text-sm">
+                      <div>{format(stats.dateFin, "dd MMM yyyy", { locale: fr })}</div>
+                      {joursRestants !== null && (
+                        <Badge className={
+                          highlightEcheance || (joursRestants >= 0 && joursRestants <= 7)
+                            ? "bg-amber-100 text-amber-800"
+                            : joursRestants < 0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"
+                        }>
+                          {joursRestants < 0 ? `Expiré (${Math.abs(joursRestants)}j)` : `${joursRestants}j restants`}
+                        </Badge>
+                      )}
+                    </div>
+                  ) : <span className="text-muted-foreground">—</span>}
+                </TableCell>
+                {showImpaye && (
+                  <TableCell className="font-semibold text-red-600">{Math.round(impaye).toLocaleString("fr-FR")} DH</TableCell>
+                )}
+                <TableCell className="text-right">
+                  <Button size="sm" variant="ghost" onClick={() => navigate(`/compte-client?id=${d.id}`)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function InterventionTable({ rows, navigate }: { rows: { d: Demande; date: Date }[]; navigate: ReturnType<typeof useNavigate> }) {
+  if (!rows.length) return <EmptyState label="Aucune intervention prévue" />;
+  return (
+    <div className="border rounded-lg overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>N°</TableHead>
+            <TableHead>Client</TableHead>
+            <TableHead>Ville / Quartier</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead>Profil affecté</TableHead>
+            <TableHead>Heure</TableHead>
+            <TableHead>Téléphone</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map(({ d, date }, i) => (
+            <TableRow key={`${d.id}-${i}`}>
+              <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
+              <TableCell className="font-medium">{d.nom}</TableCell>
+              <TableCell>{d.ville} {d.quartier ? `— ${d.quartier}` : ""}</TableCell>
+              <TableCell>{d.type_prestation}</TableCell>
+              <TableCell>{(d as any).profil_nom || <span className="text-muted-foreground">Non affecté</span>}</TableCell>
+              <TableCell>{(d as any).heure_debut || "—"}</TableCell>
+              <TableCell className="font-mono text-xs">{d.telephone_direct}</TableCell>
+              <TableCell className="text-right">
+                <Button size="sm" variant="ghost" onClick={() => navigate(`/compte-client?id=${d.id}`)}>
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function FactureAGenererTable({ rows, navigate }: { rows: Demande[]; navigate: ReturnType<typeof useNavigate> }) {
+  if (!rows.length) return <EmptyState label="Aucune facture à générer" />;
+  return (
+    <div className="border rounded-lg overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>N°</TableHead>
+            <TableHead>Client</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead>Date prestation</TableHead>
+            <TableHead>Montant</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((d) => (
+            <TableRow key={d.id}>
+              <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
+              <TableCell className="font-medium">{d.nom}</TableCell>
+              <TableCell>{d.type_prestation}</TableCell>
+              <TableCell>{d.date_prestation ? format(parseISO(d.date_prestation as unknown as string), "dd MMM yyyy", { locale: fr }) : "—"}</TableCell>
+              <TableCell className="font-semibold">{Number(d.montant_total || 0).toLocaleString("fr-FR")} DH</TableCell>
+              <TableCell className="text-right">
+                <Button size="sm" variant="ghost" onClick={() => navigate(`/gestion-financiere`)}>
+                  <FileText className="h-4 w-4 mr-1" /> Générer
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function FactureImpayeeTable({ rows, navigate }: { rows: Facturation[]; navigate: ReturnType<typeof useNavigate> }) {
+  if (!rows.length) return <EmptyState label="Aucune facture impayée" />;
+  return (
+    <div className="border rounded-lg overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Mission</TableHead>
+            <TableHead>Client</TableHead>
+            <TableHead>Service</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Total</TableHead>
+            <TableHead>Payé</TableHead>
+            <TableHead>Reste dû</TableHead>
+            <TableHead>Statut</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((f) => {
+            const reste = Number(f.montant_total) - Number(f.montant_paye_client || 0);
+            return (
+              <TableRow key={f.id}>
+                <TableCell className="font-mono text-xs">#{f.num_mission}</TableCell>
+                <TableCell className="font-medium">{f.nom_client}</TableCell>
+                <TableCell>{f.type_service}</TableCell>
+                <TableCell>{f.date_intervention ? format(parseISO(f.date_intervention as unknown as string), "dd MMM yyyy", { locale: fr }) : "—"}</TableCell>
+                <TableCell>{Number(f.montant_total).toLocaleString("fr-FR")} DH</TableCell>
+                <TableCell>{Number(f.montant_paye_client || 0).toLocaleString("fr-FR")} DH</TableCell>
+                <TableCell className="font-semibold text-red-600">{Math.round(reste).toLocaleString("fr-FR")} DH</TableCell>
+                <TableCell>
+                  <Badge className={f.statut_paiement === "paiement_partiel" ? "bg-amber-100 text-amber-800" : "bg-red-100 text-red-800"}>
+                    {f.statut_paiement === "paiement_partiel" ? "Partiel" : "Non payé"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button size="sm" variant="ghost" onClick={() => navigate(`/gestion-financiere`)}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="border rounded-lg p-12 text-center text-muted-foreground">
+      <CalendarDays className="h-10 w-10 mx-auto mb-2 opacity-40" />
+      <p>{label}</p>
+    </div>
+  );
+}

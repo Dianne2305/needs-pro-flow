@@ -3,7 +3,7 @@
  * Barre latérale de navigation (thème noir/teal). Liens vers Dashboard, Pending, Listing, Profils, Finance, Marketing, Qualité, Paramètres. Badge rouge pour demandes en attente.
  */
 import {
-  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown, MessageSquare, HandCoins,
+  LayoutDashboard, Clock, Users, Building2, Wallet, Settings, History, Star, Megaphone, BarChart3, ChevronDown, MessageSquare, HandCoins, CalendarCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -24,6 +24,7 @@ const items = [
   { title: "Listing profils", url: "/profils", icon: Users },
   { title: "Listing clients", url: "/clients", icon: Building2 },
   { title: "Historique", url: "/historique", icon: History },
+  { title: "Gestion Abonnement", url: "/gestion-abonnement", icon: CalendarCheck },
   { title: "Qualité & Feedback", url: "/qualite", icon: Star },
   { title: "Marketing", url: "/marketing", icon: Megaphone },
   { title: "Messagerie", url: "/messagerie", icon: MessageSquare, showChatBadge: true },
@@ -105,8 +106,8 @@ export function AppSidebar() {
   };
 
   // Split items: before and after finance
-  const beforeFinance = items.slice(0, 5); // up to Historique
-  const afterFinance = items.slice(5); // Qualité, Marketing, Paramètres
+  const beforeFinance = items.slice(0, 6); // up to Gestion Abonnement
+  const afterFinance = items.slice(6); // Qualité, Marketing, Messagerie, Paramètres
 
   return (
     <Sidebar collapsible="icon">
