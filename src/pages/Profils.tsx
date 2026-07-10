@@ -69,6 +69,20 @@ export default function Profils() {
     },
   });
 
+  const pauseMutation = useMutation({
+    mutationFn: async ({ id, statut }: { id: string; statut: "blackliste" | "stand_by" | "disponible" }) => {
+      const updates: any = { statut_profil: statut };
+      if (statut === "stand_by") { updates.standby_debut = new Date().toISOString(); updates.standby_jours = null; }
+      else { updates.standby_debut = null; updates.standby_jours = null; }
+      const { error } = await supabase.from("profils").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ["profils"] });
+      toast({ title: v.statut === "disponible" ? "Profil réactivé" : v.statut === "blackliste" ? "Profil blacklisté" : "Profil mis en stand-by" });
+    },
+  });
+
   const { data: profils = [], isLoading, refetch } = useQuery({
     queryKey: ["profils"],
     queryFn: async () => {
