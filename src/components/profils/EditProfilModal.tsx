@@ -25,6 +25,7 @@ import {
   LANGUES, NIVEAUX_ETUDE, SITUATIONS_MATRIMONIALES, NATIONALITES,
   PRESENTATIONS_PHYSIQUES, CORPULENCES, TYPES_PROFIL, TYPES_POSTE_EXPERIENCE,
   LIEUX_TRAVAIL, TACHES_MENAGE, DEFAULT_DISPONIBILITE_CALENDRIER,
+  DISPONIBILITE_INTERVENTION_OPTIONS,
   type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
 import { AvailabilityCalendar } from "./AvailabilityCalendar";
@@ -51,6 +52,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
   const [saving, setSaving] = useState(false);
 
   const [statut, setStatut] = useState<StatutProfilValue>({ statut: "nouveau" });
+  const [disponibiliteIntervention, setDisponibiliteIntervention] = useState<string>("disponible");
   const [blackliste, setBlackliste] = useState(false);
 
   const [nom, setNom] = useState("");
@@ -142,6 +144,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
       setDispoSoiree(!!profil.dispo_soiree);
       setDispo7j7(!!profil.dispo_7j7);
       setDispoJoursFeries(!!profil.dispo_jours_feries);
+      setDisponibiliteIntervention(profil.disponibilite_intervention || "disponible");
       setExperiences(Array.isArray(profil.experiences) ? profil.experiences : []);
     }
   }, [profil, open]);
@@ -191,6 +194,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
         dispo_urgences: dispoUrgences, dispo_journee: dispoJournee, dispo_soiree: dispoSoiree,
         dispo_7j7: dispo7j7, dispo_jours_feries: dispoJoursFeries,
         disponibilite_calendrier: calendrier as any,
+        disponibilite_intervention: disponibiliteIntervention,
         allergie_animaux: allergieAnimaux,
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
         remarque_recruteur: remarqueRecruteur || null,
@@ -222,7 +226,18 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
           <div className="space-y-6">
             {/* Statut & Blacklisté */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-lg border bg-muted/30">
-              <StatutProfilField value={statut} onChange={setStatut} idPrefix="edit" />
+              <div className="space-y-3">
+                <StatutProfilField value={statut} onChange={setStatut} idPrefix="edit" />
+                <div>
+                  <Label className="text-xs font-semibold">Disponibilité d'intervention</Label>
+                  <Select value={disponibiliteIntervention} onValueChange={setDisponibiliteIntervention}>
+                    <SelectTrigger><SelectValue placeholder="Choisir" /></SelectTrigger>
+                    <SelectContent>
+                      {DISPONIBILITE_INTERVENTION_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="flex flex-col gap-2">
                 <Label className="text-xs font-semibold">Blacklisté</Label>
                 <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-background">

@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { PostulerModal } from "@/components/profils/PostulerModal";
-import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE } from "@/lib/profil-constants";
+import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
@@ -47,6 +47,7 @@ export default function Profils() {
   const [serviceFilter, setServiceFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
   const [jourFilter, setJourFilter] = useState("all");
+  const [dispoInterventionFilter, setDispoInterventionFilter] = useState("all");
   
 
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
@@ -85,6 +86,11 @@ export default function Profils() {
     // Statut
     if (statutFilter !== "all") {
       result = result.filter((p: any) => computeStatutEffectif(p) === statutFilter);
+    }
+
+    // Disponibilité d'intervention
+    if (dispoInterventionFilter !== "all") {
+      result = result.filter((p: any) => (p.disponibilite_intervention || "disponible") === dispoInterventionFilter);
     }
 
     // Disponibilité
@@ -129,7 +135,7 @@ export default function Profils() {
     }
 
     return result;
-  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, search, dateFrom, dateTo]);
+  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, dispoInterventionFilter, search, dateFrom, dateTo]);
 
   return (
     <div className="space-y-4">
@@ -160,6 +166,14 @@ export default function Profils() {
           <SelectContent>
             <SelectItem value="all">Tous statuts</SelectItem>
             {STATUT_PROFIL_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={dispoInterventionFilter} onValueChange={setDispoInterventionFilter}>
+          <SelectTrigger className="w-[190px]"><SelectValue placeholder="Dispo. intervention" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes dispos. intervention</SelectItem>
+            {DISPONIBILITE_INTERVENTION_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
           </SelectContent>
         </Select>
 
@@ -216,10 +230,10 @@ export default function Profils() {
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all") && (
+        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all" || dispoInterventionFilter !== "all") && (
           <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
             setDateFrom(undefined); setDateTo(undefined);
-            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all");
+            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all"); setDispoInterventionFilter("all");
           }}>
             Réinitialiser
           </Button>
@@ -241,15 +255,16 @@ export default function Profils() {
               <TableHead>CIN</TableHead>
               <TableHead>Quartier / Ville</TableHead>
               <TableHead>Statut profil</TableHead>
+              <TableHead>Disponibilité d'intervention</TableHead>
               <TableHead>Langue</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Chargement...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={14} className="text-center py-10 text-muted-foreground">Chargement...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
+              <TableRow><TableCell colSpan={14} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
             ) : filtered.map((p: any) => {
               const statutEff = computeStatutEffectif(p);
               const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === statutEff);
@@ -282,6 +297,14 @@ export default function Profils() {
                     {statutOpt ? (
                       <Badge variant="outline" className={cn("border-0 text-xs", statutOpt.color)}>{statutOpt.label}</Badge>
                     ) : <span className="text-xs text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const dispoOpt = DISPONIBILITE_INTERVENTION_OPTIONS.find(o => o.value === (p.disponibilite_intervention || "disponible"));
+                      return dispoOpt ? (
+                        <Badge variant="outline" className={cn("border-0 text-xs", dispoOpt.color)}>{dispoOpt.label}</Badge>
+                      ) : <span className="text-xs text-muted-foreground">—</span>;
+                    })()}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">

@@ -24,7 +24,7 @@ import {
   ShieldBan, Star, ThumbsUp, ThumbsDown, Eye, ClipboardCheck,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
+import { PRESENTATIONS_PHYSIQUES, CORPULENCES, STATUT_PROFIL_OPTIONS, DISPONIBILITE_INTERVENTION_OPTIONS } from "@/lib/profil-constants";
 import { PostulerModal } from "@/components/profils/PostulerModal";
 import { EditProfilModal } from "@/components/profils/EditProfilModal";
 import { partAgence, partProfil } from "@/lib/finance-types";
@@ -221,6 +221,7 @@ export default function CompteProfil() {
   const languesArr: string[] = Array.isArray(p.langue) ? p.langue : [];
   const experiences: any[] = Array.isArray(p.experiences) ? p.experiences : [];
   const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === p.statut_profil);
+  const dispoInterventionOpt = DISPONIBILITE_INTERVENTION_OPTIONS.find(o => o.value === (p.disponibilite_intervention || "disponible"));
   const presOpt = PRESENTATIONS_PHYSIQUES.find(pr => pr.value === p.presentation_physique);
   const corpOpt = CORPULENCES.find(c => c.value === p.corpulence);
   const age = p.date_naissance ? Math.floor((Date.now() - new Date(p.date_naissance).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null;
@@ -255,6 +256,9 @@ export default function CompteProfil() {
                 <h1 className="text-lg font-bold text-foreground leading-tight">{p.prenom} {p.nom}</h1>
                 {statutOpt && (
                   <Badge variant="outline" className={cn("border-0 text-xs", statutOpt.color)}>{statutOpt.label}</Badge>
+                )}
+                {dispoInterventionOpt && (
+                  <Badge variant="outline" className={cn("border-0 text-xs", dispoInterventionOpt.color)}>{dispoInterventionOpt.label}</Badge>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">

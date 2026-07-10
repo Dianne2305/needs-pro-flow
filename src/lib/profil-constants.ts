@@ -67,6 +67,12 @@ export const PROFIL_FILTER_TABS = [
   { value: "nettoyage_vitres", label: "Nettoyage de vitres" },
 ] as const;
 
+/** Options de disponibilité d'intervention (affectation immédiate). */
+export const DISPONIBILITE_INTERVENTION_OPTIONS = [
+  { value: "disponible", label: "Disponible", color: "bg-emerald-100 text-emerald-800" },
+  { value: "non_disponible", label: "Non disponible", color: "bg-rose-100 text-rose-800" },
+] as const;
+
 /**
  * Statuts profil FDM.
  * - nouveau : profil fraîchement enregistré, pas encore validé.
