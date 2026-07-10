@@ -450,6 +450,86 @@ export default function SuiviDusProfils() {
         </div>
       </div>
 
+      {/* Regroupement par profil */}
+      {groupByProfil && (
+        <div className="rounded-lg border bg-card mb-4 overflow-hidden">
+          <div className="bg-muted/50 px-5 py-3 border-b flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Récapitulatif par profil ({profilGroups.length})</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">Calcul automatique sur les missions filtrées</p>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Profil</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Nb missions</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Profil doit à l'agence</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Agence doit au profil</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Solde final</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {profilGroups.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">Aucun profil</TableCell>
+                  </TableRow>
+                ) : profilGroups.map((g) => (
+                  <TableRow key={(g.profil_id || g.profil_nom)} className="hover:bg-muted/30">
+                    <TableCell className="text-sm font-medium">
+                      {g.profil_id ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/compte-profil?id=${g.profil_id}&from=/gestion-financiere/suivi-dus`)}
+                          className="text-primary hover:underline"
+                        >
+                          {g.profil_nom}
+                        </button>
+                      ) : g.profil_nom}
+                    </TableCell>
+                    <TableCell className="text-sm text-right">
+                      <Badge variant="outline" className="font-bold">{g.totalMissions}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-right font-semibold text-emerald-700">{fmt(g.profilDoitAgence)}</TableCell>
+                    <TableCell className="text-sm text-right font-semibold text-rose-700">{fmt(g.agenceDoitProfil)}</TableCell>
+                    <TableCell className="text-sm text-right font-bold">
+                      {g.solde === 0 ? (
+                        <Badge className="bg-green-100 text-green-800">Équilibré</Badge>
+                      ) : g.solde > 0 ? (
+                        <Badge className="bg-emerald-100 text-emerald-800">Agence : +{fmt(g.solde)}</Badge>
+                      ) : (
+                        <Badge className="bg-rose-100 text-rose-800">Profil : +{fmt(Math.abs(g.solde))}</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {profilGroups.length > 0 && (
+                  <TableRow className="bg-muted/40 font-bold border-t-2">
+                    <TableCell className="text-sm">TOTAL</TableCell>
+                    <TableCell className="text-sm text-right">
+                      {profilGroups.reduce((s, g) => s + g.totalMissions, 0)}
+                    </TableCell>
+                    <TableCell className="text-sm text-right text-emerald-700">
+                      {fmt(profilGroups.reduce((s, g) => s + g.profilDoitAgence, 0))}
+                    </TableCell>
+                    <TableCell className="text-sm text-right text-rose-700">
+                      {fmt(profilGroups.reduce((s, g) => s + g.agenceDoitProfil, 0))}
+                    </TableCell>
+                    <TableCell className="text-sm text-right">
+                      {fmt(profilGroups.reduce((s, g) => s + g.solde, 0))}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+
+
       {/* Table */}
       <div className="rounded-b-lg border bg-card overflow-x-auto">
         <Table>
