@@ -24,6 +24,7 @@ const items = [
   { title: "Listing profils", url: "/profils", icon: Users },
   { title: "Listing clients", url: "/clients", icon: Building2 },
   { title: "Historique", url: "/historique", icon: History },
+  { title: "Gestion Abonnement", url: "/gestion-abonnement", icon: CalendarCheck },
   { title: "Qualité & Feedback", url: "/qualite", icon: Star },
   { title: "Marketing", url: "/marketing", icon: Megaphone },
   { title: "Messagerie", url: "/messagerie", icon: MessageSquare, showChatBadge: true },
