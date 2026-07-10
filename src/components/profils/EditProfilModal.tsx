@@ -80,6 +80,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
 
   const [allergieAnimaux, setAllergieAnimaux] = useState(false);
   const [pointureChaussures, setPointureChaussures] = useState<string>("");
+  const [fume, setFume] = useState<string>("non");
   const [remarqueRecruteur, setRemarqueRecruteur] = useState("");
   const [calendrier, setCalendrier] = useState<DisponibiliteCalendrier>(DEFAULT_DISPONIBILITE_CALENDRIER);
   const [dateEnregistrement, setDateEnregistrement] = useState<string>("");
