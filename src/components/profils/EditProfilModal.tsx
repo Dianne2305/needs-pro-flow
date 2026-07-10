@@ -365,6 +365,21 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
                   <Checkbox checked={allergieAnimaux} onCheckedChange={v => setAllergieAnimaux(!!v)} id="edit-allergie-anim" />
                   <Label htmlFor="edit-allergie-anim" className="text-xs">Allergie aux animaux</Label>
                 </div>
+                <div>
+                  <Label className="text-xs">Fume</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {FUME_OPTIONS.map(o => (
+                      <Badge
+                        key={o.value}
+                        variant={fume === o.value ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => setFume(o.value)}
+                      >
+                        {o.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
