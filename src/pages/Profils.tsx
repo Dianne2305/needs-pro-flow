@@ -49,6 +49,7 @@ export default function Profils() {
   const [segmentFilter, setSegmentFilter] = useState("all");
   const [jourFilter, setJourFilter] = useState("all");
   const [dispoInterventionFilter, setDispoInterventionFilter] = useState("all");
+  const [fumeFilter, setFumeFilter] = useState("all");
   
 
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
