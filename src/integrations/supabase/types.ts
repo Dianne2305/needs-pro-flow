@@ -936,6 +936,7 @@ export type Database = {
           experience_annees: number | null
           experience_mois: number | null
           experiences: Json | null
+          fiche_antropometrique_url: string | null
           formation_requise: string | null
           id: string
           langue: Json | null
@@ -984,6 +985,7 @@ export type Database = {
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
+          fiche_antropometrique_url?: string | null
           formation_requise?: string | null
           id?: string
           langue?: Json | null
@@ -1032,6 +1034,7 @@ export type Database = {
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
+          fiche_antropometrique_url?: string | null
           formation_requise?: string | null
           id?: string
           langue?: Json | null
