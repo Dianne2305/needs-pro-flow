@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X, Download, Wallet, Pencil, Eye } from "lucide-react";
+import { Search, CalendarIcon, X, Download, Wallet, Pencil, Eye, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
 import { useNavigate } from "react-router-dom";
 
