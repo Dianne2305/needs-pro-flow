@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Search, CalendarIcon, X, Download, Wallet, Pencil, Eye } from "lucide-react";
+import { Search, CalendarIcon, X, Download, Wallet, Pencil, Eye, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { Facturation, partAgence, partProfil } from "@/lib/finance-types";
 import { useNavigate } from "react-router-dom";
 
@@ -70,6 +70,10 @@ export default function SuiviDusProfils() {
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterReglement, setFilterReglement] = useState("all");
+  const [filterEncaissementDC, setFilterEncaissementDC] = useState<"all" | "crediteur" | "debiteur">("all");
+  /** Raccourci via voyants KPI : 'agence' = Part agence non réglée, 'profil' = Part profil non réglée. */
+  const [quickFilter, setQuickFilter] = useState<"none" | "agence" | "profil">("none");
+  const [groupByProfil, setGroupByProfil] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [editMission, setEditMission] = useState<Facturation | null>(null);
@@ -164,6 +168,18 @@ export default function SuiviDusProfils() {
       if (filterStatut !== "all" && m.statut_paiement !== filterStatut) return false;
       if (filterReglement === "regle" && !m.part_profil_versee) return false;
       if (filterReglement === "non_regle" && m.part_profil_versee) return false;
+      if (filterEncaissementDC !== "all") {
+        const dc = getEncaissementDC(m);
+        if (!dc) return false;
+        if (filterEncaissementDC === "crediteur" && dc.label !== "Créditeur") return false;
+        if (filterEncaissementDC === "debiteur" && dc.label !== "Débiteur") return false;
+      }
+      if (quickFilter === "agence") {
+        if (!(m.encaisse_par === "profil" && !m.part_agence_reversee)) return false;
+      }
+      if (quickFilter === "profil") {
+        if (!(m.encaisse_par === "agence" && !m.part_profil_versee)) return false;
+      }
       if (dateFrom && m.date_intervention) {
         if (parseISO(m.date_intervention) < dateFrom) return false;
       }
@@ -183,9 +199,44 @@ export default function SuiviDusProfils() {
       }
       return true;
     });
-  }, [fdmMissions, filterStatut, filterReglement, dateFrom, dateTo, search]);
+  }, [fdmMissions, filterStatut, filterReglement, filterEncaissementDC, quickFilter, dateFrom, dateTo, search]);
+
+  /** Regroupement automatique des missions filtrées par profil. */
+  const profilGroups = useMemo(() => {
+    const map = new Map<string, {
+      profil_id: string | null;
+      profil_nom: string;
+      missions: Facturation[];
+      totalMissions: number;
+      profilDoitAgence: number;
+      agenceDoitProfil: number;
+      solde: number;
+    }>();
+    filtered.forEach((m) => {
+      if (m.statut_paiement === "facturation_annulee" || (m as any).statut_mission === "facturation_annulee") return;
+      const key = m.profil_id || `nom:${m.profil_nom || "—"}`;
+      const existing = map.get(key) || {
+        profil_id: m.profil_id,
+        profil_nom: m.profil_nom || "—",
+        missions: [],
+        totalMissions: 0,
+        profilDoitAgence: 0,
+        agenceDoitProfil: 0,
+        solde: 0,
+      };
+      existing.missions.push(m);
+      existing.totalMissions += 1;
+      if (m.encaisse_par === "profil" && !m.part_agence_reversee) existing.profilDoitAgence += partAgence(m);
+      if (m.encaisse_par === "agence" && !m.part_profil_versee) existing.agenceDoitProfil += partProfil(m);
+      existing.solde = existing.profilDoitAgence - existing.agenceDoitProfil;
+      map.set(key, existing);
+    });
+    return Array.from(map.values()).sort((a, b) => Math.abs(b.solde) - Math.abs(a.solde));
+  }, [filtered]);
 
   const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+
+
 
   const totals = useMemo(() => {
     let ca = 0, profil = 0, agence = 0;
@@ -277,18 +328,35 @@ export default function SuiviDusProfils() {
           <p className="text-xs text-white/60">Part profils</p>
           <p className="text-[10px] text-white/50 mt-1 leading-tight">Montant dû aux intervenants (temps réel)</p>
         </div>
-        <div className="bg-emerald-700 text-white px-5 py-4 relative" title="Voyant vert : montant que les profils doivent reverser à l'agence (profil a encaissé le client mais n'a pas encore remis la part agence).">
+        <button
+          type="button"
+          onClick={() => setQuickFilter((q) => (q === "agence" ? "none" : "agence"))}
+          className={cn(
+            "text-left bg-emerald-700 text-white px-5 py-4 relative transition-all hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-white/60",
+            quickFilter === "agence" && "ring-2 ring-white ring-offset-0 bg-emerald-800"
+          )}
+          title="Cliquer pour filtrer uniquement les montants dus à l'agence non réglés (cliquer à nouveau pour retirer le filtre)."
+        >
           <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-emerald-300 ring-2 ring-white/40 animate-pulse" />
           <p className="text-2xl font-bold">{fmt(totals.agenceNonReglee)}</p>
-          <p className="text-xs text-white/80">Part agence non réglée</p>
-          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à percevoir par l'agence</p>
-        </div>
-        <div className="bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative" title="Voyant rouge : montant que l'agence doit verser aux profils (agence a encaissé le client mais n'a pas encore payé la part profil).">
+          <p className="text-xs text-white/80">Part agence non réglée {quickFilter === "agence" && <span className="ml-1 inline-flex items-center rounded-sm bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">Filtré ×</span>}</p>
+          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à percevoir par l'agence — cliquer pour filtrer</p>
+        </button>
+        <button
+          type="button"
+          onClick={() => setQuickFilter((q) => (q === "profil" ? "none" : "profil"))}
+          className={cn(
+            "text-left bg-rose-700 text-white px-5 py-4 rounded-tr-lg relative transition-all hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-white/60",
+            quickFilter === "profil" && "ring-2 ring-white ring-offset-0 bg-rose-800"
+          )}
+          title="Cliquer pour filtrer uniquement les montants dus au profil non réglés (cliquer à nouveau pour retirer le filtre)."
+        >
           <span className="absolute top-3 right-3 h-3 w-3 rounded-full bg-rose-300 ring-2 ring-white/40 animate-pulse" />
           <p className="text-2xl font-bold">{fmt(totals.profilNonReglee)}</p>
-          <p className="text-xs text-white/80">Part profils non réglée</p>
-          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à verser aux profils</p>
-        </div>
+          <p className="text-xs text-white/80">Part profils non réglée {quickFilter === "profil" && <span className="ml-1 inline-flex items-center rounded-sm bg-white/25 px-1.5 py-0.5 text-[10px] font-semibold">Filtré ×</span>}</p>
+          <p className="text-[10px] text-white/70 mt-1 leading-tight">Reste à verser aux profils — cliquer pour filtrer</p>
+        </button>
+
       </div>
 
       {/* Filters */}
@@ -308,6 +376,14 @@ export default function SuiviDusProfils() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={filterEncaissementDC} onValueChange={(v) => setFilterEncaissementDC(v as "all" | "crediteur" | "debiteur")}>
+              <SelectTrigger className="w-52"><SelectValue placeholder="Statut d'encaissement" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="crediteur">Créditeur</SelectItem>
+                <SelectItem value="debiteur">Débiteur</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={filterReglement} onValueChange={setFilterReglement}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Règlement FDM" /></SelectTrigger>
               <SelectContent>
@@ -316,7 +392,30 @@ export default function SuiviDusProfils() {
                 <SelectItem value="non_regle">Non réglé</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant={groupByProfil ? "default" : "outline"}
+              onClick={() => setGroupByProfil((v) => !v)}
+              className="gap-1.5"
+              title="Regrouper les missions par profil et calculer les totaux"
+            >
+              <Users className="h-4 w-4" />
+              Regrouper par profil
+              {groupByProfil ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            {(quickFilter !== "none" || filterEncaissementDC !== "all") && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => { setQuickFilter("none"); setFilterEncaissementDC("all"); }}
+                className="text-muted-foreground"
+              >
+                <X className="h-4 w-4 mr-1" /> Retirer filtres rapides
+              </Button>
+            )}
           </div>
+
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           <span className="text-sm text-muted-foreground font-medium">Période :</span>
@@ -350,6 +449,86 @@ export default function SuiviDusProfils() {
           )}
         </div>
       </div>
+
+      {/* Regroupement par profil */}
+      {groupByProfil && (
+        <div className="rounded-lg border bg-card mb-4 overflow-hidden">
+          <div className="bg-muted/50 px-5 py-3 border-b flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Récapitulatif par profil ({profilGroups.length})</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">Calcul automatique sur les missions filtrées</p>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b">
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold">Profil</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Nb missions</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Profil doit à l'agence</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Agence doit au profil</TableHead>
+                  <TableHead className="uppercase text-[11px] tracking-wider font-semibold text-right">Solde final</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {profilGroups.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-6">Aucun profil</TableCell>
+                  </TableRow>
+                ) : profilGroups.map((g) => (
+                  <TableRow key={(g.profil_id || g.profil_nom)} className="hover:bg-muted/30">
+                    <TableCell className="text-sm font-medium">
+                      {g.profil_id ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/compte-profil?id=${g.profil_id}&from=/gestion-financiere/suivi-dus`)}
+                          className="text-primary hover:underline"
+                        >
+                          {g.profil_nom}
+                        </button>
+                      ) : g.profil_nom}
+                    </TableCell>
+                    <TableCell className="text-sm text-right">
+                      <Badge variant="outline" className="font-bold">{g.totalMissions}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-right font-semibold text-emerald-700">{fmt(g.profilDoitAgence)}</TableCell>
+                    <TableCell className="text-sm text-right font-semibold text-rose-700">{fmt(g.agenceDoitProfil)}</TableCell>
+                    <TableCell className="text-sm text-right font-bold">
+                      {g.solde === 0 ? (
+                        <Badge className="bg-green-100 text-green-800">Équilibré</Badge>
+                      ) : g.solde > 0 ? (
+                        <Badge className="bg-emerald-100 text-emerald-800">Agence : +{fmt(g.solde)}</Badge>
+                      ) : (
+                        <Badge className="bg-rose-100 text-rose-800">Profil : +{fmt(Math.abs(g.solde))}</Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {profilGroups.length > 0 && (
+                  <TableRow className="bg-muted/40 font-bold border-t-2">
+                    <TableCell className="text-sm">TOTAL</TableCell>
+                    <TableCell className="text-sm text-right">
+                      {profilGroups.reduce((s, g) => s + g.totalMissions, 0)}
+                    </TableCell>
+                    <TableCell className="text-sm text-right text-emerald-700">
+                      {fmt(profilGroups.reduce((s, g) => s + g.profilDoitAgence, 0))}
+                    </TableCell>
+                    <TableCell className="text-sm text-right text-rose-700">
+                      {fmt(profilGroups.reduce((s, g) => s + g.agenceDoitProfil, 0))}
+                    </TableCell>
+                    <TableCell className="text-sm text-right">
+                      {fmt(profilGroups.reduce((s, g) => s + g.solde, 0))}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
+
 
       {/* Table */}
       <div className="rounded-b-lg border bg-card overflow-x-auto">
