@@ -940,6 +940,7 @@ export type Database = {
           experiences: Json | null
           fiche_antropometrique_url: string | null
           formation_requise: string | null
+          fume: string | null
           id: string
           langue: Json | null
           maladie_handicap: string | null
@@ -993,6 +994,7 @@ export type Database = {
           experiences?: Json | null
           fiche_antropometrique_url?: string | null
           formation_requise?: string | null
+          fume?: string | null
           id?: string
           langue?: Json | null
           maladie_handicap?: string | null
@@ -1046,6 +1048,7 @@ export type Database = {
           experiences?: Json | null
           fiche_antropometrique_url?: string | null
           formation_requise?: string | null
+          fume?: string | null
           id?: string
           langue?: Json | null
           maladie_handicap?: string | null
