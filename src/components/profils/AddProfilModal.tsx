@@ -508,6 +508,63 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               </div>
             </div>
 
+            {/* ==== Domaine d'intervention ==== */}
+            <div>
+              <h3 className="text-lg font-bold text-foreground mb-3">Domaine d'intervention</h3>
+              <div className="rounded-xl border bg-muted/40 p-4 space-y-4">
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Services affectables
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                    {TYPES_PRESTATION.map(s => (
+                      <div key={s} className="flex items-center gap-2 bg-background rounded-md border px-3 h-9">
+                        <Checkbox
+                          id={`add-svc-${s}`}
+                          checked={servicesAffectables.includes(s)}
+                          onCheckedChange={() => toggleService(s)}
+                        />
+                        <Label htmlFor={`add-svc-${s}`} className="text-sm cursor-pointer">{s}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Autre service
+                  </Label>
+                  <Textarea
+                    value={autreService}
+                    onChange={e => setAutreService(e.target.value)}
+                    rows={2}
+                    placeholder="Préciser un service non listé…"
+                    className="resize-none mt-1 bg-background"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Segment affectable
+                  </Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {[
+                      { value: "tout", label: "Tout" },
+                      { value: "particulier", label: "Particulier" },
+                      { value: "entreprise", label: "Entreprise" },
+                    ].map(o => (
+                      <Badge
+                        key={o.value}
+                        variant={segmentAffectable === o.value ? "default" : "outline"}
+                        className="cursor-pointer rounded-full px-4 py-1 text-sm font-normal"
+                        onClick={() => setSegmentAffectable(o.value)}
+                      >
+                        {o.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* ==== Remarque du recruteur ==== */}
             <div className="rounded-xl border bg-muted/40 p-4">
               <Label className="text-sm">Remarque du recruteur</Label>
