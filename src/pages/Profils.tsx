@@ -262,10 +262,10 @@ export default function Profils() {
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all" || dispoInterventionFilter !== "all") && (
+        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all" || dispoInterventionFilter !== "all" || fumeFilter !== "all") && (
           <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
             setDateFrom(undefined); setDateTo(undefined);
-            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all"); setDispoInterventionFilter("all");
+            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all"); setDispoInterventionFilter("all"); setFumeFilter("all");
           }}>
             Réinitialiser
           </Button>
