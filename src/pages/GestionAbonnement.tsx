@@ -263,6 +263,12 @@ export default function GestionAbonnement() {
           <FactureImpayeeTable rows={facturesImpayees} navigate={navigate} />
         </TabsContent>
       </Tabs>
+
+      <AbonnementActionsModal
+        demande={actionState?.demande ?? null}
+        action={actionState?.action ?? null}
+        onClose={() => setActionState(null)}
+      />
     </div>
   );
 }
