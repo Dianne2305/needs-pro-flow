@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { PostulerModal } from "@/components/profils/PostulerModal";
-import { STATUT_PROFIL_OPTIONS, computeStatutEffectif } from "@/lib/profil-constants";
+import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
@@ -46,6 +46,7 @@ export default function Profils() {
   const [dispoFilter, setDispoFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
+  const [jourFilter, setJourFilter] = useState("all");
   
 
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
@@ -122,8 +123,13 @@ export default function Profils() {
       result = result.filter((p: any) => new Date(p.created_at) <= end);
     }
 
+    // Jour de disponibilité
+    if (jourFilter !== "all") {
+      result = result.filter((p: any) => p.disponibilite_calendrier?.[jourFilter]?.actif);
+    }
+
     return result;
-  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, search, dateFrom, dateTo]);
+  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, jourFilter, search, dateFrom, dateTo]);
 
   return (
     <div className="space-y-4">
@@ -179,6 +185,15 @@ export default function Profils() {
           </SelectContent>
         </Select>
 
+        <Select value={jourFilter} onValueChange={setJourFilter}>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Jour dispo." /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les jours</SelectItem>
+            {JOURS_SEMAINE.map(j => <SelectItem key={j.key} value={j.key}>{j.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs", !dateFrom && "text-muted-foreground")}>
@@ -201,10 +216,10 @@ export default function Profils() {
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all") && (
+        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all" || jourFilter !== "all") && (
           <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
             setDateFrom(undefined); setDateTo(undefined);
-            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all");
+            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all"); setJourFilter("all");
           }}>
             Réinitialiser
           </Button>
