@@ -24,8 +24,6 @@ import { STATUT_PROFIL_OPTIONS, computeStatutEffectif } from "@/lib/profil-const
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
-const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
-
 const DISPO_OPTIONS = [
   { value: "all", label: "Toutes disponibilités" },
   { value: "jours_feries", label: "Jours fériés" },
@@ -49,6 +47,7 @@ export default function Profils() {
   const [serviceFilter, setServiceFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
   const [operateurFilter, setOperateurFilter] = useState("all");
+
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [addOpen, setAddOpen] = useState(false);
