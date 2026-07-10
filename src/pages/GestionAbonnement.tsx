@@ -291,12 +291,6 @@ function KpiCard({ label, value, icon, gradient, onClick }: { label: string; val
 }
 
 function AbonnementTable({
-  rows, navigate, highlightEcheance, forceStatut, facturations = [], today,
-}: {
-  rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
-  navigate: ReturnType<typeof useNavigate>;
-  highlightEcheance?: boolean;
-function AbonnementTable({
   rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction,
 }: {
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
