@@ -168,6 +168,18 @@ export default function SuiviDusProfils() {
       if (filterStatut !== "all" && m.statut_paiement !== filterStatut) return false;
       if (filterReglement === "regle" && !m.part_profil_versee) return false;
       if (filterReglement === "non_regle" && m.part_profil_versee) return false;
+      if (filterEncaissementDC !== "all") {
+        const dc = getEncaissementDC(m);
+        if (!dc) return false;
+        if (filterEncaissementDC === "crediteur" && dc.label !== "Créditeur") return false;
+        if (filterEncaissementDC === "debiteur" && dc.label !== "Débiteur") return false;
+      }
+      if (quickFilter === "agence") {
+        if (!(m.encaisse_par === "profil" && !m.part_agence_reversee)) return false;
+      }
+      if (quickFilter === "profil") {
+        if (!(m.encaisse_par === "agence" && !m.part_profil_versee)) return false;
+      }
       if (dateFrom && m.date_intervention) {
         if (parseISO(m.date_intervention) < dateFrom) return false;
       }
@@ -187,9 +199,41 @@ export default function SuiviDusProfils() {
       }
       return true;
     });
-  }, [fdmMissions, filterStatut, filterReglement, dateFrom, dateTo, search]);
+  }, [fdmMissions, filterStatut, filterReglement, filterEncaissementDC, quickFilter, dateFrom, dateTo, search]);
 
-  const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+  /** Regroupement automatique des missions filtrées par profil. */
+  const profilGroups = useMemo(() => {
+    const map = new Map<string, {
+      profil_id: string | null;
+      profil_nom: string;
+      missions: Facturation[];
+      totalMissions: number;
+      profilDoitAgence: number;
+      agenceDoitProfil: number;
+      solde: number;
+    }>();
+    filtered.forEach((m) => {
+      if (m.statut_paiement === "facturation_annulee" || (m as any).statut_mission === "facturation_annulee") return;
+      const key = m.profil_id || `nom:${m.profil_nom || "—"}`;
+      const existing = map.get(key) || {
+        profil_id: m.profil_id,
+        profil_nom: m.profil_nom || "—",
+        missions: [],
+        totalMissions: 0,
+        profilDoitAgence: 0,
+        agenceDoitProfil: 0,
+        solde: 0,
+      };
+      existing.missions.push(m);
+      existing.totalMissions += 1;
+      if (m.encaisse_par === "profil" && !m.part_agence_reversee) existing.profilDoitAgence += partAgence(m);
+      if (m.encaisse_par === "agence" && !m.part_profil_versee) existing.agenceDoitProfil += partProfil(m);
+      existing.solde = existing.profilDoitAgence - existing.agenceDoitProfil;
+      map.set(key, existing);
+    });
+    return Array.from(map.values()).sort((a, b) => Math.abs(b.solde) - Math.abs(a.solde));
+  }, [filtered]);
+
 
   const totals = useMemo(() => {
     let ca = 0, profil = 0, agence = 0;
