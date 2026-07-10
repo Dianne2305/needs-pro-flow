@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { PostulerModal } from "@/components/profils/PostulerModal";
-import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS } from "@/lib/profil-constants";
+import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS, FUME_OPTIONS } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
