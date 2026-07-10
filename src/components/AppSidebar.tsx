@@ -106,8 +106,8 @@ export function AppSidebar() {
   };
 
   // Split items: before and after finance
-  const beforeFinance = items.slice(0, 5); // up to Historique
-  const afterFinance = items.slice(5); // Qualité, Marketing, Paramètres
+  const beforeFinance = items.slice(0, 6); // up to Gestion Abonnement
+  const afterFinance = items.slice(6); // Qualité, Marketing, Messagerie, Paramètres
 
   return (
     <Sidebar collapsible="icon">
