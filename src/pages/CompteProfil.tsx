@@ -277,17 +277,32 @@ export default function CompteProfil() {
           <Button size="sm" onClick={() => setShowPostuler(true)} className="gap-1.5">
             <UserPlus className="h-4 w-4" /> Postuler
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => {
-              updateMutation.mutate({ statut_profil: p.statut_profil === "blackliste" ? "disponible" : "blackliste" });
-            }}
-          >
-            <ShieldBan className="h-4 w-4" />
-            {p.statut_profil === "blackliste" ? "Débloquer" : "Blacklister"}
-          </Button>
+          {p.statut_profil === "blackliste" || p.statut_profil === "stand_by" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => updateMutation.mutate({ statut_profil: "disponible", standby_debut: null, standby_jours: null })}
+            >
+              <PlayCircle className="h-4 w-4" /> Réactiver
+            </Button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="destructive" size="sm" className="gap-1.5">
+                  <Pause className="h-4 w-4" /> Mise en pause
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => updateMutation.mutate({ statut_profil: "blackliste", standby_debut: null, standby_jours: null })}>
+                  <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => updateMutation.mutate({ statut_profil: "stand_by", standby_debut: new Date().toISOString(), standby_jours: null })}>
+                  <Pause className="h-4 w-4 mr-2" /> Stand-by
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
