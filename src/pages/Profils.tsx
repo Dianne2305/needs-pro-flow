@@ -19,18 +19,35 @@ import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { PostulerModal } from "@/components/profils/PostulerModal";
-import { PROFIL_FILTER_TABS, STATUT_PROFIL_OPTIONS } from "@/lib/profil-constants";
+import { STATUT_PROFIL_OPTIONS, computeStatutEffectif } from "@/lib/profil-constants";
+import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
 const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
+
+const DISPO_OPTIONS = [
+  { value: "all", label: "Toutes disponibilités" },
+  { value: "jours_feries", label: "Jours fériés" },
+  { value: "soiree", label: "Soirée" },
+  { value: "urgences", label: "Urgences" },
+] as const;
+
+const SEGMENT_OPTIONS = [
+  { value: "all", label: "Tous segments" },
+  { value: "tout", label: "Tout" },
+  { value: "particulier", label: "Particulier" },
+  { value: "entreprise", label: "Entreprise" },
+] as const;
 
 export default function Profils() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("all");
+  const [statutFilter, setStatutFilter] = useState("all");
+  const [dispoFilter, setDispoFilter] = useState("all");
+  const [serviceFilter, setServiceFilter] = useState("all");
+  const [segmentFilter, setSegmentFilter] = useState("all");
   const [operateurFilter, setOperateurFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
@@ -65,13 +82,24 @@ export default function Profils() {
   const filtered = useMemo(() => {
     let result = profils as any[];
 
-    // Tab filter
-    if (activeTab === "grand_menage") {
-      result = result.filter((p: any) => p.experiences?.some?.((e: any) => e.grand_menage));
-    } else if (activeTab === "menage_chantier") {
-      result = result.filter((p: any) => p.type_profil?.toLowerCase().includes("chantier"));
-    } else if (activeTab === "nettoyage_vitres") {
-      result = result.filter((p: any) => p.experiences?.some?.((e: any) => e.taches?.includes("Nettoyer les vitres et miroirs")));
+    // Statut
+    if (statutFilter !== "all") {
+      result = result.filter((p: any) => computeStatutEffectif(p) === statutFilter);
+    }
+
+    // Disponibilité
+    if (dispoFilter === "jours_feries") result = result.filter((p: any) => p.dispo_jours_feries);
+    else if (dispoFilter === "soiree") result = result.filter((p: any) => p.dispo_soiree);
+    else if (dispoFilter === "urgences") result = result.filter((p: any) => p.dispo_urgences);
+
+    // Service affectable
+    if (serviceFilter !== "all") {
+      result = result.filter((p: any) => Array.isArray(p.services_affectables) && p.services_affectables.includes(serviceFilter));
+    }
+
+    // Segment affectable
+    if (segmentFilter !== "all") {
+      result = result.filter((p: any) => (p.segment_affectable || "tout") === segmentFilter);
     }
 
     // Search
@@ -96,7 +124,7 @@ export default function Profils() {
     }
 
     return result;
-  }, [profils, activeTab, search, operateurFilter, dateFrom, dateTo]);
+  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, search, operateurFilter, dateFrom, dateTo]);
 
   return (
     <div className="space-y-4">
@@ -113,24 +141,6 @@ export default function Profils() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 border-b">
-        {PROFIL_FILTER_TABS.map(tab => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={cn(
-              "px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
-              activeTab === tab.value
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[200px]">
@@ -139,6 +149,37 @@ export default function Profils() {
             <Input placeholder="Rechercher par nom, numéro, ville, quartier..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
           </div>
         </div>
+
+        <Select value={statutFilter} onValueChange={setStatutFilter}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Statut" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous statuts</SelectItem>
+            {STATUT_PROFIL_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={dispoFilter} onValueChange={setDispoFilter}>
+          <SelectTrigger className="w-[170px]"><SelectValue placeholder="Disponibilité" /></SelectTrigger>
+          <SelectContent>
+            {DISPO_OPTIONS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={serviceFilter} onValueChange={setServiceFilter}>
+          <SelectTrigger className="w-[190px]"><SelectValue placeholder="Domaine d'intervention" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous services</SelectItem>
+            {TYPES_PRESTATION.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
+        <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Segment" /></SelectTrigger>
+          <SelectContent>
+            {SEGMENT_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
         <Select value={operateurFilter} onValueChange={setOperateurFilter}>
           <SelectTrigger className="w-[140px]"><SelectValue placeholder="Opérateur" /></SelectTrigger>
           <SelectContent>
@@ -168,8 +209,11 @@ export default function Profils() {
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+        {(dateFrom || dateTo || statutFilter !== "all" || dispoFilter !== "all" || serviceFilter !== "all" || segmentFilter !== "all") && (
+          <Button variant="ghost" size="sm" className="text-xs" onClick={() => {
+            setDateFrom(undefined); setDateTo(undefined);
+            setStatutFilter("all"); setDispoFilter("all"); setServiceFilter("all"); setSegmentFilter("all");
+          }}>
             Réinitialiser
           </Button>
         )}
@@ -189,7 +233,7 @@ export default function Profils() {
               <TableHead>Nationalité</TableHead>
               <TableHead>CIN</TableHead>
               <TableHead>Quartier / Ville</TableHead>
-              <TableHead>Disponibilité</TableHead>
+              <TableHead>Statut profil</TableHead>
               <TableHead>Langue</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
@@ -200,7 +244,8 @@ export default function Profils() {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={12} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
             ) : filtered.map((p: any) => {
-              const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === p.statut_profil);
+              const statutEff = computeStatutEffectif(p);
+              const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === statutEff);
               const languesArr: string[] = Array.isArray(p.langue) ? p.langue : [];
               return (
                 <TableRow key={p.id} className="hover:bg-muted/50">
