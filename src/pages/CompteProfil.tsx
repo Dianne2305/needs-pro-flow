@@ -77,6 +77,9 @@ export default function CompteProfil() {
   const [showEdit, setShowEdit] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [detailFeedback, setDetailFeedback] = useState<any>(null);
+  const [standbyOpen, setStandbyOpen] = useState(false);
+  const [standbyDays, setStandbyDays] = useState<string>("7");
+
 
   const photoRef = useRef<HTMLInputElement>(null);
   const cinRef = useRef<HTMLInputElement>(null);
