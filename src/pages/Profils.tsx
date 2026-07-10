@@ -295,9 +295,9 @@ export default function Profils() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={14} className="text-center py-10 text-muted-foreground">Chargement...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={15} className="text-center py-10 text-muted-foreground">Chargement...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={14} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
+              <TableRow><TableCell colSpan={15} className="text-center py-10 text-muted-foreground">Aucun profil trouvé</TableCell></TableRow>
             ) : filtered.map((p: any) => {
               const statutEff = computeStatutEffectif(p);
               const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === statutEff);
