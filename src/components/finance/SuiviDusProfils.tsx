@@ -376,6 +376,14 @@ export default function SuiviDusProfils() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={filterEncaissementDC} onValueChange={(v) => setFilterEncaissementDC(v as "all" | "crediteur" | "debiteur")}>
+              <SelectTrigger className="w-52"><SelectValue placeholder="Statut d'encaissement" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="crediteur">Créditeur</SelectItem>
+                <SelectItem value="debiteur">Débiteur</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={filterReglement} onValueChange={setFilterReglement}>
               <SelectTrigger className="w-48"><SelectValue placeholder="Règlement FDM" /></SelectTrigger>
               <SelectContent>
@@ -384,7 +392,30 @@ export default function SuiviDusProfils() {
                 <SelectItem value="non_regle">Non réglé</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant={groupByProfil ? "default" : "outline"}
+              onClick={() => setGroupByProfil((v) => !v)}
+              className="gap-1.5"
+              title="Regrouper les missions par profil et calculer les totaux"
+            >
+              <Users className="h-4 w-4" />
+              Regrouper par profil
+              {groupByProfil ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+            {(quickFilter !== "none" || filterEncaissementDC !== "all") && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => { setQuickFilter("none"); setFilterEncaissementDC("all"); }}
+                className="text-muted-foreground"
+              >
+                <X className="h-4 w-4 mr-1" /> Retirer filtres rapides
+              </Button>
+            )}
           </div>
+
         </div>
         <div className="flex gap-2 items-center flex-wrap">
           <span className="text-sm text-muted-foreground font-medium">Période :</span>
