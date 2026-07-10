@@ -296,9 +296,16 @@ function AbonnementTable({
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
   navigate: ReturnType<typeof useNavigate>;
   highlightEcheance?: boolean;
+function AbonnementTable({
+  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction,
+}: {
+  rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
+  navigate: ReturnType<typeof useNavigate>;
+  highlightEcheance?: boolean;
   forceStatut?: "actif" | "echeance" | "suspendu";
   facturations?: Facturation[];
   today: Date;
+  openAction: (d: Demande, action: AbonnementAction) => void;
 }) {
   if (!rows.length) return <EmptyState label="Aucun abonnement" />;
   return (
