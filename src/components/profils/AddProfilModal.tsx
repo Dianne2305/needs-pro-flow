@@ -141,6 +141,14 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   const [remarqueRecruteur, setRemarqueRecruteur] = useState("");
   const dateEnregistrement = format(new Date(), "dd/MM/yyyy");
 
+  // Domaine d'intervention
+  const [servicesAffectables, setServicesAffectables] = useState<string[]>([]);
+  const [segmentAffectable, setSegmentAffectable] = useState<string>("tout");
+  const [autreService, setAutreService] = useState("");
+  const toggleService = (s: string) =>
+    setServicesAffectables(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+
+
   // Expériences détaillées
   const [experiences, setExperiences] = useState<ExperienceForm[]>([]);
   const [showExpForm, setShowExpForm] = useState(false);
