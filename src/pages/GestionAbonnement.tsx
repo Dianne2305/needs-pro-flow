@@ -24,8 +24,36 @@ import { format, addDays, parseISO, differenceInCalendarDays, isSameDay } from "
 import { fr } from "date-fns/locale";
 import {
   CalendarCheck, CalendarClock, PauseCircle, CalendarDays,
-  Sun, Sunrise, FileText, FileWarning, Eye,
+  Sun, Sunrise, FileText, FileWarning, Eye, Building2, User,
+  RefreshCw, History, Receipt, Pause,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const FREQ_LABEL: Record<string, string> = {
+  "1_fois_semaine": "1×/semaine", "2_fois_semaine": "2×/semaine", "3_fois_semaine": "3×/semaine",
+  "4_fois_semaine": "4×/semaine", "5_fois_semaine": "5×/semaine", "6_fois_semaine": "6×/semaine",
+  "quotidien": "Quotidien",
+  "1_fois_mois": "1×/mois", "2_fois_mois": "2×/mois", "3_fois_mois": "3×/mois", "4_fois_mois": "4×/mois",
+  "bi-hebdomadaire": "Bi-hebdo", "hebdomadaire": "Hebdo", "mensuel": "Mensuel", "abonnement": "Abonnement",
+};
+
+function getInitials(name?: string | null): string {
+  if (!name) return "—";
+  return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
+}
+
+function getSegment(d: Demande): "entreprise" | "particulier" {
+  return d.nom_entreprise ? "entreprise" : "particulier";
+}
+
+function getNextIntervention(d: Demande, from: Date): Date | null {
+  const list = getInterventionsBetween(d, from, addDays(from, 365));
+  if (!list.length) return null;
+  list.sort((a, b) => a.getTime() - b.getTime());
+  return list[0];
+}
+
 
 type Demande = Tables<"demandes">;
 type Facturation = Tables<"facturation">;
