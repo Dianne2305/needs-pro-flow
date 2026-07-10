@@ -150,15 +150,15 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   // Media
   const [photo1, setPhoto1] = useState<File | null>(null);
   const [photo2, setPhoto2] = useState<File | null>(null);
-  const [photo3, setPhoto3] = useState<File | null>(null);
-  const [cinFile, setCinFile] = useState<File | null>(null);
+  const [cinRectoFile, setCinRectoFile] = useState<File | null>(null);
+  const [cinVersoFile, setCinVersoFile] = useState<File | null>(null);
   const [attestationFile, setAttestationFile] = useState<File | null>(null);
   const [ficheFile, setFicheFile] = useState<File | null>(null);
 
   const p1Ref = useRef<HTMLInputElement>(null);
   const p2Ref = useRef<HTMLInputElement>(null);
-  const p3Ref = useRef<HTMLInputElement>(null);
-  const cinRef = useRef<HTMLInputElement>(null);
+  const cinRectoRef = useRef<HTMLInputElement>(null);
+  const cinVersoRef = useRef<HTMLInputElement>(null);
   const attRef = useRef<HTMLInputElement>(null);
   const ficheRef = useRef<HTMLInputElement>(null);
 
@@ -228,8 +228,8 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
       const updates: Record<string, string> = {};
       if (photo1 && inserted) updates.photo_url = await uploadFile(photo1, inserted.id, "photo1");
       if (photo2 && inserted) updates.photo2_url = await uploadFile(photo2, inserted.id, "photo2");
-      if (photo3 && inserted) updates.photo3_url = await uploadFile(photo3, inserted.id, "photo3");
-      if (cinFile && inserted) updates.cin_url = await uploadFile(cinFile, inserted.id, "cin");
+      if (cinRectoFile && inserted) updates.cin_url = await uploadFile(cinRectoFile, inserted.id, "cin_recto");
+      if (cinVersoFile && inserted) updates.cin_verso_url = await uploadFile(cinVersoFile, inserted.id, "cin_verso");
       if (attestationFile && inserted) updates.attestation_url = await uploadFile(attestationFile, inserted.id, "attestation");
       if (ficheFile && inserted) updates.fiche_antropometrique_url = await uploadFile(ficheFile, inserted.id, "fiche");
       if (Object.keys(updates).length > 0 && inserted) {
@@ -517,8 +517,8 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FilePicker label="PHOTO 1" file={photo1} setFile={setPhoto1} refEl={p1Ref} accept="image/*" Icon={UserRound} />
                 <FilePicker label="PHOTO 2" file={photo2} setFile={setPhoto2} refEl={p2Ref} accept="image/*" Icon={UserRound} />
-                <FilePicker label="PHOTO 3" file={photo3} setFile={setPhoto3} refEl={p3Ref} accept="image/*" Icon={UserRound} />
-                <FilePicker label="CIN" file={cinFile} setFile={setCinFile} refEl={cinRef} accept="image/*,.pdf" Icon={Search} />
+                <FilePicker label="CIN RECTO" file={cinRectoFile} setFile={setCinRectoFile} refEl={cinRectoRef} accept="image/*,.pdf" Icon={Search} />
+                <FilePicker label="CIN VERSO" file={cinVersoFile} setFile={setCinVersoFile} refEl={cinVersoRef} accept="image/*,.pdf" Icon={Search} />
                 <FilePicker label="ATTESTATION" file={attestationFile} setFile={setAttestationFile} refEl={attRef} accept="image/*,.pdf" Icon={RefreshCw} />
                 <FilePicker label="FICHE ANTROPOMÉTRIQUE" file={ficheFile} setFile={setFicheFile} refEl={ficheRef} accept="image/*,.pdf" Icon={FileText} />
               </div>
