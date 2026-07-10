@@ -35,6 +35,7 @@ import {
   JOURS_SEMAINE,
   type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
+import { TYPES_PRESTATION } from "@/lib/constants";
 import { StatutProfilField, type StatutProfilValue } from "./StatutProfilField";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -140,6 +141,14 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
   const [remarqueRecruteur, setRemarqueRecruteur] = useState("");
   const dateEnregistrement = format(new Date(), "dd/MM/yyyy");
 
+  // Domaine d'intervention
+  const [servicesAffectables, setServicesAffectables] = useState<string[]>([]);
+  const [segmentAffectable, setSegmentAffectable] = useState<string>("tout");
+  const [autreService, setAutreService] = useState("");
+  const toggleService = (s: string) =>
+    setServicesAffectables(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
+
+
   // Expériences détaillées
   const [experiences, setExperiences] = useState<ExperienceForm[]>([]);
   const [showExpForm, setShowExpForm] = useState(false);
@@ -222,6 +231,9 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
         remarque_recruteur: remarqueRecruteur || null,
         experiences: experiences as any,
+        services_affectables: servicesAffectables as any,
+        segment_affectable: segmentAffectable,
+        autre_service: autreService || null,
       } as any).select("id").single();
       if (error) throw error;
 
@@ -493,6 +505,63 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
                     <Label htmlFor={d.id} className="text-sm cursor-pointer">{d.label}</Label>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* ==== Domaine d'intervention ==== */}
+            <div>
+              <h3 className="text-lg font-bold text-foreground mb-3">Domaine d'intervention</h3>
+              <div className="rounded-xl border bg-muted/40 p-4 space-y-4">
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Services affectables
+                  </Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                    {TYPES_PRESTATION.map(s => (
+                      <div key={s} className="flex items-center gap-2 bg-background rounded-md border px-3 h-9">
+                        <Checkbox
+                          id={`add-svc-${s}`}
+                          checked={servicesAffectables.includes(s)}
+                          onCheckedChange={() => toggleService(s)}
+                        />
+                        <Label htmlFor={`add-svc-${s}`} className="text-sm cursor-pointer">{s}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Autre service
+                  </Label>
+                  <Textarea
+                    value={autreService}
+                    onChange={e => setAutreService(e.target.value)}
+                    rows={2}
+                    placeholder="Préciser un service non listé…"
+                    className="resize-none mt-1 bg-background"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Segment affectable
+                  </Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {[
+                      { value: "tout", label: "Tout" },
+                      { value: "particulier", label: "Particulier" },
+                      { value: "entreprise", label: "Entreprise" },
+                    ].map(o => (
+                      <Badge
+                        key={o.value}
+                        variant={segmentAffectable === o.value ? "default" : "outline"}
+                        className="cursor-pointer rounded-full px-4 py-1 text-sm font-normal"
+                        onClick={() => setSegmentAffectable(o.value)}
+                      >
+                        {o.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
