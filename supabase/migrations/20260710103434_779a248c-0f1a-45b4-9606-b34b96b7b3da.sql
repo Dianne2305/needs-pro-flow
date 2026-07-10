@@ -1,0 +1,1 @@
+ALTER TABLE public.profils ADD COLUMN IF NOT EXISTS fiche_antropometrique_url text;

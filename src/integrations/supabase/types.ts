@@ -920,6 +920,7 @@ export type Database = {
           allergie_animaux: boolean | null
           attestation_url: string | null
           cin_url: string | null
+          cin_verso_url: string | null
           conge_debut: string | null
           conge_fin: string | null
           corpulence: string | null
@@ -935,6 +936,7 @@ export type Database = {
           experience_annees: number | null
           experience_mois: number | null
           experiences: Json | null
+          fiche_antropometrique_url: string | null
           formation_requise: string | null
           id: string
           langue: Json | null
@@ -945,6 +947,7 @@ export type Database = {
           note_operateur: string | null
           numero_cin: string | null
           photo_url: string | null
+          photo2_url: string | null
           pointure_chaussures: number | null
           prenom: string
           presentation_physique: string | null
@@ -966,6 +969,7 @@ export type Database = {
           allergie_animaux?: boolean | null
           attestation_url?: string | null
           cin_url?: string | null
+          cin_verso_url?: string | null
           conge_debut?: string | null
           conge_fin?: string | null
           corpulence?: string | null
@@ -981,6 +985,7 @@ export type Database = {
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
+          fiche_antropometrique_url?: string | null
           formation_requise?: string | null
           id?: string
           langue?: Json | null
@@ -991,6 +996,7 @@ export type Database = {
           note_operateur?: string | null
           numero_cin?: string | null
           photo_url?: string | null
+          photo2_url?: string | null
           pointure_chaussures?: number | null
           prenom: string
           presentation_physique?: string | null
@@ -1012,6 +1018,7 @@ export type Database = {
           allergie_animaux?: boolean | null
           attestation_url?: string | null
           cin_url?: string | null
+          cin_verso_url?: string | null
           conge_debut?: string | null
           conge_fin?: string | null
           corpulence?: string | null
@@ -1027,6 +1034,7 @@ export type Database = {
           experience_annees?: number | null
           experience_mois?: number | null
           experiences?: Json | null
+          fiche_antropometrique_url?: string | null
           formation_requise?: string | null
           id?: string
           langue?: Json | null
@@ -1037,6 +1045,7 @@ export type Database = {
           note_operateur?: string | null
           numero_cin?: string | null
           photo_url?: string | null
+          photo2_url?: string | null
           pointure_chaussures?: number | null
           prenom?: string
           presentation_physique?: string | null
