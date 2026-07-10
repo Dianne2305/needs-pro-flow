@@ -418,8 +418,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
               <h3 className="text-base font-semibold text-foreground mb-3">Caratéristiques</h3>
               <div className="rounded-xl border bg-muted/40 p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-2 md:pt-6">
-                  <Checkbox id="add-lire" checked={saitLireEcrire} onCheckedChange={v => setSaitLireEcrire(!!v)} />
-                  <Label htmlFor="add-lire" className="text-sm cursor-pointer">Sait lire et écrire</Label>
+                  <span className="text-sm text-muted-foreground">—</span>
                 </div>
                 <div>
                   <Label className="text-xs">Maladie / Handicap</Label>
