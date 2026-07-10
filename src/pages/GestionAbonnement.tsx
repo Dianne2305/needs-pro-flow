@@ -282,78 +282,210 @@ function KpiCard({ label, value, icon, gradient, onClick }: { label: string; val
 }
 
 function AbonnementTable({
-  rows, navigate, highlightEcheance, showImpaye, facturations = [],
+  rows, navigate, highlightEcheance, forceStatut, facturations = [], today,
 }: {
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
   navigate: ReturnType<typeof useNavigate>;
   highlightEcheance?: boolean;
-  showImpaye?: boolean;
+  forceStatut?: "actif" | "echeance" | "suspendu";
   facturations?: Facturation[];
+  today: Date;
 }) {
   if (!rows.length) return <EmptyState label="Aucun abonnement" />;
   return (
-    <div className="border rounded-lg overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>N°</TableHead>
-            <TableHead>Client</TableHead>
-            <TableHead>Ville</TableHead>
-            <TableHead>Service</TableHead>
-            <TableHead>Fréquence</TableHead>
-            <TableHead>Progression</TableHead>
-            <TableHead>Fin prévue</TableHead>
-            {showImpaye && <TableHead>Montant impayé</TableHead>}
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map(({ d, stats, joursRestants }) => {
-            const impaye = showImpaye
-              ? facturations
-                  .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
-                  .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0)
-              : 0;
-            return (
-              <TableRow key={d.id}>
-                <TableCell className="font-mono text-xs">#{d.num_demande}</TableCell>
-                <TableCell className="font-medium">{d.nom}</TableCell>
-                <TableCell>{d.ville}</TableCell>
-                <TableCell>{d.type_prestation}</TableCell>
-                <TableCell><Badge variant="outline">{d.frequence}</Badge></TableCell>
-                <TableCell className="text-sm">{stats.effectuees}/{stats.total}</TableCell>
-                <TableCell>
-                  {stats.dateFin ? (
-                    <div className="text-sm">
-                      <div>{format(stats.dateFin, "dd MMM yyyy", { locale: fr })}</div>
-                      {joursRestants !== null && (
-                        <Badge className={
-                          highlightEcheance || (joursRestants >= 0 && joursRestants <= 7)
-                            ? "bg-amber-100 text-amber-800"
-                            : joursRestants < 0 ? "bg-red-100 text-red-800" : "bg-emerald-100 text-emerald-800"
-                        }>
-                          {joursRestants < 0 ? `Expiré (${Math.abs(joursRestants)}j)` : `${joursRestants}j restants`}
-                        </Badge>
-                      )}
+    <TooltipProvider delayDuration={200}>
+      <div className="border rounded-lg overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>N° Abo</TableHead>
+              <TableHead>Com.</TableHead>
+              <TableHead>Client</TableHead>
+              <TableHead>Quartier / Ville</TableHead>
+              <TableHead>Type de service</TableHead>
+              <TableHead>Fréquence & contrat</TableHead>
+              <TableHead className="min-w-[160px]">Interventions</TableHead>
+              <TableHead>Prochaine intervention</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Paiement</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map(({ d, stats, joursRestants }) => {
+              const impaye = facturations
+                .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+                .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
+              const enRetard = impaye > 0;
+              const statut: "actif" | "echeance" | "suspendu" =
+                forceStatut ?? (enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 7 ? "echeance" : "actif"));
+              const statutMeta = {
+                actif: { dot: "bg-emerald-500", label: "Actif", cls: "bg-emerald-100 text-emerald-800" },
+                echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
+                suspendu: { dot: "bg-red-500", label: "Suspendu", cls: "bg-red-100 text-red-800" },
+              }[statut];
+              const dateDebut = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : (d.confirmed_at ? new Date(d.confirmed_at) : null);
+              const finProche = stats.dateFin && joursRestants !== null && joursRestants >= 0 && joursRestants < 30;
+              const segment = getSegment(d);
+              const nextDate = getNextIntervention(d, today);
+              const progressPct = stats.total > 0 ? Math.round((stats.effectuees / stats.total) * 100) : 0;
+              const commercial = d.commercial || d.commercial_createur || "";
+              const freqLabel = d.frequence ? (FREQ_LABEL[d.frequence] || d.frequence) : "—";
+
+              return (
+                <TableRow key={d.id}>
+                  {/* N° Abo */}
+                  <TableCell>
+                    <button
+                      onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement`)}
+                      className="font-mono text-xs text-primary hover:underline"
+                    >
+                      #{d.num_demande}
+                    </button>
+                  </TableCell>
+                  {/* Commercial abréviation + tooltip */}
+                  <TableCell>
+                    {commercial ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold cursor-default">
+                            {getInitials(commercial)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{commercial}</TooltipContent>
+                      </Tooltip>
+                    ) : <span className="text-muted-foreground text-xs">—</span>}
+                  </TableCell>
+                  {/* Client + icône segment */}
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          {segment === "entreprise" ? (
+                            <Building2 className="h-4 w-4 text-violet-600 shrink-0" />
+                          ) : (
+                            <User className="h-4 w-4 text-sky-600 shrink-0" />
+                          )}
+                        </TooltipTrigger>
+                        <TooltipContent>{segment === "entreprise" ? "Entreprise" : "Particulier"}</TooltipContent>
+                      </Tooltip>
+                      <span className="font-medium">{d.nom_entreprise || d.nom}</span>
                     </div>
-                  ) : <span className="text-muted-foreground">—</span>}
-                </TableCell>
-                {showImpaye && (
-                  <TableCell className="font-semibold text-red-600">{Math.round(impaye).toLocaleString("fr-FR")} DH</TableCell>
-                )}
-                <TableCell className="text-right">
-                  <Button size="sm" variant="ghost" onClick={() => navigate(`/compte-client?id=${d.id}`)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+                  </TableCell>
+                  {/* Quartier / Ville */}
+                  <TableCell className="text-sm">
+                    {d.quartier ? <div>{d.quartier}</div> : null}
+                    <div className="text-xs text-muted-foreground">{d.ville || "—"}</div>
+                  </TableCell>
+                  {/* Type service */}
+                  <TableCell className="text-sm">{d.type_prestation || d.type_service || "—"}</TableCell>
+                  {/* Fréquence + Nb interventions + Début/Fin */}
+                  <TableCell>
+                    <div className="space-y-1 text-xs">
+                      <Badge variant="outline" className="text-xs">{freqLabel}</Badge>
+                      <div className="text-muted-foreground">
+                        Nb : <span className="font-semibold text-foreground">{stats.effectuees}/{stats.total}</span>
+                      </div>
+                      <div className="text-muted-foreground">
+                        {dateDebut ? format(dateDebut, "dd/MM/yy", { locale: fr }) : "—"} → {stats.dateFin ? format(stats.dateFin, "dd/MM/yy", { locale: fr }) : "—"}
+                        {finProche && <Badge className="ml-1 bg-red-100 text-red-800 text-[10px] px-1.5 py-0">Fin {joursRestants}j</Badge>}
+                      </div>
+                    </div>
+                  </TableCell>
+                  {/* Progression */}
+                  <TableCell>
+                    <div className="space-y-1 min-w-[140px]">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-semibold">{stats.effectuees}/{stats.total}</span>
+                        <span className="text-muted-foreground">{progressPct}%</span>
+                      </div>
+                      <Progress value={progressPct} className="h-2" />
+                    </div>
+                  </TableCell>
+                  {/* Prochaine intervention */}
+                  <TableCell className="text-xs">
+                    {nextDate ? (
+                      <div>
+                        <div className="font-semibold">{format(nextDate, "EEE dd MMM", { locale: fr })}</div>
+                        <div className="text-muted-foreground">
+                          {d.heure_prestation || "—"} · {d.candidat_nom || <span className="italic">Non affecté</span>}
+                        </div>
+                      </div>
+                    ) : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  {/* Statut pastille */}
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-2.5 w-2.5 rounded-full ${statutMeta.dot}`} />
+                      <Badge className={statutMeta.cls}>{statutMeta.label}</Badge>
+                    </div>
+                  </TableCell>
+                  {/* Paiement */}
+                  <TableCell>
+                    {enRetard ? (
+                      <div className="text-xs">
+                        <Badge className="bg-red-100 text-red-800">En retard</Badge>
+                        <div className="mt-0.5 font-semibold text-red-600">{Math.round(impaye).toLocaleString("fr-FR")} DH</div>
+                      </div>
+                    ) : (
+                      <Badge className="bg-emerald-100 text-emerald-800">À jour</Badge>
+                    )}
+                  </TableCell>
+                  {/* Actions */}
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-0.5">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement`)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Voir fiche</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => navigate(`/compte-client?id=${d.id}&action=suspendre`)}>
+                            <Pause className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Suspendre</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => navigate(`/compte-client?id=${d.id}&action=renouveler`)}>
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Renouveler</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => navigate(`/gestion-financiere`)}>
+                            <Receipt className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Facturer</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/historique?client=${d.id}`)}>
+                            <History className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Historique</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </TooltipProvider>
   );
 }
+
 
 function InterventionTable({ rows, navigate }: { rows: { d: Demande; date: Date }[]; navigate: ReturnType<typeof useNavigate> }) {
   if (!rows.length) return <EmptyState label="Aucune intervention prévue" />;
