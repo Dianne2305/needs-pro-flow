@@ -56,6 +56,9 @@ export default function Profils() {
   const [addOpen, setAddOpen] = useState(false);
   const [deleteProfilId, setDeleteProfilId] = useState<string | null>(null);
   const [postulerProfil, setPostulerProfil] = useState<any | null>(null);
+  const [standbyProfilId, setStandbyProfilId] = useState<string | null>(null);
+  const [standbyDays, setStandbyDays] = useState<string>("7");
+
 
   const deleteProfilMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -70,9 +73,9 @@ export default function Profils() {
   });
 
   const pauseMutation = useMutation({
-    mutationFn: async ({ id, statut }: { id: string; statut: "blackliste" | "stand_by" | "disponible" }) => {
+    mutationFn: async ({ id, statut, jours }: { id: string; statut: "blackliste" | "stand_by" | "disponible"; jours?: number | null }) => {
       const updates: any = { statut_profil: statut };
-      if (statut === "stand_by") { updates.standby_debut = new Date().toISOString(); updates.standby_jours = null; }
+      if (statut === "stand_by") { updates.standby_debut = new Date().toISOString(); updates.standby_jours = jours ?? null; }
       else { updates.standby_debut = null; updates.standby_jours = null; }
       const { error } = await supabase.from("profils").update(updates).eq("id", id);
       if (error) throw error;
@@ -356,9 +359,10 @@ export default function Profils() {
                             <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "blackliste" })}>
                               <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "stand_by" })}>
+                            <DropdownMenuItem onClick={() => { setStandbyDays("7"); setStandbyProfilId(p.id); }}>
                               <Pause className="h-4 w-4 mr-2" /> Stand-by
                             </DropdownMenuItem>
+
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
@@ -403,6 +407,42 @@ export default function Profils() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Stand-by days dialog */}
+      <Dialog open={!!standbyProfilId} onOpenChange={(o) => !o && setStandbyProfilId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mise en stand-by</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Nombre de jours</label>
+            <Input
+              type="number"
+              min={1}
+              value={standbyDays}
+              onChange={(e) => setStandbyDays(e.target.value)}
+              placeholder="Ex: 7"
+            />
+            <p className="text-xs text-muted-foreground">
+              Le profil reviendra automatiquement en statut « Active » à l'expiration.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setStandbyProfilId(null)}>Annuler</Button>
+              <Button
+                onClick={() => {
+                  const n = Number(standbyDays);
+                  if (!n || n < 1) { toast({ title: "Nombre de jours invalide", variant: "destructive" }); return; }
+                  if (standbyProfilId) pauseMutation.mutate({ id: standbyProfilId, statut: "stand_by", jours: n });
+                  setStandbyProfilId(null);
+                }}
+              >
+                Confirmer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }

@@ -77,6 +77,9 @@ export default function CompteProfil() {
   const [showEdit, setShowEdit] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
   const [detailFeedback, setDetailFeedback] = useState<any>(null);
+  const [standbyOpen, setStandbyOpen] = useState(false);
+  const [standbyDays, setStandbyDays] = useState<string>("7");
+
 
   const photoRef = useRef<HTMLInputElement>(null);
   const cinRef = useRef<HTMLInputElement>(null);
@@ -297,9 +300,10 @@ export default function CompteProfil() {
                 <DropdownMenuItem onClick={() => updateMutation.mutate({ statut_profil: "blackliste", standby_debut: null, standby_jours: null })}>
                   <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => updateMutation.mutate({ statut_profil: "stand_by", standby_debut: new Date().toISOString(), standby_jours: null })}>
+                <DropdownMenuItem onClick={() => { setStandbyDays("7"); setStandbyOpen(true); }}>
                   <Pause className="h-4 w-4 mr-2" /> Stand-by
                 </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           )}
@@ -727,6 +731,42 @@ export default function CompteProfil() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Stand-by days dialog */}
+      <Dialog open={standbyOpen} onOpenChange={setStandbyOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mise en stand-by</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Nombre de jours</label>
+            <Input
+              type="number"
+              min={1}
+              value={standbyDays}
+              onChange={(e) => setStandbyDays(e.target.value)}
+              placeholder="Ex: 7"
+            />
+            <p className="text-xs text-muted-foreground">
+              Le profil reviendra automatiquement en statut « Active » à l'expiration.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setStandbyOpen(false)}>Annuler</Button>
+              <Button
+                onClick={() => {
+                  const n = Number(standbyDays);
+                  if (!n || n < 1) { toast({ title: "Nombre de jours invalide", variant: "destructive" }); return; }
+                  updateMutation.mutate({ statut_profil: "stand_by", standby_debut: new Date().toISOString(), standby_jours: n });
+                  setStandbyOpen(false);
+                }}
+              >
+                Confirmer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 }
