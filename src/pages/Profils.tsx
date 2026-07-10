@@ -13,8 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2, UserPlus } from "lucide-react";
+import { RefreshCw, Search, Plus, CalendarIcon, UserCheck, Trash2, UserPlus, Pause, ShieldBan, PlayCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,20 @@ export default function Profils() {
       queryClient.invalidateQueries({ queryKey: ["profils"] });
       toast({ title: "Profil supprimé" });
       setDeleteProfilId(null);
+    },
+  });
+
+  const pauseMutation = useMutation({
+    mutationFn: async ({ id, statut }: { id: string; statut: "blackliste" | "stand_by" | "disponible" }) => {
+      const updates: any = { statut_profil: statut };
+      if (statut === "stand_by") { updates.standby_debut = new Date().toISOString(); updates.standby_jours = null; }
+      else { updates.standby_debut = null; updates.standby_jours = null; }
+      const { error } = await supabase.from("profils").update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ["profils"] });
+      toast({ title: v.statut === "disponible" ? "Profil réactivé" : v.statut === "blackliste" ? "Profil blacklisté" : "Profil mis en stand-by" });
     },
   });
 
@@ -321,6 +336,32 @@ export default function Profils() {
                       <Button size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => setPostulerProfil(p)}>
                         <UserPlus className="h-3.5 w-3.5" /> Affectation
                       </Button>
+                      {p.statut_profil === "blackliste" || p.statut_profil === "stand_by" ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={() => pauseMutation.mutate({ id: p.id, statut: "disponible" })}
+                        >
+                          <PlayCircle className="h-3.5 w-3.5" /> Réactiver
+                        </Button>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1">
+                              <Pause className="h-3.5 w-3.5" /> Mise en pause
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "blackliste" })}>
+                              <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => pauseMutation.mutate({ id: p.id, statut: "stand_by" })}>
+                              <Pause className="h-4 w-4 mr-2" /> Stand-by
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
