@@ -231,6 +231,7 @@ export function AddProfilModal({ open, onOpenChange, onSuccess }: Props) {
         disponibilite_calendrier: calendrier as any,
         allergie_animaux: allergieAnimaux,
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
+        fume,
         remarque_recruteur: remarqueRecruteur || null,
         experiences: experiences as any,
         services_affectables: servicesAffectables as any,
