@@ -454,7 +454,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => navigate(`/compte-client?id=${d.id}&action=suspendre`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => openAction(d, "suspendre")}>
                             <Pause className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -462,7 +462,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => navigate(`/compte-client?id=${d.id}&action=renouveler`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => openAction(d, "renouveler")}>
                             <RefreshCw className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -470,7 +470,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => navigate(`/gestion-financiere`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => openAction(d, "facturer")}>
                             <Receipt className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
