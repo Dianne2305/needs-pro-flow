@@ -73,7 +73,7 @@ export default function Profils() {
   });
 
   const pauseMutation = useMutation({
-    mutationFn: async ({ id, statut }: { id: string; statut: "blackliste" | "stand_by" | "disponible" }) => {
+    mutationFn: async ({ id, statut, jours }: { id: string; statut: "blackliste" | "stand_by" | "disponible"; jours?: number | null }) => {
       const updates: any = { statut_profil: statut };
       if (statut === "stand_by") { updates.standby_debut = new Date().toISOString(); updates.standby_jours = jours ?? null; }
       else { updates.standby_debut = null; updates.standby_jours = null; }
