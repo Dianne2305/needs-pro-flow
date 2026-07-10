@@ -146,6 +146,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
       setDispo7j7(!!profil.dispo_7j7);
       setDispoJoursFeries(!!profil.dispo_jours_feries);
       setDisponibiliteIntervention(profil.disponibilite_intervention || "disponible");
+      setFume(profil.fume || "non");
       setExperiences(Array.isArray(profil.experiences) ? profil.experiences : []);
     }
   }, [profil, open]);
