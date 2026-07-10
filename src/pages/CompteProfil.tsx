@@ -336,6 +336,7 @@ export default function CompteProfil() {
             <InfoItem label="Maladie / Handicap" value={p.maladie_handicap || "Aucun"} />
             <InfoItem label="Présentation physique" value={presOpt?.label} />
             <InfoItem label="Corpulence" value={corpOpt?.label} />
+            <InfoItem label="Fume" value={p.fume === "oui" ? "Oui" : p.fume === "non" ? "Non" : "—"} />
           </div>
 
           {/* Disponibilités */}
