@@ -56,6 +56,9 @@ export default function Profils() {
   const [addOpen, setAddOpen] = useState(false);
   const [deleteProfilId, setDeleteProfilId] = useState<string | null>(null);
   const [postulerProfil, setPostulerProfil] = useState<any | null>(null);
+  const [standbyProfilId, setStandbyProfilId] = useState<string | null>(null);
+  const [standbyDays, setStandbyDays] = useState<string>("7");
+
 
   const deleteProfilMutation = useMutation({
     mutationFn: async (id: string) => {
