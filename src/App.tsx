@@ -48,6 +48,7 @@ const App = () => (
                 <Route path="/compte-profil" element={<CompteProfil />} />
                 <Route path="/clients" element={<ListingClients />} />
                 <Route path="/clients/abonnements" element={<SuiviAbonnements />} />
+                <Route path="/gestion-abonnement" element={<GestionAbonnement />} />
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/caisse" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/suivi-dus" element={<SuiviDusProfilsPage />} />
