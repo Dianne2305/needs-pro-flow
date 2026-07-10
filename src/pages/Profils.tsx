@@ -288,6 +288,7 @@ export default function Profils() {
               <TableHead>Quartier / Ville</TableHead>
               <TableHead>Statut profil</TableHead>
               <TableHead>Disponibilité d'intervention</TableHead>
+              <TableHead>Fume</TableHead>
               <TableHead>Langue</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
