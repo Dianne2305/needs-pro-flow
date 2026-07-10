@@ -221,6 +221,7 @@ export default function CompteProfil() {
   const languesArr: string[] = Array.isArray(p.langue) ? p.langue : [];
   const experiences: any[] = Array.isArray(p.experiences) ? p.experiences : [];
   const statutOpt = STATUT_PROFIL_OPTIONS.find(s => s.value === p.statut_profil);
+  const dispoInterventionOpt = DISPONIBILITE_INTERVENTION_OPTIONS.find(o => o.value === (p.disponibilite_intervention || "disponible"));
   const presOpt = PRESENTATIONS_PHYSIQUES.find(pr => pr.value === p.presentation_physique);
   const corpOpt = CORPULENCES.find(c => c.value === p.corpulence);
   const age = p.date_naissance ? Math.floor((Date.now() - new Date(p.date_naissance).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : null;
