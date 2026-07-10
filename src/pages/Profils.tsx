@@ -208,6 +208,14 @@ export default function Profils() {
           </SelectContent>
         </Select>
 
+        <Select value={fumeFilter} onValueChange={setFumeFilter}>
+          <SelectTrigger className="w-[120px]"><SelectValue placeholder="Fume" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Fume ?</SelectItem>
+            {FUME_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+
         <Select value={serviceFilter} onValueChange={setServiceFilter}>
           <SelectTrigger className="w-[190px]"><SelectValue placeholder="Domaine d'intervention" /></SelectTrigger>
           <SelectContent>
