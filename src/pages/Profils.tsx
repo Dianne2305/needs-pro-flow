@@ -24,8 +24,6 @@ import { STATUT_PROFIL_OPTIONS, computeStatutEffectif } from "@/lib/profil-const
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
 
-const COMMERCIAUX = ["Mehdi", "Kaoutar"] as const;
-
 const DISPO_OPTIONS = [
   { value: "all", label: "Toutes disponibilités" },
   { value: "jours_feries", label: "Jours fériés" },
@@ -48,7 +46,8 @@ export default function Profils() {
   const [dispoFilter, setDispoFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [segmentFilter, setSegmentFilter] = useState("all");
-  const [operateurFilter, setOperateurFilter] = useState("all");
+  
+
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [addOpen, setAddOpen] = useState(false);
@@ -124,7 +123,7 @@ export default function Profils() {
     }
 
     return result;
-  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, search, operateurFilter, dateFrom, dateTo]);
+  }, [profils, statutFilter, dispoFilter, serviceFilter, segmentFilter, search, dateFrom, dateTo]);
 
   return (
     <div className="space-y-4">
@@ -180,13 +179,6 @@ export default function Profils() {
           </SelectContent>
         </Select>
 
-        <Select value={operateurFilter} onValueChange={setOperateurFilter}>
-          <SelectTrigger className="w-[140px]"><SelectValue placeholder="Opérateur" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
-            {COMMERCIAUX.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("gap-1.5 text-xs", !dateFrom && "text-muted-foreground")}>
