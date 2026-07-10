@@ -257,6 +257,9 @@ export default function CompteProfil() {
                 {statutOpt && (
                   <Badge variant="outline" className={cn("border-0 text-xs", statutOpt.color)}>{statutOpt.label}</Badge>
                 )}
+                {dispoInterventionOpt && (
+                  <Badge variant="outline" className={cn("border-0 text-xs", dispoInterventionOpt.color)}>{dispoInterventionOpt.label}</Badge>
+                )}
               </div>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-xs text-muted-foreground">{p.type_profil || "Non défini"}</span>
