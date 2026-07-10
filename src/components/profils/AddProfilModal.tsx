@@ -35,6 +35,7 @@ import {
   JOURS_SEMAINE,
   type DisponibiliteCalendrier,
 } from "@/lib/profil-constants";
+import { TYPES_PRESTATION } from "@/lib/constants";
 import { StatutProfilField, type StatutProfilValue } from "./StatutProfilField";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
