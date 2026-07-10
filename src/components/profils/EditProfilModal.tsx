@@ -199,6 +199,7 @@ export function EditProfilModal({ open, onOpenChange, onSuccess, profil }: Props
         disponibilite_intervention: disponibiliteIntervention,
         allergie_animaux: allergieAnimaux,
         pointure_chaussures: pointureChaussures ? Number(pointureChaussures) : null,
+        fume,
         remarque_recruteur: remarqueRecruteur || null,
         experiences: experiences as any,
       } as any).eq("id", profil.id);
