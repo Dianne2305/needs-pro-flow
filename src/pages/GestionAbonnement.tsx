@@ -242,13 +242,13 @@ export default function GestionAbonnement() {
         </TabsList>
 
         <TabsContent value="actifs">
-          <AbonnementTable rows={abosActifs} navigate={navigate} facturations={facturations} today={today} />
+          <AbonnementTable rows={abosActifs} navigate={navigate} facturations={facturations} today={today} openAction={openAction} />
         </TabsContent>
         <TabsContent value="echeance">
-          <AbonnementTable rows={abosEcheance} navigate={navigate} facturations={facturations} today={today} highlightEcheance />
+          <AbonnementTable rows={abosEcheance} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} />
         </TabsContent>
         <TabsContent value="suspendus">
-          <AbonnementTable rows={abosSuspendus} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" />
+          <AbonnementTable rows={abosSuspendus} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} />
         </TabsContent>
         <TabsContent value="today">
           <InterventionTable rows={interventionsToday} navigate={navigate} />
