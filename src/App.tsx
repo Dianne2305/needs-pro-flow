@@ -23,6 +23,7 @@ import QualiteFeedback from "./pages/QualiteFeedback";
 import FeedbackForm from "./pages/FeedbackForm";
 import Marketing from "./pages/Marketing";
 import Messagerie from "./pages/Messagerie";
+import GestionAbonnement from "./pages/GestionAbonnement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
