@@ -234,6 +234,9 @@ export default function SuiviDusProfils() {
     return Array.from(map.values()).sort((a, b) => Math.abs(b.solde) - Math.abs(a.solde));
   }, [filtered]);
 
+  const fmt = (n: number) => n.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " DH";
+
+
 
   const totals = useMemo(() => {
     let ca = 0, profil = 0, agence = 0;
