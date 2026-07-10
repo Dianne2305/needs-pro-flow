@@ -300,9 +300,10 @@ export default function CompteProfil() {
                 <DropdownMenuItem onClick={() => updateMutation.mutate({ statut_profil: "blackliste", standby_debut: null, standby_jours: null })}>
                   <ShieldBan className="h-4 w-4 mr-2" /> Blacklisté
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => updateMutation.mutate({ statut_profil: "stand_by", standby_debut: new Date().toISOString(), standby_jours: null })}>
+                <DropdownMenuItem onClick={() => { setStandbyDays("7"); setStandbyOpen(true); }}>
                   <Pause className="h-4 w-4 mr-2" /> Stand-by
                 </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           )}
