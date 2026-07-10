@@ -70,6 +70,10 @@ export default function SuiviDusProfils() {
   const [search, setSearch] = useState("");
   const [filterStatut, setFilterStatut] = useState("all");
   const [filterReglement, setFilterReglement] = useState("all");
+  const [filterEncaissementDC, setFilterEncaissementDC] = useState<"all" | "crediteur" | "debiteur">("all");
+  /** Raccourci via voyants KPI : 'agence' = Part agence non réglée, 'profil' = Part profil non réglée. */
+  const [quickFilter, setQuickFilter] = useState<"none" | "agence" | "profil">("none");
+  const [groupByProfil, setGroupByProfil] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const [editMission, setEditMission] = useState<Facturation | null>(null);
