@@ -149,7 +149,11 @@ export default function GestionAbonnement() {
   }), [abonnements, today]);
 
   const abosActifs = useMemo(
-    () => abosEnriched.filter(({ stats, joursRestants }) => (joursRestants === null || joursRestants >= 0) && stats.restantes > 0),
+    () => abosEnriched.filter(({ d, stats, joursRestants }) =>
+      (joursRestants === null || joursRestants >= 0)
+      && (stats.total === 0 || stats.restantes > 0)
+      && !["paye", "annulee", "facturation_annulee", "cloturee", "rejetee"].includes(d.statut as string)
+    ),
     [abosEnriched]
   );
 
