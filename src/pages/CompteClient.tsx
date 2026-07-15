@@ -870,9 +870,12 @@ export default function CompteClient() {
                 frequence: aboFrequence,
                 notes: aboNotes,
                 date_overrides: aboDateOverrides,
+                heure_debut: aboHeureDebut,
+                heure_fin: aboHeureFin,
                 total_interventions_estime: totalInterventions,
               };
               const updates: Record<string, unknown> = { planning: newPlanning as any };
+              if (aboHeureDebut) updates.heure_prestation = aboHeureDebut;
               // Ne synchroniser demandes.frequence que si la valeur existe dans le référentiel
               if (FREQUENCES.some((f) => f.value === aboFrequence)) {
                 updates.frequence = aboFrequence;
