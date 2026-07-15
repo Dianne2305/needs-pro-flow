@@ -1223,7 +1223,7 @@ export default function CompteClient() {
                           ? aboJours
                               .map(
                                 (j) =>
-                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure ? ` à ${j.heure}` : ""}`,
+                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `–${j.heure_fin}` : ""}` : ""}`,
                               )
                               .join(", ")
                           : "—"}
