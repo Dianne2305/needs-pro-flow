@@ -933,6 +933,7 @@ export default function CompteClient() {
                       disabled
                       className="bg-muted cursor-not-allowed"
                     />
+                  </div>
                 </div>
 
                 {/* Section 2b : Heures d'intervention */}
