@@ -964,29 +964,40 @@ export default function CompteClient() {
                   if (months.length === 0) return null;
                   const activeIdx = months.findIndex((m) => isSameMonth(m, aboCalMonth));
                   return (
-                    <div className="flex flex-wrap gap-1.5 -mb-3 border-b border-border/50 pb-0">
-                      {months.map((m, i) => {
-                        const active = i === activeIdx;
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() => setAboCalMonth(m)}
-                            className={cn(
-                              "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px",
-                              active
-                                ? "bg-primary/10 border-primary/30 text-primary"
-                                : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted",
-                            )}
-                            title={format(m, "MMMM yyyy", { locale: fr })}
-                          >
-                            Mois {i + 1}
-                            <span className="ml-1.5 text-[10px] opacity-70 capitalize">
-                              {format(m, "MMM yy", { locale: fr })}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    <div className="flex flex-wrap items-end justify-between gap-2 -mb-3 border-b border-border/50 pb-0">
+                      <div className="flex flex-wrap gap-1.5">
+                        {months.map((m, i) => {
+                          const active = i === activeIdx;
+                          return (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => setAboCalMonth(m)}
+                              className={cn(
+                                "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px",
+                                active
+                                  ? "bg-primary/10 border-primary/30 text-primary"
+                                  : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted",
+                              )}
+                              title={format(m, "MMMM yyyy", { locale: fr })}
+                            >
+                              Mois {i + 1}
+                              <span className="ml-1.5 text-[10px] opacity-70 capitalize">
+                                {format(m, "MMM yy", { locale: fr })}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleActiverMoisProchain}
+                        disabled={!isValid || updateMutation.isPending}
+                        className="h-8 text-xs gap-1.5 -mb-px rounded-t-lg border-b-0"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" /> Activer le mois prochain
+                      </Button>
                     </div>
                   );
                 })()}
