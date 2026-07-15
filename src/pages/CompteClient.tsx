@@ -301,6 +301,7 @@ export default function CompteClient() {
     const p = ((demande as any).planning || {}) as any;
     setAboFrequence(p.abo_frequence || p.frequence || demande.frequence || "");
     setAboDateDebut(p.date_debut || "");
+    if (p.date_debut) { try { setAboCalMonth(parseISO(p.date_debut)); } catch { /* noop */ } }
     setAboDureeMois(typeof p.duree_mois === "number" ? p.duree_mois : 1);
     if (Array.isArray(p.abo_jours)) {
       setAboJours(p.abo_jours);
