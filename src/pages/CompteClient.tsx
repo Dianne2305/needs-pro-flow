@@ -1059,13 +1059,13 @@ export default function CompteClient() {
                               const isToday = isSameDay(d, new Date());
                               return (
                                 <Popover key={i}>
-                                  <PopoverTrigger asChild disabled={!inMonth}>
+                                  <PopoverTrigger asChild>
                                     <button
                                       type="button"
                                       className={cn(
                                         "min-h-[68px] border-r border-b last:border-r-0 p-1.5 flex flex-col items-start text-left transition-colors",
                                         (i + 1) % 7 === 0 && "border-r-0",
-                                        !inMonth && "bg-muted/30 text-muted-foreground/40 cursor-default",
+                                        !inMonth && "bg-muted/30 text-muted-foreground/50 hover:bg-muted/50",
                                         inMonth && !isIntervention && "hover:bg-muted/40",
                                         isIntervention && inMonth && "bg-primary/10 hover:bg-primary/15",
                                       )}
