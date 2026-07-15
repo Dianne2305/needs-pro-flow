@@ -241,8 +241,6 @@ export default function CompteClient() {
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
   const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; excluded?: boolean }>>({});
-  const [aboHeureDebut, setAboHeureDebut] = useState<string>("");
-  const [aboHeureFin, setAboHeureFin] = useState<string>("");
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
@@ -319,9 +317,8 @@ export default function CompteClient() {
     }
     setAboNotes(p.notes || "");
     if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
-    setAboHeureDebut(p.heure_debut || demande.heure_prestation || "");
-    setAboHeureFin(p.heure_fin || "");
     setAboFormInitialized(true);
+
   }
 
   if (demande && !renewInitialized) {
@@ -806,8 +803,9 @@ export default function CompteClient() {
                   });
                   return prev;
                 }
-                const next = [...prev, { jour, heure_debut: aboHeureDebut || "", heure_fin: aboHeureFin || "" }];
+                const next = [...prev, { jour, heure_debut: "", heure_fin: "" }];
                 next.sort(
+
                   (a, b) =>
                     JOURS_SEMAINE.findIndex((x) => x.value === a.jour) -
                     JOURS_SEMAINE.findIndex((x) => x.value === b.jour),
@@ -870,13 +868,11 @@ export default function CompteClient() {
                 frequence: aboFrequence,
                 notes: aboNotes,
                 date_overrides: aboDateOverrides,
-                heure_debut: aboHeureDebut,
-                heure_fin: aboHeureFin,
                 total_interventions_estime: totalInterventions,
               };
               const updates: Record<string, unknown> = { planning: newPlanning as any };
-              if (aboHeureDebut) updates.heure_prestation = aboHeureDebut;
               // Ne synchroniser demandes.frequence que si la valeur existe dans le référentiel
+
               if (FREQUENCES.some((f) => f.value === aboFrequence)) {
                 updates.frequence = aboFrequence;
               }
@@ -936,33 +932,8 @@ export default function CompteClient() {
                   </div>
                 </div>
 
-                {/* Section 2b : Heures d'intervention */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Heure de début *
-                    </Label>
-                    <Input
-                      type="time"
-                      value={aboHeureDebut}
-                      onChange={(e) => setAboHeureDebut(e.target.value)}
-                      className="bg-background"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Heure de fin
-                    </Label>
-                    <Input
-                      type="time"
-                      value={aboHeureFin}
-                      onChange={(e) => setAboHeureFin(e.target.value)}
-                      className="bg-background"
-                    />
-                  </div>
-                </div>
-
                 {/* Section 3 : Jours et heures */}
+
                 <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
