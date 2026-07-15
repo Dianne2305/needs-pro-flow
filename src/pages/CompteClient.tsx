@@ -239,6 +239,7 @@ export default function CompteClient() {
   const [aboJours, setAboJours] = useState<{ jour: string; heure: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
+  const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
