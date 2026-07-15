@@ -755,311 +755,319 @@ export default function CompteClient() {
           </Button>
         </div>
 
-        {/* Fréquence */}
-        <Section title="Type de Fréquence" icon={Clock} defaultOpen colorClass="bg-[#BFDDCE]">
-          <div className="space-y-4">
-            {/* Header: pill fréquence + libellé + statut planning */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <Badge className="text-sm px-3 py-1 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/10">
-                  {freq?.label || demande.frequence}
-                </Badge>
-                <span className="text-sm text-muted-foreground">
-                  {demande.frequence === "ponctuel" ? "Intervention unique" : `Abonnement — ${demande.type_prestation || ""}`}
-                </span>
-              </div>
-              {demande.frequence !== "ponctuel" && (() => {
-                const total = planning.semaines.length;
-                const done = planning.semaines.filter((s) => s.statut === "termine").length;
-                const isDone = total > 0 && done === total;
-                return (
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Statut planning :</span>
-                    <Badge className={cn(
-                      "px-2.5 py-0.5",
-                      isDone ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-sky-100 text-sky-800 border-sky-200",
-                    )}>
-                      {isDone ? "Terminé" : "En cours"}
-                    </Badge>
-                  </div>
-                );
-              })()}
-            </div>
+        {/* Gestion de l'abonnement */}
+        <Section title="Gestion de l'abonnement" icon={Clock} defaultOpen colorClass="bg-[#BFDDCE]">
+          {(() => {
+            const ABO_FREQ_OPTIONS = [
+              { value: "1_fois_semaine", label: "1 fois par semaine", maxJours: 1 },
+              { value: "2_fois_semaine", label: "2 fois par semaine", maxJours: 2 },
+              { value: "3_fois_semaine", label: "3 fois par semaine", maxJours: 3 },
+              { value: "bi_hebdomadaire", label: "Toutes les 2 semaines", maxJours: 1 },
+              { value: "1_fois_mois", label: "1 fois par mois", maxJours: 1 },
+            ];
+            const DUREE_OPTIONS = [
+              { value: 1, label: "1 mois" },
+              { value: 3, label: "3 mois" },
+              { value: 6, label: "6 mois" },
+              { value: 12, label: "12 mois" },
+            ];
+            const currentFreq = ABO_FREQ_OPTIONS.find((f) => f.value === aboFrequence);
+            const maxJours = currentFreq?.maxJours ?? 7;
 
-            {demande.frequence !== "ponctuel" && (
-              <div className="space-y-4 border-t pt-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">Planning de l'abonnement</p>
-                  <Button size="sm" onClick={savePlanning} disabled={updateMutation.isPending} className="gap-1.5">
-                    <FileText className="h-3.5 w-3.5" /> Enregistrer le planning
-                  </Button>
+            // Date de fin auto = date de début + durée
+            const dateFinAuto = (() => {
+              if (!aboDateDebut) return "";
+              try {
+                const d = parseISO(aboDateDebut);
+                const end = new Date(d);
+                end.setMonth(end.getMonth() + aboDureeMois);
+                end.setDate(end.getDate() - 1);
+                return format(end, "yyyy-MM-dd");
+              } catch { return ""; }
+            })();
+
+            const toggleJour = (jour: string) => {
+              setAboJours((prev) => {
+                const exists = prev.find((j) => j.jour === jour);
+                if (exists) return prev.filter((j) => j.jour !== jour);
+                if (prev.length >= maxJours) {
+                  toast({
+                    title: "Nombre de jours max atteint",
+                    description: `Cette fréquence autorise ${maxJours} jour(s).`,
+                    variant: "destructive",
+                  });
+                  return prev;
+                }
+                const next = [...prev, { jour, heure: "" }];
+                next.sort(
+                  (a, b) =>
+                    JOURS_SEMAINE.findIndex((x) => x.value === a.jour) -
+                    JOURS_SEMAINE.findIndex((x) => x.value === b.jour),
+                );
+                return next;
+              });
+            };
+            const setJourHeure = (jour: string, heure: string) => {
+              setAboJours((prev) => prev.map((j) => (j.jour === jour ? { ...j, heure } : j)));
+            };
+
+            // Calcul du nombre total d'interventions
+            const totalInterventions = (() => {
+              if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return 0;
+              const dayMap: Record<string, number> = {
+                dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
+              };
+              const selected = aboJours.map((j) => dayMap[j.jour]).filter((n) => n !== undefined);
+              if (selected.length === 0) return 0;
+              let start: Date, end: Date;
+              try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); }
+              catch { return 0; }
+              if (end < start) return 0;
+              const startMs = start.getTime();
+              const seenMonth = new Set<string>();
+              let count = 0;
+              for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+                if (!selected.includes(d.getDay())) continue;
+                if (aboFrequence === "bi_hebdomadaire") {
+                  const weekNo = Math.floor((d.getTime() - startMs) / (7 * 24 * 3600 * 1000));
+                  if (weekNo % 2 !== 0) continue;
+                }
+                if (aboFrequence === "1_fois_mois") {
+                  const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
+                  if (seenMonth.has(key)) continue;
+                  seenMonth.add(key);
+                }
+                count++;
+              }
+              return count;
+            })();
+
+            const isValid = aboFrequence && aboDateDebut && aboJours.length > 0;
+
+            const handleSave = () => {
+              if (!isValid) {
+                toast({
+                  title: "Formulaire incomplet",
+                  description: "Sélectionnez une fréquence, une date de démarrage et au moins un jour.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              const newPlanning = {
+                abo_frequence: aboFrequence,
+                abo_jours: aboJours,
+                date_debut: aboDateDebut,
+                date_fin: dateFinAuto,
+                duree_mois: aboDureeMois,
+                frequence: aboFrequence,
+                notes: aboNotes,
+                total_interventions_estime: totalInterventions,
+              };
+              const updates: Record<string, unknown> = { planning: newPlanning as any };
+              // Ne synchroniser demandes.frequence que si la valeur existe dans le référentiel
+              if (FREQUENCES.some((f) => f.value === aboFrequence)) {
+                updates.frequence = aboFrequence;
+              }
+              updateMutation.mutate(updates);
+            };
+
+            return (
+              <div className="space-y-5">
+                {/* Section 1 : Type de fréquence */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Type de fréquence *
+                  </Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                    {ABO_FREQ_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setAboFrequence(opt.value);
+                          setAboJours((prev) => prev.slice(0, opt.maxJours));
+                        }}
+                        className={cn(
+                          "text-xs font-medium px-3 py-2 rounded-lg border transition-all text-left",
+                          aboFrequence === opt.value
+                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                            : "bg-background border-border hover:border-primary/40 hover:bg-primary/5",
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Fréquence + Dates abonnement */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Section 2 : Période */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Fréquence de l'abonnement</Label>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Date de démarrage *
+                    </Label>
+                    <Input
+                      type="date"
+                      value={aboDateDebut}
+                      onChange={(e) => setAboDateDebut(e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Durée de l'abonnement
+                    </Label>
                     <Select
-                      value={planning.frequence}
-                      onValueChange={(v) => setPlanning({ ...planning, frequence: v })}
+                      value={String(aboDureeMois)}
+                      onValueChange={(v) => setAboDureeMois(Number(v))}
                     >
-                      <SelectTrigger className="bg-background/60">
-                        <SelectValue placeholder="Sélectionner..." />
+                      <SelectTrigger className="bg-background">
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {FREQUENCES.filter((f) => f.value !== "ponctuel").map((f) => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        {DUREE_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Date de début de l'abonnement *</Label>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Date de fin (auto)
+                    </Label>
                     <Input
                       type="date"
-                      value={planning.date_debut}
-                      onChange={(e) => setPlanning({ ...planning, date_debut: e.target.value })}
-                      className="bg-background/60"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Date de fin (optionnel)</Label>
-                    <Input
-                      type="date"
-                      value={planning.date_fin}
-                      onChange={(e) => setPlanning({ ...planning, date_fin: e.target.value })}
-                      className="bg-background/60"
+                      value={dateFinAuto}
+                      readOnly
+                      disabled
+                      className="bg-muted cursor-not-allowed"
                     />
                   </div>
                 </div>
 
-                {/* Semaines groupées par mois */}
-                <div className="space-y-3">
+                {/* Section 3 : Jours et heures */}
+                <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold text-muted-foreground">Semaines & jours d'intervention</Label>
-                    <Button type="button" size="sm" onClick={addNextMonth} className="h-8 gap-1.5">
-                      <CalendarIcon className="h-3.5 w-3.5" /> Ajouter le mois suivant
-                    </Button>
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Jours d'intervention *
+                    </Label>
+                    <span className="text-[11px] text-muted-foreground">
+                      {aboJours.length}/{maxJours} jour(s) sélectionné(s)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                    {JOURS_SEMAINE.map((j) => {
+                      const selected = aboJours.find((aj) => aj.jour === j.value);
+                      const disabled = !selected && aboJours.length >= maxJours;
+                      return (
+                        <button
+                          key={j.value}
+                          type="button"
+                          onClick={() => toggleJour(j.value)}
+                          disabled={disabled}
+                          className={cn(
+                            "text-xs font-medium px-2 py-2 rounded-lg border transition-all",
+                            selected
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : disabled
+                                ? "bg-muted text-muted-foreground border-border opacity-50 cursor-not-allowed"
+                                : "bg-background border-border hover:border-primary/40 hover:bg-primary/5",
+                          )}
+                        >
+                          {j.label}
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  {planning.semaines.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic px-1">
-                      Aucune semaine. Cliquez sur "Ajouter le mois suivant" pour générer 4 semaines.
-                    </p>
-                  )}
-
-                  {(() => {
-                    // Grouper les semaines par mois (basé sur semaine_debut). "Sans date" ⇒ groupe séparé.
-                    type Group = { key: string; label: string; range?: string; items: { sem: PlanningSemaine; idx: number }[] };
-                    const groups: Group[] = [];
-                    const byKey = new Map<string, Group>();
-                    planning.semaines.forEach((sem, idx) => {
-                      let key = "sans-date";
-                      if (sem.semaine_debut) {
-                        try {
-                          const d = parseISO(sem.semaine_debut);
-                          key = format(d, "yyyy-MM");
-                        } catch { /* ignore */ }
-                      }
-                      let g = byKey.get(key);
-                      if (!g) {
-                        g = { key, label: "", items: [] };
-                        byKey.set(key, g);
-                        groups.push(g);
-                      }
-                      g.items.push({ sem, idx });
-                    });
-                    // Compléter les labels
-                    let monthNum = 0;
-                    for (const g of groups) {
-                      monthNum++;
-                      g.label = g.key === "sans-date" ? `Semaines sans date` : `Mois ${monthNum}`;
-                      const dates = g.items.map((it) => it.sem.semaine_debut).filter(Boolean).sort();
-                      const fins = g.items.map((it) => it.sem.semaine_fin || it.sem.semaine_debut).filter(Boolean).sort();
-                      if (dates.length && fins.length) {
-                        try {
-                          const d1 = format(parseISO(dates[0]), "dd/MM/yyyy");
-                          const d2 = format(parseISO(fins[fins.length - 1]), "dd/MM/yyyy");
-                          g.range = `du ${d1} au ${d2}`;
-                        } catch { /* ignore */ }
-                      }
-                    }
-
-                    return groups.map((g) => (
-                      <div key={g.key} className="border rounded-lg bg-muted/30 p-3 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <CalendarIcon className="h-4 w-4 text-primary" />
-                            <span className="text-sm font-semibold">{g.label}</span>
-                            {g.range && <span className="text-xs text-muted-foreground">({g.range})</span>}
+                  {aboJours.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <Label className="text-[11px] text-muted-foreground">Heure pour chaque jour</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {aboJours.map((jd) => (
+                          <div key={jd.jour} className="flex items-center gap-2 p-2 rounded-lg border bg-background/60">
+                            <span className="text-xs font-semibold w-20">
+                              {JOURS_SEMAINE.find((j) => j.value === jd.jour)?.label}
+                            </span>
+                            <Input
+                              type="time"
+                              value={jd.heure}
+                              onChange={(e) => setJourHeure(jd.jour, e.target.value)}
+                              className="h-8 text-xs flex-1"
+                            />
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              type="button" size="sm" variant="outline"
-                              onClick={() => {
-                                addSemaine();
-                              }}
-                              className="h-7 gap-1.5"
-                            >
-                              <Plus className="h-3.5 w-3.5" /> Ajouter une semaine
-                            </Button>
-                            <Button
-                              type="button" size="sm" variant="outline"
-                              onClick={() => removeMois(g.items.map((it) => it.idx))}
-                              className="h-7 gap-1.5 text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" /> Supprimer ce mois
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          {g.items.map(({ sem, idx }) => {
-                            const joursLbl = sem.jours.length > 0
-                              ? sem.jours.map((j) => JOURS_SEMAINE.find((js) => js.value === j.jour)?.label).filter(Boolean).join(", ")
-                              : "aucun jour";
-                            const semNum = g.items.indexOf(g.items.find((it) => it.idx === idx)!) + 1;
-                            return (
-                              <Collapsible key={idx} className="border rounded-md bg-background">
-                                <div className="flex items-center gap-2 px-3 py-2">
-                                  <CollapsibleTrigger asChild>
-                                    <button type="button" className="flex-1 flex items-center gap-2 text-left">
-                                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform data-[state=closed]:-rotate-90" />
-                                      <span className="text-sm font-semibold">Semaine {semNum}</span>
-                                      <span className="text-xs text-muted-foreground truncate">— {joursLbl}</span>
-                                    </button>
-                                  </CollapsibleTrigger>
-                                  <label
-                                    onClick={(e) => e.stopPropagation()}
-                                    className={cn(
-                                      "flex items-center gap-1.5 cursor-pointer px-2 h-6 rounded-md border text-[11px] font-medium",
-                                      sem.statut === "termine"
-                                        ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                        : "bg-background text-muted-foreground border-border",
-                                    )}
-                                  >
-                                    <Checkbox
-                                      checked={sem.statut === "termine"}
-                                      onCheckedChange={() => toggleSemaineStatut(idx)}
-                                      className="h-3.5 w-3.5"
-                                    />
-                                    {sem.statut === "termine" ? "Terminée" : "En cours"}
-                                  </label>
-                                  <Button
-                                    type="button" size="icon" variant="ghost"
-                                    onClick={() => removeSemaine(idx)}
-                                    className="h-7 w-7 text-destructive hover:text-destructive"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-
-                                <CollapsibleContent className="px-3 pb-3 pt-1 space-y-2">
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                      <Label className="text-[11px] text-muted-foreground">Du</Label>
-                                      <Input
-                                        type="date" className="h-8"
-                                        value={sem.semaine_debut}
-                                        onChange={(e) => updateSemaineDate(idx, "semaine_debut", e.target.value)}
-                                      />
-                                    </div>
-                                    <div className="space-y-1">
-                                      <Label className="text-[11px] text-muted-foreground">Au</Label>
-                                      <Input
-                                        type="date" className="h-8"
-                                        value={sem.semaine_fin}
-                                        onChange={(e) => updateSemaineDate(idx, "semaine_fin", e.target.value)}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-1 pt-1">
-                                    {JOURS_SEMAINE.map((j) => {
-                                      const selected = sem.jours.find((pj) => pj.jour === j.value);
-                                      const isDone = selected?.statut === "terminee";
-                                      return (
-                                        <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1 rounded border bg-background/80">
-                                          <label className="col-span-3 flex items-center gap-2 cursor-pointer">
-                                            <Checkbox
-                                              checked={!!selected}
-                                              onCheckedChange={() => togglePlanningJour(idx, j.value)}
-                                            />
-                                            <span className="text-xs font-medium">{j.label}</span>
-                                          </label>
-                                          <Input
-                                            type="time"
-                                            value={selected?.heure_debut || ""}
-                                            onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_debut", e.target.value)}
-                                            disabled={!selected}
-                                            className="col-span-3 h-7 text-xs"
-                                          />
-                                          <Input
-                                            type="time"
-                                            value={selected?.heure_fin || ""}
-                                            onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_fin", e.target.value)}
-                                            disabled={!selected}
-                                            className="col-span-3 h-7 text-xs"
-                                          />
-                                          {selected ? (
-                                            <button
-                                              type="button"
-                                              onClick={() => toggleJourStatut(idx, j.value)}
-                                              className={cn(
-                                                "col-span-3 h-7 rounded-md border text-[11px] font-medium transition-colors",
-                                                isDone
-                                                  ? "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200"
-                                                  : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100",
-                                              )}
-                                              title="Cliquer pour basculer le statut de l'intervention"
-                                            >
-                                              {isDone ? "✓ Terminée" : "En cours"}
-                                            </button>
-                                          ) : (
-                                            <span className="col-span-3" />
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </CollapsibleContent>
-                              </Collapsible>
-                            );
-                          })}
-                        </div>
+                        ))}
                       </div>
-                    ));
-                  })()}
+                    </div>
+                  )}
                 </div>
 
+                {/* Notes */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-muted-foreground">Notes complémentaires (optionnel)</Label>
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Notes complémentaires
+                  </Label>
                   <Textarea
-                    value={planning.notes || ""}
-                    onChange={(e) => setPlanning({ ...planning, notes: e.target.value })}
+                    value={aboNotes}
+                    onChange={(e) => setAboNotes(e.target.value)}
                     rows={2}
-                    placeholder="Précisions sur le planning..."
+                    placeholder="Précisions sur l'abonnement..."
                     className="resize-none bg-background/60"
                   />
                 </div>
 
-                {/* Footer : Abonnement Terminé + Enregistrer */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <Checkbox
-                      checked={aboTermine}
-                      onCheckedChange={(v) => setAboTermine(v === true)}
-                    />
-                    <span className="text-sm font-medium">Abonnement Terminé</span>
-                  </label>
-                  <Button size="sm" onClick={savePlanning} disabled={updateMutation.isPending} className="gap-1.5">
-                    <Save className="h-3.5 w-3.5" /> Enregistrer le planning
-                  </Button>
+                {/* Section 4 : Récapitulatif */}
+                <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold text-primary">Récapitulatif de l'abonnement</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Fréquence : </span>
+                      <span className="font-medium">{currentFreq?.label || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Période : </span>
+                      <span className="font-medium">
+                        {aboDateDebut && dateFinAuto
+                          ? `du ${format(parseISO(aboDateDebut), "dd/MM/yyyy")} au ${format(parseISO(dateFinAuto), "dd/MM/yyyy")}`
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-muted-foreground">Jours & heures : </span>
+                      <span className="font-medium">
+                        {aboJours.length > 0
+                          ? aboJours
+                              .map(
+                                (j) =>
+                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure ? ` à ${j.heure}` : ""}`,
+                              )
+                              .join(", ")
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="sm:col-span-2 pt-2 border-t border-primary/20">
+                      <span className="text-muted-foreground">Nombre total d'interventions estimé : </span>
+                      <span className="text-lg font-bold text-primary">{totalInterventions}</span>
+                    </div>
+                  </div>
                 </div>
 
+                <div className="flex justify-end pt-1">
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={!isValid || updateMutation.isPending}
+                    className="gap-1.5"
+                  >
+                    <Save className="h-3.5 w-3.5" /> Enregistrer l'abonnement
+                  </Button>
+                </div>
               </div>
-            )}
-          </div>
+            );
+          })()}
         </Section>
 
 
