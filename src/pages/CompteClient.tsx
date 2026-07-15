@@ -65,7 +65,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tables } from "@/integrations/supabase/types";
-import { format, parseISO, addDays } from "date-fns";
+import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -239,6 +239,7 @@ export default function CompteClient() {
   const [aboJours, setAboJours] = useState<{ jour: string; heure: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
+  const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
@@ -300,6 +301,7 @@ export default function CompteClient() {
     const p = ((demande as any).planning || {}) as any;
     setAboFrequence(p.abo_frequence || p.frequence || demande.frequence || "");
     setAboDateDebut(p.date_debut || "");
+    if (p.date_debut) { try { setAboCalMonth(parseISO(p.date_debut)); } catch { /* noop */ } }
     setAboDureeMois(typeof p.duree_mois === "number" ? p.duree_mois : 1);
     if (Array.isArray(p.abo_jours)) {
       setAboJours(p.abo_jours);
@@ -979,6 +981,103 @@ export default function CompteClient() {
                       </div>
                     </div>
                   )}
+
+                  {/* Calendrier mensuel des interventions */}
+                  {aboJours.length > 0 && aboDateDebut && dateFinAuto && (() => {
+                    const dayMap: Record<string, number> = {
+                      dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
+                    };
+                    const heureByDow: Record<number, string> = {};
+                    aboJours.forEach((j) => { heureByDow[dayMap[j.jour]] = j.heure; });
+                    const selectedDows = aboJours.map((j) => dayMap[j.jour]);
+                    let start: Date, end: Date;
+                    try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); } catch { return null; }
+                    const startMs = start.getTime();
+                    const interventionSet = new Set<string>();
+                    const seenMonth = new Set<string>();
+                    for (let d = new Date(start); d <= end; d = addDays(d, 1)) {
+                      if (!selectedDows.includes(d.getDay())) continue;
+                      if (aboFrequence === "bi_hebdomadaire") {
+                        const weekNo = Math.floor((d.getTime() - startMs) / (7 * 24 * 3600 * 1000));
+                        if (weekNo % 2 !== 0) continue;
+                      }
+                      if (aboFrequence === "1_fois_mois") {
+                        const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
+                        if (seenMonth.has(key)) continue;
+                        seenMonth.add(key);
+                      }
+                      interventionSet.add(format(d, "yyyy-MM-dd"));
+                    }
+                    const monthStart = startOfMonth(aboCalMonth);
+                    const monthEnd = endOfMonth(aboCalMonth);
+                    const gridStart = addDays(monthStart, -monthStart.getDay()); // start on Sunday
+                    const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
+                    const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+                    const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
+                    return (
+                      <div className="pt-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            Calendrier des interventions
+                          </Label>
+                          <div className="flex items-center gap-2">
+                            <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0"
+                              onClick={() => setAboCalMonth(subMonths(aboCalMonth, 1))}>‹</Button>
+                            <span className="text-sm font-semibold capitalize min-w-[130px] text-center">
+                              {format(aboCalMonth, "MMMM yyyy", { locale: fr })}
+                            </span>
+                            <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0"
+                              onClick={() => setAboCalMonth(addMonthsFn(aboCalMonth, 1))}>›</Button>
+                          </div>
+                        </div>
+                        <div className="rounded-xl border overflow-hidden bg-background">
+                          <div className="grid grid-cols-7 bg-primary/10">
+                            {headers.map((h) => (
+                              <div key={h} className="text-[11px] font-bold text-primary/80 text-center py-2 border-r last:border-r-0">
+                                {h}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-7">
+                            {days.map((d, i) => {
+                              const key = format(d, "yyyy-MM-dd");
+                              const inMonth = isSameMonth(d, aboCalMonth);
+                              const isIntervention = interventionSet.has(key);
+                              const heure = heureByDow[d.getDay()];
+                              const isToday = isSameDay(d, new Date());
+                              return (
+                                <div
+                                  key={i}
+                                  className={cn(
+                                    "min-h-[68px] border-r border-b last:border-r-0 p-1.5 flex flex-col",
+                                    (i + 1) % 7 === 0 && "border-r-0",
+                                    !inMonth && "bg-muted/30 text-muted-foreground/50",
+                                    isIntervention && inMonth && "bg-primary/10",
+                                  )}
+                                >
+                                  <span className={cn(
+                                    "text-xs font-semibold",
+                                    isToday && "text-primary",
+                                    isIntervention && inMonth && "text-primary",
+                                  )}>
+                                    {format(d, "d")}
+                                  </span>
+                                  {isIntervention && inMonth && heure && (
+                                    <span className="mt-auto text-[10px] font-medium bg-primary text-primary-foreground rounded px-1 py-0.5 self-start">
+                                      {heure}
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          {interventionSet.size} intervention(s) prévue(s) sur la période totale.
+                        </p>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Notes */}
