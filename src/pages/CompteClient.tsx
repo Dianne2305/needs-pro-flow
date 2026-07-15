@@ -1034,7 +1034,7 @@ export default function CompteClient() {
                       dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
                     };
                     const heureByDow: Record<number, string> = {};
-                    aboJours.forEach((j) => { heureByDow[dayMap[j.jour]] = j.heure; });
+                    aboJours.forEach((j) => { heureByDow[dayMap[j.jour]] = j.heure_debut; });
                     const selectedDows = aboJours.map((j) => dayMap[j.jour]);
                     let start: Date;
                     try { start = aboDateDebut ? parseISO(aboDateDebut) : new Date(); } catch { start = new Date(); }
