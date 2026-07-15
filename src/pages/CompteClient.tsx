@@ -1029,9 +1029,6 @@ export default function CompteClient() {
                       <Send className="h-3.5 w-3.5" />
                       {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={handleActiverMoisProchain} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
-                      <RefreshCw className="h-3.5 w-3.5" /> Activer le mois prochain
-                    </Button>
                     <Button size="sm" onClick={handleSave} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
                       <Save className="h-3.5 w-3.5" /> Enregistrer
                     </Button>
