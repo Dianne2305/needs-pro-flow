@@ -312,8 +312,9 @@ export default function CompteClient() {
       setAboJours(
         p.jours.map((j: any) =>
           typeof j === "string"
-            ? { jour: j, heure: "" }
-            : { jour: j.jour, heure: j.heure_debut || "" }
+          typeof j === "string"
+            ? { jour: j, heure_debut: "", heure_fin: "" }
+            : { jour: j.jour, heure_debut: j.heure_debut || j.heure || "", heure_fin: j.heure_fin || "" }
         )
       );
     }
