@@ -885,6 +885,7 @@ export default function CompteClient() {
               const newPlanning = {
                 abo_frequence: aboFrequence,
                 abo_jours: aboJours,
+                abo_statut: aboStatut,
                 date_debut: aboDateDebut,
                 date_fin: dateFinAuto,
                 duree_mois: aboDureeMois,
@@ -900,6 +901,39 @@ export default function CompteClient() {
                 updates.frequence = aboFrequence;
               }
               updateMutation.mutate(updates);
+            };
+
+            const handleActiverMoisProchain = () => {
+              const nextMonth = new Date();
+              nextMonth.setMonth(nextMonth.getMonth() + 1);
+              nextMonth.setDate(1);
+              const nextMonthStr = format(nextMonth, "yyyy-MM-dd");
+              setAboDateDebut(nextMonthStr);
+              setAboStatut("actif");
+              const end = new Date(nextMonth);
+              end.setMonth(end.getMonth() + aboDureeMois);
+              end.setDate(end.getDate() - 1);
+              const newPlanning = {
+                abo_frequence: aboFrequence,
+                abo_jours: aboJours,
+                abo_statut: "actif",
+                date_debut: nextMonthStr,
+                date_fin: format(end, "yyyy-MM-dd"),
+                duree_mois: aboDureeMois,
+                frequence: aboFrequence,
+                notes: aboNotes,
+                date_overrides: aboDateOverrides,
+                total_interventions_estime: totalInterventions,
+              };
+              const updates: Record<string, unknown> = { planning: newPlanning as any };
+              if (FREQUENCES.some((f) => f.value === aboFrequence)) {
+                updates.frequence = aboFrequence;
+              }
+              updateMutation.mutate(updates, {
+                onSuccess: () => {
+                  toast({ title: "Abonnement activé", description: `Démarrage prévu le ${format(nextMonth, "dd/MM/yyyy")}.` });
+                },
+              });
             };
 
             return (
