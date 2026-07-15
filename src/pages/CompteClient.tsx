@@ -550,6 +550,9 @@ export default function CompteClient() {
     ) {
       updates.statut = "prestation_terminee";
     }
+    if (aboTermine && demande.statut !== "paye" && demande.statut !== "facturation_annulee") {
+      updates.statut = "prestation_terminee";
+    }
     updateMutation.mutate(updates);
   };
 
