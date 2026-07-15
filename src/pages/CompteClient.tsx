@@ -231,6 +231,7 @@ export default function CompteClient() {
     frequence: "", notes: "",
   });
   const [planningInitialized, setPlanningInitialized] = useState(false);
+  const [aboTermine, setAboTermine] = useState(false);
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
