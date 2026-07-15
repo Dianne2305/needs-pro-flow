@@ -864,6 +864,7 @@ export default function CompteClient() {
                 duree_mois: aboDureeMois,
                 frequence: aboFrequence,
                 notes: aboNotes,
+                date_overrides: aboDateOverrides,
                 total_interventions_estime: totalInterventions,
               };
               const updates: Record<string, unknown> = { planning: newPlanning as any };
