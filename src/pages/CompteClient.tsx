@@ -1431,7 +1431,7 @@ export default function CompteClient() {
                           </div>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                          {finalCount} intervention(s) sur la période. Cliquez sur un jour pour ajuster l'heure ou l'exclure.
+                          {monthlyInterventions} intervention(s) sur le mois de {format(aboCalMonth, "MMMM yyyy", { locale: fr })}. Cliquez sur un jour pour ajuster l'heure ou l'exclure.
                         </p>
                       </div>
                     );
