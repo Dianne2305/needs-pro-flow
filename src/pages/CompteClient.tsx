@@ -939,14 +939,22 @@ export default function CompteClient() {
             return (
               <div className="space-y-5">
                 {/* Ligne d'actions : statut + facture + enregistrer */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl border bg-background">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-3 rounded-xl border bg-background">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Statut abonnement</span>
-                    {s ? (
-                      <Badge variant="outline" className={cn("border-0 text-xs", s.color)}>{s.label}</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-xs">{demande.statut}</Badge>
-                    )}
+                    <Select
+                      value={aboStatut}
+                      onValueChange={(v) => setAboStatut(v as "actif" | "suspendu" | "pause")}
+                    >
+                      <SelectTrigger className="h-8 w-40 text-xs bg-background">
+                        <SelectValue placeholder="Statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
+                        <SelectItem value="suspendu" className="text-xs">Suspendus</SelectItem>
+                        <SelectItem value="pause" className="text-xs">En pause</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={genererFacture} className="h-8 text-xs gap-1.5">
@@ -957,8 +965,11 @@ export default function CompteClient() {
                       <Send className="h-3.5 w-3.5" />
                       {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
                     </Button>
+                    <Button size="sm" variant="outline" onClick={handleActiverMoisProchain} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
+                      <RefreshCw className="h-3.5 w-3.5" /> Activer le mois prochain
+                    </Button>
                     <Button size="sm" onClick={handleSave} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
-                      <Save className="h-3.5 w-3.5" /> Enregistrer : Activer le mois prochain
+                      <Save className="h-3.5 w-3.5" /> Enregistrer
                     </Button>
                   </div>
                 </div>
