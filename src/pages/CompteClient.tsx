@@ -240,6 +240,7 @@ export default function CompteClient() {
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
+  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; excluded?: boolean }>>({});
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
@@ -315,6 +316,7 @@ export default function CompteClient() {
       );
     }
     setAboNotes(p.notes || "");
+    if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
     setAboFormInitialized(true);
   }
 
@@ -863,6 +865,7 @@ export default function CompteClient() {
                 duree_mois: aboDureeMois,
                 frequence: aboFrequence,
                 notes: aboNotes,
+                date_overrides: aboDateOverrides,
                 total_interventions_estime: totalInterventions,
               };
               const updates: Record<string, unknown> = { planning: newPlanning as any };
@@ -983,15 +986,17 @@ export default function CompteClient() {
                   )}
 
                   {/* Calendrier mensuel des interventions */}
-                  {aboJours.length > 0 && aboDateDebut && dateFinAuto && (() => {
+                  {aboJours.length > 0 && (() => {
                     const dayMap: Record<string, number> = {
                       dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
                     };
                     const heureByDow: Record<number, string> = {};
                     aboJours.forEach((j) => { heureByDow[dayMap[j.jour]] = j.heure; });
                     const selectedDows = aboJours.map((j) => dayMap[j.jour]);
-                    let start: Date, end: Date;
-                    try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); } catch { return null; }
+                    let start: Date;
+                    try { start = aboDateDebut ? parseISO(aboDateDebut) : new Date(); } catch { start = new Date(); }
+                    let end: Date;
+                    try { end = dateFinAuto ? parseISO(dateFinAuto) : addMonthsFn(start, 1); } catch { end = addMonthsFn(start, 1); }
                     const startMs = start.getTime();
                     const interventionSet = new Set<string>();
                     const seenMonth = new Set<string>();
@@ -1010,10 +1015,15 @@ export default function CompteClient() {
                     }
                     const monthStart = startOfMonth(aboCalMonth);
                     const monthEnd = endOfMonth(aboCalMonth);
-                    const gridStart = addDays(monthStart, -monthStart.getDay()); // start on Sunday
+                    const gridStart = addDays(monthStart, -monthStart.getDay());
                     const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
                     const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
                     const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
+                    const finalCount = Array.from(interventionSet).filter(
+                      (k) => !aboDateOverrides[k]?.excluded,
+                    ).length + Object.entries(aboDateOverrides).filter(
+                      ([k, v]) => !interventionSet.has(k) && !v.excluded && v.heure,
+                    ).length;
                     return (
                       <div className="pt-3 space-y-2">
                         <div className="flex items-center justify-between">
@@ -1042,38 +1052,88 @@ export default function CompteClient() {
                             {days.map((d, i) => {
                               const key = format(d, "yyyy-MM-dd");
                               const inMonth = isSameMonth(d, aboCalMonth);
-                              const isIntervention = interventionSet.has(key);
-                              const heure = heureByDow[d.getDay()];
+                              const override = aboDateOverrides[key];
+                              const isPattern = interventionSet.has(key);
+                              const isIntervention = (isPattern && !override?.excluded) || (!!override?.heure && !override?.excluded);
+                              const heure = override?.heure || (isPattern ? heureByDow[d.getDay()] : "");
                               const isToday = isSameDay(d, new Date());
                               return (
-                                <div
-                                  key={i}
-                                  className={cn(
-                                    "min-h-[68px] border-r border-b last:border-r-0 p-1.5 flex flex-col",
-                                    (i + 1) % 7 === 0 && "border-r-0",
-                                    !inMonth && "bg-muted/30 text-muted-foreground/50",
-                                    isIntervention && inMonth && "bg-primary/10",
-                                  )}
-                                >
-                                  <span className={cn(
-                                    "text-xs font-semibold",
-                                    isToday && "text-primary",
-                                    isIntervention && inMonth && "text-primary",
-                                  )}>
-                                    {format(d, "d")}
-                                  </span>
-                                  {isIntervention && inMonth && heure && (
-                                    <span className="mt-auto text-[10px] font-medium bg-primary text-primary-foreground rounded px-1 py-0.5 self-start">
-                                      {heure}
-                                    </span>
-                                  )}
-                                </div>
+                                <Popover key={i}>
+                                  <PopoverTrigger asChild disabled={!inMonth}>
+                                    <button
+                                      type="button"
+                                      className={cn(
+                                        "min-h-[68px] border-r border-b last:border-r-0 p-1.5 flex flex-col items-start text-left transition-colors",
+                                        (i + 1) % 7 === 0 && "border-r-0",
+                                        !inMonth && "bg-muted/30 text-muted-foreground/40 cursor-default",
+                                        inMonth && !isIntervention && "hover:bg-muted/40",
+                                        isIntervention && inMonth && "bg-primary/10 hover:bg-primary/15",
+                                      )}
+                                    >
+                                      <span className={cn(
+                                        "text-xs font-semibold",
+                                        isToday && "text-primary",
+                                        isIntervention && inMonth && "text-primary",
+                                      )}>
+                                        {format(d, "d")}
+                                      </span>
+                                      {isIntervention && inMonth && heure && (
+                                        <span className="mt-auto text-[10px] font-medium bg-primary text-primary-foreground rounded px-1 py-0.5">
+                                          {heure}
+                                        </span>
+                                      )}
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-64 p-3 space-y-3" align="start">
+                                    <div className="text-sm font-semibold capitalize">
+                                      {format(d, "EEEE d MMMM yyyy", { locale: fr })}
+                                    </div>
+                                    <div className="space-y-1.5">
+                                      <Label className="text-xs">Heure d'intervention</Label>
+                                      <Input
+                                        type="time"
+                                        value={heure || ""}
+                                        onChange={(e) => setAboDateOverrides((prev) => ({
+                                          ...prev,
+                                          [key]: { ...prev[key], heure: e.target.value, excluded: false },
+                                        }))}
+                                        className="h-8 text-xs"
+                                      />
+                                    </div>
+                                    <div className="flex gap-2">
+                                      {isIntervention ? (
+                                        <Button type="button" size="sm" variant="outline" className="flex-1 h-8 text-xs text-destructive"
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], excluded: true },
+                                          }))}>
+                                          Retirer
+                                        </Button>
+                                      ) : (
+                                        <Button type="button" size="sm" variant="outline" className="flex-1 h-8 text-xs"
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev,
+                                            [key]: { heure: prev[key]?.heure || heureByDow[d.getDay()] || "09:00", excluded: false },
+                                          }))}>
+                                          Ajouter
+                                        </Button>
+                                      )}
+                                      {aboDateOverrides[key] && (
+                                        <Button type="button" size="sm" variant="ghost" className="h-8 text-xs"
+                                          onClick={() => setAboDateOverrides((prev) => {
+                                            const { [key]: _, ...rest } = prev; return rest;
+                                          })}>
+                                          Reset
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                               );
                             })}
                           </div>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                          {interventionSet.size} intervention(s) prévue(s) sur la période totale.
+                          {finalCount} intervention(s) sur la période. Cliquez sur un jour pour ajuster l'heure ou l'exclure.
                         </p>
                       </div>
                     );
