@@ -999,24 +999,34 @@ export default function CompteClient() {
 
                   {aboJours.length > 0 && (
                     <div className="space-y-2 pt-2">
-                      <Label className="text-[11px] text-muted-foreground">Heure pour chaque jour</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      <Label className="text-[11px] text-muted-foreground">Horaires par jour (début / fin)</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {aboJours.map((jd) => (
                           <div key={jd.jour} className="flex items-center gap-2 p-2 rounded-lg border bg-background/60">
-                            <span className="text-xs font-semibold w-20">
+                            <span className="text-xs font-semibold w-20 shrink-0">
                               {JOURS_SEMAINE.find((j) => j.value === jd.jour)?.label}
                             </span>
                             <Input
                               type="time"
-                              value={jd.heure}
-                              onChange={(e) => setJourHeure(jd.jour, e.target.value)}
+                              value={jd.heure_debut}
+                              onChange={(e) => setJourHeureField(jd.jour, "heure_debut", e.target.value)}
                               className="h-8 text-xs flex-1"
+                              aria-label="Heure de début"
+                            />
+                            <span className="text-xs text-muted-foreground">→</span>
+                            <Input
+                              type="time"
+                              value={jd.heure_fin}
+                              onChange={(e) => setJourHeureField(jd.jour, "heure_fin", e.target.value)}
+                              className="h-8 text-xs flex-1"
+                              aria-label="Heure de fin"
                             />
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
+
 
                   {/* Calendrier mensuel des interventions */}
                   {aboJours.length > 0 && (() => {
