@@ -1252,55 +1252,6 @@ export default function CompteClient() {
                   />
                 </div>
 
-                {/* Section 4 : Récapitulatif */}
-                <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-semibold text-primary">Récapitulatif de l'abonnement</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Fréquence : </span>
-                      <span className="font-medium">{currentFreq?.label || "—"}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground">Période : </span>
-                      <span className="font-medium">
-                        {aboDateDebut && dateFinAuto
-                          ? `du ${format(parseISO(aboDateDebut), "dd/MM/yyyy")} au ${format(parseISO(dateFinAuto), "dd/MM/yyyy")}`
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <span className="text-muted-foreground">Jours & heures : </span>
-                      <span className="font-medium">
-                        {aboJours.length > 0
-                          ? aboJours
-                              .map(
-                                (j) =>
-                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `–${j.heure_fin}` : ""}` : ""}`,
-                              )
-                              .join(", ")
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="sm:col-span-2 pt-2 border-t border-primary/20">
-                      <span className="text-muted-foreground">Nombre total d'interventions estimé : </span>
-                      <span className="text-lg font-bold text-primary">{totalInterventions}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-1">
-                  <Button
-                    size="sm"
-                    onClick={handleSave}
-                    disabled={!isValid || updateMutation.isPending}
-                    className="gap-1.5"
-                  >
-                    <Save className="h-3.5 w-3.5" /> Enregistrer l'abonnement
-                  </Button>
-                </div>
               </div>
             );
           })()}
