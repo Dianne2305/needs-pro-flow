@@ -728,19 +728,41 @@ export default function CompteClient() {
 
         {/* Fréquence */}
         <Section title="Type de Fréquence" icon={Clock} defaultOpen colorClass="bg-[#BFDDCE]">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="text-sm px-3 py-1">{freq?.label || demande.frequence}</Badge>
-              <span className="text-sm text-muted-foreground">
-                {demande.frequence === "ponctuel" ? "Intervention unique" : `Abonnement — ${freq?.label}`}
-              </span>
+          <div className="space-y-4">
+            {/* Header: pill fréquence + libellé + statut planning */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Badge className="text-sm px-3 py-1 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/10">
+                  {freq?.label || demande.frequence}
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {demande.frequence === "ponctuel" ? "Intervention unique" : `Abonnement — ${demande.type_prestation || ""}`}
+                </span>
+              </div>
+              {demande.frequence !== "ponctuel" && (() => {
+                const total = planning.semaines.length;
+                const done = planning.semaines.filter((s) => s.statut === "termine").length;
+                const isDone = total > 0 && done === total;
+                return (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">Statut planning :</span>
+                    <Badge className={cn(
+                      "px-2.5 py-0.5",
+                      isDone ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-sky-100 text-sky-800 border-sky-200",
+                    )}>
+                      {isDone ? "Terminé" : "En cours"}
+                    </Badge>
+                  </div>
+                );
+              })()}
             </div>
+
             {demande.frequence !== "ponctuel" && (
               <div className="space-y-4 border-t pt-4">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Planning de l'abonnement</p>
                   <Button size="sm" onClick={savePlanning} disabled={updateMutation.isPending} className="gap-1.5">
-                    <Save className="h-3.5 w-3.5" /> Enregistrer le planning
+                    <FileText className="h-3.5 w-3.5" /> Enregistrer le planning
                   </Button>
                 </div>
 
@@ -763,7 +785,7 @@ export default function CompteClient() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-muted-foreground">Date de début de l'abonnement</Label>
+                    <Label className="text-xs font-semibold text-muted-foreground">Date de début de l'abonnement *</Label>
                     <Input
                       type="date"
                       value={planning.date_debut}
@@ -782,136 +804,203 @@ export default function CompteClient() {
                   </div>
                 </div>
 
-                {/* Semaines (multi) */}
-                <div className="space-y-2">
+                {/* Semaines groupées par mois */}
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold text-muted-foreground">Semaines & jours d'intervention</Label>
-                    <Button type="button" size="sm" variant="outline" onClick={addSemaine} className="h-7 gap-1.5">
-                      <Plus className="h-3.5 w-3.5" /> Ajouter une semaine
+                    <Button type="button" size="sm" onClick={addNextMonth} className="h-8 gap-1.5">
+                      <CalendarIcon className="h-3.5 w-3.5" /> Ajouter le mois suivant
                     </Button>
                   </div>
 
                   {planning.semaines.length === 0 && (
-                    <p className="text-xs text-muted-foreground italic px-1">Aucune semaine. Cliquez sur "Ajouter une semaine".</p>
+                    <p className="text-xs text-muted-foreground italic px-1">
+                      Aucune semaine. Cliquez sur "Ajouter le mois suivant" pour générer 4 semaines.
+                    </p>
                   )}
 
-                  {planning.semaines.map((sem, idx) => {
-                    const summary = sem.jours.length > 0
-                      ? sem.jours.map((j) => {
-                          const lbl = JOURS_SEMAINE.find((js) => js.value === j.jour)?.label.slice(0, 3);
-                          const h = j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `-${j.heure_fin}` : ""}` : "";
-                          return `${lbl}${h}`;
-                        }).join(" · ")
-                      : "aucun jour";
-                    const title = sem.semaine_debut || sem.semaine_fin
-                      ? `Semaine du ${sem.semaine_debut || "?"}${sem.semaine_fin ? ` au ${sem.semaine_fin}` : ""}`
-                      : `Semaine ${idx + 1}`;
-                    return (
-                      <Collapsible key={idx} defaultOpen={idx === 0} className="border rounded-md bg-background/60">
-                        <div className="flex items-center gap-2 px-2 py-1.5">
-                          <CollapsibleTrigger asChild>
-                            <button type="button" className="flex-1 flex items-center gap-2 text-left">
-                              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform data-[state=closed]:-rotate-90" />
-                              <span className="text-sm font-semibold">{title}</span>
-                              <span className="text-xs text-muted-foreground truncate">— {summary}</span>
-                            </button>
-                          </CollapsibleTrigger>
-                          <label
-                            onClick={(e) => e.stopPropagation()}
-                            className={`flex items-center gap-1.5 cursor-pointer px-2 h-6 rounded-md border text-[11px] font-medium ${
-                              sem.statut === "termine"
-                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
-                                : "bg-amber-100 text-amber-800 border-amber-200"
-                            }`}
-                          >
-                            <Checkbox
-                              checked={sem.statut === "termine"}
-                              onCheckedChange={() => toggleSemaineStatut(idx)}
-                              className="h-3.5 w-3.5"
-                            />
-                            {sem.statut === "termine" ? "Terminée" : "En cours"}
-                          </label>
-                          <Button
-                            type="button" size="icon" variant="ghost"
-                            onClick={() => removeSemaine(idx)}
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                  {(() => {
+                    // Grouper les semaines par mois (basé sur semaine_debut). "Sans date" ⇒ groupe séparé.
+                    type Group = { key: string; label: string; range?: string; items: { sem: PlanningSemaine; idx: number }[] };
+                    const groups: Group[] = [];
+                    const byKey = new Map<string, Group>();
+                    planning.semaines.forEach((sem, idx) => {
+                      let key = "sans-date";
+                      if (sem.semaine_debut) {
+                        try {
+                          const d = parseISO(sem.semaine_debut);
+                          key = format(d, "yyyy-MM");
+                        } catch { /* ignore */ }
+                      }
+                      let g = byKey.get(key);
+                      if (!g) {
+                        g = { key, label: "", items: [] };
+                        byKey.set(key, g);
+                        groups.push(g);
+                      }
+                      g.items.push({ sem, idx });
+                    });
+                    // Compléter les labels
+                    let monthNum = 0;
+                    for (const g of groups) {
+                      monthNum++;
+                      g.label = g.key === "sans-date" ? `Semaines sans date` : `Mois ${monthNum}`;
+                      const dates = g.items.map((it) => it.sem.semaine_debut).filter(Boolean).sort();
+                      const fins = g.items.map((it) => it.sem.semaine_fin || it.sem.semaine_debut).filter(Boolean).sort();
+                      if (dates.length && fins.length) {
+                        try {
+                          const d1 = format(parseISO(dates[0]), "dd/MM/yyyy");
+                          const d2 = format(parseISO(fins[fins.length - 1]), "dd/MM/yyyy");
+                          g.range = `du ${d1} au ${d2}`;
+                        } catch { /* ignore */ }
+                      }
+                    }
+
+                    return groups.map((g) => (
+                      <div key={g.key} className="border rounded-lg bg-muted/30 p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-semibold">{g.label}</span>
+                            {g.range && <span className="text-xs text-muted-foreground">({g.range})</span>}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button" size="sm" variant="outline"
+                              onClick={() => {
+                                addSemaine();
+                              }}
+                              className="h-7 gap-1.5"
+                            >
+                              <Plus className="h-3.5 w-3.5" /> Ajouter une semaine
+                            </Button>
+                            <Button
+                              type="button" size="sm" variant="outline"
+                              onClick={() => removeMois(g.items.map((it) => it.idx))}
+                              className="h-7 gap-1.5 text-destructive border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" /> Supprimer ce mois
+                            </Button>
+                          </div>
                         </div>
 
-                        <CollapsibleContent className="px-3 pb-3 pt-1 space-y-2">
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-1">
-                              <Label className="text-[11px] text-muted-foreground">Du</Label>
-                              <Input
-                                type="date" className="h-8"
-                                value={sem.semaine_debut}
-                                onChange={(e) => updateSemaineDate(idx, "semaine_debut", e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label className="text-[11px] text-muted-foreground">Au</Label>
-                              <Input
-                                type="date" className="h-8"
-                                value={sem.semaine_fin}
-                                onChange={(e) => updateSemaineDate(idx, "semaine_fin", e.target.value)}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="space-y-1 pt-1">
-                            {JOURS_SEMAINE.map((j) => {
-                              const selected = sem.jours.find((pj) => pj.jour === j.value);
-                              const isDone = selected?.statut === "terminee";
-                              return (
-                                <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1 rounded border bg-background/80">
-                                  <label className="col-span-3 flex items-center gap-2 cursor-pointer">
-                                    <Checkbox
-                                      checked={!!selected}
-                                      onCheckedChange={() => togglePlanningJour(idx, j.value)}
-                                    />
-                                    <span className="text-xs font-medium">{j.label}</span>
-                                  </label>
-                                  <Input
-                                    type="time"
-                                    value={selected?.heure_debut || ""}
-                                    onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_debut", e.target.value)}
-                                    disabled={!selected}
-                                    className="col-span-3 h-7 text-xs"
-                                  />
-                                  <Input
-                                    type="time"
-                                    value={selected?.heure_fin || ""}
-                                    onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_fin", e.target.value)}
-                                    disabled={!selected}
-                                    className="col-span-3 h-7 text-xs"
-                                  />
-                                  {selected ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleJourStatut(idx, j.value)}
-                                      className={cn(
-                                        "col-span-3 h-7 rounded-md border text-[11px] font-medium transition-colors",
-                                        isDone
-                                          ? "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200"
-                                          : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100",
-                                      )}
-                                      title="Cliquer pour basculer le statut de l'intervention"
-                                    >
-                                      {isDone ? "✓ Terminée" : "En cours"}
+                        <div className="space-y-2">
+                          {g.items.map(({ sem, idx }) => {
+                            const joursLbl = sem.jours.length > 0
+                              ? sem.jours.map((j) => JOURS_SEMAINE.find((js) => js.value === j.jour)?.label).filter(Boolean).join(", ")
+                              : "aucun jour";
+                            const semNum = g.items.indexOf(g.items.find((it) => it.idx === idx)!) + 1;
+                            return (
+                              <Collapsible key={idx} className="border rounded-md bg-background">
+                                <div className="flex items-center gap-2 px-3 py-2">
+                                  <CollapsibleTrigger asChild>
+                                    <button type="button" className="flex-1 flex items-center gap-2 text-left">
+                                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform data-[state=closed]:-rotate-90" />
+                                      <span className="text-sm font-semibold">Semaine {semNum}</span>
+                                      <span className="text-xs text-muted-foreground truncate">— {joursLbl}</span>
                                     </button>
-                                  ) : (
-                                    <span className="col-span-3" />
-                                  )}
+                                  </CollapsibleTrigger>
+                                  <label
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={cn(
+                                      "flex items-center gap-1.5 cursor-pointer px-2 h-6 rounded-md border text-[11px] font-medium",
+                                      sem.statut === "termine"
+                                        ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                        : "bg-background text-muted-foreground border-border",
+                                    )}
+                                  >
+                                    <Checkbox
+                                      checked={sem.statut === "termine"}
+                                      onCheckedChange={() => toggleSemaineStatut(idx)}
+                                      className="h-3.5 w-3.5"
+                                    />
+                                    {sem.statut === "termine" ? "Terminée" : "En cours"}
+                                  </label>
+                                  <Button
+                                    type="button" size="icon" variant="ghost"
+                                    onClick={() => removeSemaine(idx)}
+                                    className="h-7 w-7 text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
                                 </div>
-                              );
-                            })}
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    );
-                  })}
+
+                                <CollapsibleContent className="px-3 pb-3 pt-1 space-y-2">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                      <Label className="text-[11px] text-muted-foreground">Du</Label>
+                                      <Input
+                                        type="date" className="h-8"
+                                        value={sem.semaine_debut}
+                                        onChange={(e) => updateSemaineDate(idx, "semaine_debut", e.target.value)}
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[11px] text-muted-foreground">Au</Label>
+                                      <Input
+                                        type="date" className="h-8"
+                                        value={sem.semaine_fin}
+                                        onChange={(e) => updateSemaineDate(idx, "semaine_fin", e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1 pt-1">
+                                    {JOURS_SEMAINE.map((j) => {
+                                      const selected = sem.jours.find((pj) => pj.jour === j.value);
+                                      const isDone = selected?.statut === "terminee";
+                                      return (
+                                        <div key={j.value} className="grid grid-cols-12 items-center gap-2 px-2 py-1 rounded border bg-background/80">
+                                          <label className="col-span-3 flex items-center gap-2 cursor-pointer">
+                                            <Checkbox
+                                              checked={!!selected}
+                                              onCheckedChange={() => togglePlanningJour(idx, j.value)}
+                                            />
+                                            <span className="text-xs font-medium">{j.label}</span>
+                                          </label>
+                                          <Input
+                                            type="time"
+                                            value={selected?.heure_debut || ""}
+                                            onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_debut", e.target.value)}
+                                            disabled={!selected}
+                                            className="col-span-3 h-7 text-xs"
+                                          />
+                                          <Input
+                                            type="time"
+                                            value={selected?.heure_fin || ""}
+                                            onChange={(e) => updatePlanningJourHeure(idx, j.value, "heure_fin", e.target.value)}
+                                            disabled={!selected}
+                                            className="col-span-3 h-7 text-xs"
+                                          />
+                                          {selected ? (
+                                            <button
+                                              type="button"
+                                              onClick={() => toggleJourStatut(idx, j.value)}
+                                              className={cn(
+                                                "col-span-3 h-7 rounded-md border text-[11px] font-medium transition-colors",
+                                                isDone
+                                                  ? "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200"
+                                                  : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100",
+                                              )}
+                                              title="Cliquer pour basculer le statut de l'intervention"
+                                            >
+                                              {isDone ? "✓ Terminée" : "En cours"}
+                                            </button>
+                                          ) : (
+                                            <span className="col-span-3" />
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </CollapsibleContent>
+                              </Collapsible>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
                 </div>
 
                 <div className="space-y-1.5">
@@ -925,10 +1014,25 @@ export default function CompteClient() {
                   />
                 </div>
 
+                {/* Footer : Abonnement Terminé + Enregistrer */}
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={aboTermine}
+                      onCheckedChange={(v) => setAboTermine(v === true)}
+                    />
+                    <span className="text-sm font-medium">Abonnement Terminé</span>
+                  </label>
+                  <Button size="sm" onClick={savePlanning} disabled={updateMutation.isPending} className="gap-1.5">
+                    <Save className="h-3.5 w-3.5" /> Enregistrer le planning
+                  </Button>
+                </div>
+
               </div>
             )}
           </div>
         </Section>
+
 
         {/* Détails besoin actuel */}
         <Section title="Détails Besoin Actuel" icon={Briefcase} defaultOpen colorClass="bg-[#027A76]">
