@@ -1272,11 +1272,6 @@ export default function CompteClient() {
                     const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
                     const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
                     const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
-                    const finalCount = Array.from(interventionSet).filter(
-                      (k) => !aboDateOverrides[k]?.excluded,
-                    ).length + Object.entries(aboDateOverrides).filter(
-                      ([k, v]) => !interventionSet.has(k) && !v.excluded && v.heure,
-                    ).length;
                     return (
                       <div className="pt-3 space-y-2">
                         <div className="flex items-center justify-between">
