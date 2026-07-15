@@ -904,22 +904,33 @@ export default function CompteClient() {
             };
 
             const handleActiverMoisProchain = () => {
-              const nextMonth = new Date();
-              nextMonth.setMonth(nextMonth.getMonth() + 1);
-              nextMonth.setDate(1);
-              const nextMonthStr = format(nextMonth, "yyyy-MM-dd");
-              setAboDateDebut(nextMonthStr);
+              if (!aboDateDebut) {
+                toast({
+                  title: "Date de démarrage manquante",
+                  description: "Renseignez d'abord la date de démarrage de l'abonnement.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              const newDuree = aboDureeMois + 1;
+              setAboDureeMois(newDuree);
               setAboStatut("actif");
-              const end = new Date(nextMonth);
-              end.setMonth(end.getMonth() + aboDureeMois);
+              // Nouveau mois ajouté = début + (newDuree - 1) mois
+              const start = parseISO(aboDateDebut);
+              const newMonth = new Date(start);
+              newMonth.setMonth(newMonth.getMonth() + (newDuree - 1));
+              newMonth.setDate(1);
+              setAboCalMonth(newMonth);
+              const end = new Date(start);
+              end.setMonth(end.getMonth() + newDuree);
               end.setDate(end.getDate() - 1);
               const newPlanning = {
                 abo_frequence: aboFrequence,
                 abo_jours: aboJours,
                 abo_statut: "actif",
-                date_debut: nextMonthStr,
+                date_debut: aboDateDebut,
                 date_fin: format(end, "yyyy-MM-dd"),
-                duree_mois: aboDureeMois,
+                duree_mois: newDuree,
                 frequence: aboFrequence,
                 notes: aboNotes,
                 date_overrides: aboDateOverrides,
@@ -931,7 +942,7 @@ export default function CompteClient() {
               }
               updateMutation.mutate(updates, {
                 onSuccess: () => {
-                  toast({ title: "Abonnement activé", description: `Démarrage prévu le ${format(nextMonth, "dd/MM/yyyy")}.` });
+                  toast({ title: "Mois ajouté", description: `Nouveau mois : ${format(newMonth, "MMMM yyyy", { locale: fr })}.` });
                 },
               });
             };
