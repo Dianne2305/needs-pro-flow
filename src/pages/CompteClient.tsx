@@ -938,6 +938,48 @@ export default function CompteClient() {
 
             return (
               <div className="space-y-5">
+                {/* Onglets mensuels — un onglet par mois de la période d'abonnement */}
+                {aboDateDebut && dateFinAuto && (() => {
+                  let start: Date; let end: Date;
+                  try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); }
+                  catch { return null; }
+                  const months: Date[] = [];
+                  let cur = startOfMonth(start);
+                  const last = startOfMonth(end);
+                  while (cur.getTime() <= last.getTime()) {
+                    months.push(cur);
+                    cur = addMonthsFn(cur, 1);
+                  }
+                  if (months.length === 0) return null;
+                  const activeIdx = months.findIndex((m) => isSameMonth(m, aboCalMonth));
+                  return (
+                    <div className="flex flex-wrap gap-1.5 -mb-3 border-b border-border/50 pb-0">
+                      {months.map((m, i) => {
+                        const active = i === activeIdx;
+                        return (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setAboCalMonth(m)}
+                            className={cn(
+                              "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px",
+                              active
+                                ? "bg-primary/10 border-primary/30 text-primary"
+                                : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted",
+                            )}
+                            title={format(m, "MMMM yyyy", { locale: fr })}
+                          >
+                            Mois {i + 1}
+                            <span className="ml-1.5 text-[10px] opacity-70 capitalize">
+                              {format(m, "MMM yy", { locale: fr })}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
                 {/* Ligne d'actions : statut + facture + enregistrer */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-3 rounded-xl border bg-background">
                   <div className="flex items-center gap-2 flex-wrap">
