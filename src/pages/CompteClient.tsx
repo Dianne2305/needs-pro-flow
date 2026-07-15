@@ -321,6 +321,8 @@ export default function CompteClient() {
     }
     setAboNotes(p.notes || "");
     if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
+    const validStatut = ["actif", "suspendu", "pause"].includes(p.abo_statut) ? p.abo_statut : "actif";
+    setAboStatut(validStatut as "actif" | "suspendu" | "pause");
     setAboFormInitialized(true);
 
   }
