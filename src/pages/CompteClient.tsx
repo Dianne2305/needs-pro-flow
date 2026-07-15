@@ -236,7 +236,7 @@ export default function CompteClient() {
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
-  const [aboJours, setAboJours] = useState<{ jour: string; heure: string }[]>([]);
+  const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
