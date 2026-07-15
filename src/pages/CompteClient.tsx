@@ -231,6 +231,7 @@ export default function CompteClient() {
     frequence: "", notes: "",
   });
   const [planningInitialized, setPlanningInitialized] = useState(false);
+  const [aboTermine, setAboTermine] = useState(false);
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
@@ -433,7 +434,8 @@ export default function CompteClient() {
     }));
   };
 
-  const [aboTermine, setAboTermine] = useState(false);
+
+
 
   // Ajoute 4 semaines consécutives (mois suivant), à partir de la dernière semaine ou de date_debut
   const addNextMonth = () => {
