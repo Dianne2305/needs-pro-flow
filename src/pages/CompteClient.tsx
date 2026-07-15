@@ -1202,6 +1202,8 @@ export default function CompteClient() {
                               const isPattern = interventionSet.has(key);
                               const isIntervention = (isPattern && !override?.excluded) || (!!override?.heure && !override?.excluded);
                               const heure = override?.heure || (isPattern ? heureByDow[d.getDay()] : "");
+                              const heureFin = override?.heure_fin || "";
+                              const statut = override?.statut || null;
                               const isToday = isSameDay(d, new Date());
                               return (
                                 <Popover key={i}>
@@ -1213,38 +1215,86 @@ export default function CompteClient() {
                                         (i + 1) % 7 === 0 && "border-r-0",
                                         !inMonth && "bg-muted/30 text-muted-foreground/50 hover:bg-muted/50",
                                         inMonth && !isIntervention && "hover:bg-muted/40",
-                                        isIntervention && inMonth && "bg-primary/10 hover:bg-primary/15",
+                                        isIntervention && inMonth && !statut && "bg-primary/10 hover:bg-primary/15",
+                                        isIntervention && inMonth && statut === "termine" && "bg-emerald-100 hover:bg-emerald-200",
+                                        isIntervention && inMonth && statut === "annule" && "bg-rose-100 hover:bg-rose-200",
                                       )}
                                     >
                                       <span className={cn(
                                         "text-xs font-semibold",
                                         isToday && "text-primary",
-                                        isIntervention && inMonth && "text-primary",
+                                        isIntervention && inMonth && !statut && "text-primary",
+                                        statut === "termine" && "text-emerald-800",
+                                        statut === "annule" && "text-rose-800",
                                       )}>
                                         {format(d, "d")}
                                       </span>
                                       {isIntervention && inMonth && heure && (
-                                        <span className="mt-auto text-[10px] font-medium bg-primary text-primary-foreground rounded px-1 py-0.5">
-                                          {heure}
+                                        <span className={cn(
+                                          "mt-auto text-[10px] font-medium rounded px-1 py-0.5",
+                                          !statut && "bg-primary text-primary-foreground",
+                                          statut === "termine" && "bg-emerald-600 text-white",
+                                          statut === "annule" && "bg-rose-600 text-white line-through",
+                                        )}>
+                                          {heure}{heureFin ? `–${heureFin}` : ""}
                                         </span>
                                       )}
                                     </button>
                                   </PopoverTrigger>
-                                  <PopoverContent className="w-64 p-3 space-y-3" align="start">
+                                  <PopoverContent className="w-72 p-3 space-y-3" align="start">
                                     <div className="text-sm font-semibold capitalize">
                                       {format(d, "EEEE d MMMM yyyy", { locale: fr })}
                                     </div>
-                                    <div className="space-y-1.5">
-                                      <Label className="text-xs">Heure d'intervention</Label>
-                                      <Input
-                                        type="time"
-                                        value={heure || ""}
-                                        onChange={(e) => setAboDateOverrides((prev) => ({
-                                          ...prev,
-                                          [key]: { ...prev[key], heure: e.target.value, excluded: false },
-                                        }))}
-                                        className="h-8 text-xs"
-                                      />
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Heure début</Label>
+                                        <Input
+                                          type="time"
+                                          value={heure || ""}
+                                          onChange={(e) => setAboDateOverrides((prev) => ({
+                                            ...prev,
+                                            [key]: { ...prev[key], heure: e.target.value, excluded: false },
+                                          }))}
+                                          className="h-8 text-xs"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs">Heure fin</Label>
+                                        <Input
+                                          type="time"
+                                          value={heureFin}
+                                          onChange={(e) => setAboDateOverrides((prev) => ({
+                                            ...prev,
+                                            [key]: { ...prev[key], heure_fin: e.target.value, excluded: false },
+                                          }))}
+                                          className="h-8 text-xs"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-xs">Statut</Label>
+                                      <div className="flex gap-1">
+                                        <Button type="button" size="sm" variant={!statut ? "default" : "outline"} className="flex-1 h-7 text-[11px]"
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], statut: null },
+                                          }))}>
+                                          À venir
+                                        </Button>
+                                        <Button type="button" size="sm" variant={statut === "termine" ? "default" : "outline"}
+                                          className={cn("flex-1 h-7 text-[11px]", statut === "termine" && "bg-emerald-600 hover:bg-emerald-700")}
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], statut: "termine", excluded: false },
+                                          }))}>
+                                          Terminé
+                                        </Button>
+                                        <Button type="button" size="sm" variant={statut === "annule" ? "default" : "outline"}
+                                          className={cn("flex-1 h-7 text-[11px]", statut === "annule" && "bg-rose-600 hover:bg-rose-700")}
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], statut: "annule", excluded: false },
+                                          }))}>
+                                          Annulé
+                                        </Button>
+                                      </div>
                                     </div>
                                     <div className="flex gap-2">
                                       {isIntervention ? (
@@ -1258,7 +1308,7 @@ export default function CompteClient() {
                                         <Button type="button" size="sm" variant="outline" className="flex-1 h-8 text-xs"
                                           onClick={() => setAboDateOverrides((prev) => ({
                                             ...prev,
-                                            [key]: { heure: prev[key]?.heure || heureByDow[d.getDay()] || "09:00", excluded: false },
+                                            [key]: { heure: prev[key]?.heure || heureByDow[d.getDay()] || "09:00", heure_fin: prev[key]?.heure_fin || "", excluded: false },
                                           }))}>
                                           Ajouter
                                         </Button>
