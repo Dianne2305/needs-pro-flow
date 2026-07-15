@@ -296,6 +296,26 @@ export default function CompteClient() {
     setPlanningInitialized(true);
   }
 
+  if (demande && !aboFormInitialized) {
+    const p = ((demande as any).planning || {}) as any;
+    setAboFrequence(p.abo_frequence || p.frequence || demande.frequence || "");
+    setAboDateDebut(p.date_debut || "");
+    setAboDureeMois(typeof p.duree_mois === "number" ? p.duree_mois : 1);
+    if (Array.isArray(p.abo_jours)) {
+      setAboJours(p.abo_jours);
+    } else if (Array.isArray(p.jours) && p.jours.length > 0) {
+      setAboJours(
+        p.jours.map((j: any) =>
+          typeof j === "string"
+            ? { jour: j, heure: "" }
+            : { jour: j.jour, heure: j.heure_debut || "" }
+        )
+      );
+    }
+    setAboNotes(p.notes || "");
+    setAboFormInitialized(true);
+  }
+
   if (demande && !renewInitialized) {
     setRenewForm({
       nom: demande.nom,
