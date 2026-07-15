@@ -236,7 +236,7 @@ export default function CompteClient() {
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
-  const [aboJours, setAboJours] = useState<{ jour: string; heure: string }[]>([]);
+  const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
@@ -312,8 +312,8 @@ export default function CompteClient() {
       setAboJours(
         p.jours.map((j: any) =>
           typeof j === "string"
-            ? { jour: j, heure: "" }
-            : { jour: j.jour, heure: j.heure_debut || "" }
+            ? { jour: j, heure_debut: "", heure_fin: "" }
+            : { jour: j.jour, heure_debut: j.heure_debut || j.heure || "", heure_fin: j.heure_fin || "" }
         )
       );
     }
@@ -806,7 +806,7 @@ export default function CompteClient() {
                   });
                   return prev;
                 }
-                const next = [...prev, { jour, heure: "" }];
+                const next = [...prev, { jour, heure_debut: aboHeureDebut || "", heure_fin: aboHeureFin || "" }];
                 next.sort(
                   (a, b) =>
                     JOURS_SEMAINE.findIndex((x) => x.value === a.jour) -
@@ -815,8 +815,8 @@ export default function CompteClient() {
                 return next;
               });
             };
-            const setJourHeure = (jour: string, heure: string) => {
-              setAboJours((prev) => prev.map((j) => (j.jour === jour ? { ...j, heure } : j)));
+            const setJourHeureField = (jour: string, field: "heure_debut" | "heure_fin", value: string) => {
+              setAboJours((prev) => prev.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)));
             };
 
             // Calcul du nombre total d'interventions
@@ -999,18 +999,27 @@ export default function CompteClient() {
 
                   {aboJours.length > 0 && (
                     <div className="space-y-2 pt-2">
-                      <Label className="text-[11px] text-muted-foreground">Heure pour chaque jour</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      <Label className="text-[11px] text-muted-foreground">Horaires par jour (début / fin)</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {aboJours.map((jd) => (
                           <div key={jd.jour} className="flex items-center gap-2 p-2 rounded-lg border bg-background/60">
-                            <span className="text-xs font-semibold w-20">
+                            <span className="text-xs font-semibold w-20 shrink-0">
                               {JOURS_SEMAINE.find((j) => j.value === jd.jour)?.label}
                             </span>
                             <Input
                               type="time"
-                              value={jd.heure}
-                              onChange={(e) => setJourHeure(jd.jour, e.target.value)}
+                              value={jd.heure_debut}
+                              onChange={(e) => setJourHeureField(jd.jour, "heure_debut", e.target.value)}
                               className="h-8 text-xs flex-1"
+                              aria-label="Heure de début"
+                            />
+                            <span className="text-xs text-muted-foreground">→</span>
+                            <Input
+                              type="time"
+                              value={jd.heure_fin}
+                              onChange={(e) => setJourHeureField(jd.jour, "heure_fin", e.target.value)}
+                              className="h-8 text-xs flex-1"
+                              aria-label="Heure de fin"
                             />
                           </div>
                         ))}
@@ -1018,13 +1027,14 @@ export default function CompteClient() {
                     </div>
                   )}
 
+
                   {/* Calendrier mensuel des interventions */}
                   {aboJours.length > 0 && (() => {
                     const dayMap: Record<string, number> = {
                       dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
                     };
                     const heureByDow: Record<number, string> = {};
-                    aboJours.forEach((j) => { heureByDow[dayMap[j.jour]] = j.heure; });
+                    aboJours.forEach((j) => { heureByDow[dayMap[j.jour]] = j.heure_debut; });
                     const selectedDows = aboJours.map((j) => dayMap[j.jour]);
                     let start: Date;
                     try { start = aboDateDebut ? parseISO(aboDateDebut) : new Date(); } catch { start = new Date(); }
@@ -1213,7 +1223,7 @@ export default function CompteClient() {
                           ? aboJours
                               .map(
                                 (j) =>
-                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure ? ` à ${j.heure}` : ""}`,
+                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `–${j.heure_fin}` : ""}` : ""}`,
                               )
                               .join(", ")
                           : "—"}
