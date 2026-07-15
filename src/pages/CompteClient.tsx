@@ -897,8 +897,8 @@ export default function CompteClient() {
                   </Select>
                 </div>
 
-                {/* Section 2 : Période */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                {/* Section 2 : Période (durée fixée à 1 mois) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Date de démarrage *
@@ -912,25 +912,7 @@ export default function CompteClient() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Durée de l'abonnement
-                    </Label>
-                    <Select
-                      value={String(aboDureeMois)}
-                      onValueChange={(v) => setAboDureeMois(Number(v))}
-                    >
-                      <SelectTrigger className="bg-background">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {DUREE_OPTIONS.map((o) => (
-                          <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Date de fin (auto)
+                      Date de fin (auto — 1 mois)
                     </Label>
                     <Input
                       type="date"
