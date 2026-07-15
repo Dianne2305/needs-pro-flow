@@ -69,6 +69,7 @@ import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval,
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
+import { generateDevisPDF, devisDataFromDemande } from "@/lib/devis-generator";
 import { cn } from "@/lib/utils";
 
 type Demande = Tables<"demandes">;
