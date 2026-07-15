@@ -1059,7 +1059,7 @@ export default function CompteClient() {
                               const isToday = isSameDay(d, new Date());
                               return (
                                 <Popover key={i}>
-                                  <PopoverTrigger asChild disabled={!inMonth}>
+                                  <PopoverTrigger asChild>
                                     <button
                                       type="button"
                                       className={cn(
