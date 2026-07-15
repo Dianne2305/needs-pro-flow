@@ -433,6 +433,38 @@ export default function CompteClient() {
     }));
   };
 
+  const [aboTermine, setAboTermine] = useState(false);
+
+  // Ajoute 4 semaines consécutives (mois suivant), à partir de la dernière semaine ou de date_debut
+  const addNextMonth = () => {
+    setPlanning((prev) => {
+      const lastDebut = [...prev.semaines]
+        .map((s) => s.semaine_debut)
+        .filter(Boolean)
+        .sort()
+        .pop();
+      const baseStr = lastDebut || prev.date_debut;
+      let base: Date;
+      try { base = baseStr ? parseISO(baseStr) : new Date(); } catch { base = new Date(); }
+      const startFirst = lastDebut ? addDays(base, 7) : base;
+      const newSem: PlanningSemaine[] = Array.from({ length: 4 }).map((_, i) => {
+        const debut = addDays(startFirst, i * 7);
+        return {
+          semaine_debut: format(debut, "yyyy-MM-dd"),
+          semaine_fin: format(addDays(debut, 6), "yyyy-MM-dd"),
+          jours: [],
+          statut: "en_cours",
+        };
+      });
+      return { ...prev, semaines: [...prev.semaines, ...newSem] };
+    });
+  };
+
+  const removeMois = (indexes: number[]) => {
+    const setIdx = new Set(indexes);
+    setPlanning((prev) => ({ ...prev, semaines: prev.semaines.filter((_, i) => !setIdx.has(i)) }));
+  };
+
   const toggleSemaineStatut = (idx: number) => {
     setPlanning((prev) => ({
       ...prev,
