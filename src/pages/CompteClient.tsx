@@ -241,6 +241,8 @@ export default function CompteClient() {
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
   const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; excluded?: boolean }>>({});
+  const [aboHeureDebut, setAboHeureDebut] = useState<string>("");
+  const [aboHeureFin, setAboHeureFin] = useState<string>("");
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
