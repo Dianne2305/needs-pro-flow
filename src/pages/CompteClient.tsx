@@ -244,6 +244,7 @@ export default function CompteClient() {
   const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; excluded?: boolean }>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
+  const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
