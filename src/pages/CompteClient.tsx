@@ -933,6 +933,31 @@ export default function CompteClient() {
                       disabled
                       className="bg-muted cursor-not-allowed"
                     />
+                </div>
+
+                {/* Section 2b : Heures d'intervention */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Heure de début *
+                    </Label>
+                    <Input
+                      type="time"
+                      value={aboHeureDebut}
+                      onChange={(e) => setAboHeureDebut(e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Heure de fin
+                    </Label>
+                    <Input
+                      type="time"
+                      value={aboHeureFin}
+                      onChange={(e) => setAboHeureFin(e.target.value)}
+                      className="bg-background"
+                    />
                   </div>
                 </div>
 
