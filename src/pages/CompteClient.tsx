@@ -901,9 +901,73 @@ export default function CompteClient() {
 
             return (
               <div className="space-y-5">
+                {/* Ligne d'actions : statut + facture + enregistrer */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl border bg-background">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Statut abonnement</span>
+                    {s ? (
+                      <Badge variant="outline" className={cn("border-0 text-xs", s.color)}>{s.label}</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">{demande.statut}</Badge>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={genererFacture} className="h-8 text-xs gap-1.5">
+                      <FileText className="h-3.5 w-3.5" />
+                      {aboFactureGeneree ? "Facture générée" : "Générer facture"}
+                    </Button>
+                    <Button size="sm" variant={aboFactureEnvoyee ? "default" : "outline"} onClick={envoyerFacture} disabled={!aboFactureGeneree} className="h-8 text-xs gap-1.5">
+                      <Send className="h-3.5 w-3.5" />
+                      {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
+                    </Button>
+                    <Button size="sm" onClick={handleSave} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
+                      <Save className="h-3.5 w-3.5" /> Enregistrer : Activer le mois prochain
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Section 4 : Récapitulatif */}
+                <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 space-y-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold text-primary">Récapitulatif de l'abonnement</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Fréquence : </span>
+                      <span className="font-medium">{currentFreq?.label || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Période : </span>
+                      <span className="font-medium">
+                        {aboDateDebut && dateFinAuto
+                          ? `du ${format(parseISO(aboDateDebut), "dd/MM/yyyy")} au ${format(parseISO(dateFinAuto), "dd/MM/yyyy")}`
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-muted-foreground">Jours & heures : </span>
+                      <span className="font-medium">
+                        {aboJours.length > 0
+                          ? aboJours
+                              .map(
+                                (j) =>
+                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `–${j.heure_fin}` : ""}` : ""}`,
+                              )
+                              .join(", ")
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="sm:col-span-2 pt-2 border-t border-primary/20">
+                      <span className="text-muted-foreground">Nombre total d'interventions estimé : </span>
+                      <span className="text-lg font-bold text-primary">{totalInterventions}</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Section 1 : Type de fréquence (renseigné automatiquement par le système) */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Type de fréquence * <span className="normal-case text-[10px] text-muted-foreground/70">(renseigné automatiquement)</span>
                   </Label>
                   <Select
@@ -914,12 +978,12 @@ export default function CompteClient() {
                       if (opt) setAboJours((prev) => prev.slice(0, opt.maxJours));
                     }}
                   >
-                    <SelectTrigger className="bg-background">
+                    <SelectTrigger className="bg-background h-8 text-xs">
                       <SelectValue placeholder="Sélectionner une fréquence..." />
                     </SelectTrigger>
                     <SelectContent>
                       {ABO_FREQ_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
