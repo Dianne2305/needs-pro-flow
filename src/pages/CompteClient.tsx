@@ -873,31 +873,28 @@ export default function CompteClient() {
 
             return (
               <div className="space-y-5">
-                {/* Section 1 : Type de fréquence */}
+                {/* Section 1 : Type de fréquence (renseigné automatiquement par le système) */}
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Type de fréquence *
+                    Type de fréquence * <span className="normal-case text-[10px] text-muted-foreground/70">(renseigné automatiquement)</span>
                   </Label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-                    {ABO_FREQ_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => {
-                          setAboFrequence(opt.value);
-                          setAboJours((prev) => prev.slice(0, opt.maxJours));
-                        }}
-                        className={cn(
-                          "text-xs font-medium px-3 py-2 rounded-lg border transition-all text-left",
-                          aboFrequence === opt.value
-                            ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                            : "bg-background border-border hover:border-primary/40 hover:bg-primary/5",
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
+                  <Select
+                    value={aboFrequence}
+                    onValueChange={(v) => {
+                      setAboFrequence(v);
+                      const opt = ABO_FREQ_OPTIONS.find((o) => o.value === v);
+                      if (opt) setAboJours((prev) => prev.slice(0, opt.maxJours));
+                    }}
+                  >
+                    <SelectTrigger className="bg-background">
+                      <SelectValue placeholder="Sélectionner une fréquence..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ABO_FREQ_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Section 2 : Période */}
