@@ -232,6 +232,13 @@ export default function CompteClient() {
   });
   const [planningInitialized, setPlanningInitialized] = useState(false);
   const [aboTermine, setAboTermine] = useState(false);
+  // Gestion de l'abonnement (nouveau formulaire simplifié)
+  const [aboFrequence, setAboFrequence] = useState<string>("");
+  const [aboDateDebut, setAboDateDebut] = useState<string>("");
+  const [aboDureeMois, setAboDureeMois] = useState<number>(1);
+  const [aboJours, setAboJours] = useState<{ jour: string; heure: string }[]>([]);
+  const [aboNotes, setAboNotes] = useState<string>("");
+  const [aboFormInitialized, setAboFormInitialized] = useState(false);
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
