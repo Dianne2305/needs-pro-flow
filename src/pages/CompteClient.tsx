@@ -1112,8 +1112,10 @@ export default function CompteClient() {
                       </span>
                     </div>
                     <div className="sm:col-span-2 pt-2 border-t border-primary/20">
-                      <span className="text-muted-foreground">Nombre total d'interventions estimé : </span>
-                      <span className="text-lg font-bold text-primary">{totalInterventions}</span>
+                      <span className="text-muted-foreground">
+                        Interventions estimées pour {format(aboCalMonth, "MMMM yyyy", { locale: fr })} :{' '}
+                      </span>
+                      <span className="text-lg font-bold text-primary">{monthlyInterventions}</span>
                     </div>
                   </div>
                 </div>
