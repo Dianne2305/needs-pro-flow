@@ -460,6 +460,23 @@ export default function CompteClient() {
     updateMutation.mutate({ note_commercial: noteComm || null, note_operationnel: noteOpe || null });
   };
 
+  const genererFacture = () => {
+    try {
+      const data = devisDataFromDemande(demande);
+      const doc = generateDevisPDF(data);
+      doc.save(`facture-abonnement-${demande.num_demande}.pdf`);
+      setAboFactureGeneree(true);
+      toast({ title: "Facture générée", description: "Le PDF a été téléchargé." });
+    } catch (e) {
+      toast({ title: "Erreur", description: "Impossible de générer la facture.", variant: "destructive" });
+    }
+  };
+
+  const envoyerFacture = () => {
+    setAboFactureEnvoyee(true);
+    toast({ title: "Facture envoyée", description: "La facture a été marquée comme envoyée au client." });
+  };
+
   const order = JOURS_SEMAINE.map((j) => j.value) as readonly string[];
 
   const addSemaine = () => {
