@@ -241,7 +241,7 @@ export default function CompteClient() {
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
-  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; excluded?: boolean }>>({});
+  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | null }>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
