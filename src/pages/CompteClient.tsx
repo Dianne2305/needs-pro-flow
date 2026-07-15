@@ -806,7 +806,7 @@ export default function CompteClient() {
                   });
                   return prev;
                 }
-                const next = [...prev, { jour, heure: "" }];
+                const next = [...prev, { jour, heure_debut: aboHeureDebut || "", heure_fin: aboHeureFin || "" }];
                 next.sort(
                   (a, b) =>
                     JOURS_SEMAINE.findIndex((x) => x.value === a.jour) -
@@ -815,8 +815,8 @@ export default function CompteClient() {
                 return next;
               });
             };
-            const setJourHeure = (jour: string, heure: string) => {
-              setAboJours((prev) => prev.map((j) => (j.jour === jour ? { ...j, heure } : j)));
+            const setJourHeureField = (jour: string, field: "heure_debut" | "heure_fin", value: string) => {
+              setAboJours((prev) => prev.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)));
             };
 
             // Calcul du nombre total d'interventions
