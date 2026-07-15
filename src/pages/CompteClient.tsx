@@ -244,6 +244,7 @@ export default function CompteClient() {
   const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; excluded?: boolean }>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
+  const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
@@ -320,6 +321,8 @@ export default function CompteClient() {
     }
     setAboNotes(p.notes || "");
     if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
+    const validStatut = ["actif", "suspendu", "pause"].includes(p.abo_statut) ? p.abo_statut : "actif";
+    setAboStatut(validStatut as "actif" | "suspendu" | "pause");
     setAboFormInitialized(true);
 
   }
@@ -882,6 +885,7 @@ export default function CompteClient() {
               const newPlanning = {
                 abo_frequence: aboFrequence,
                 abo_jours: aboJours,
+                abo_statut: aboStatut,
                 date_debut: aboDateDebut,
                 date_fin: dateFinAuto,
                 duree_mois: aboDureeMois,
@@ -899,17 +903,58 @@ export default function CompteClient() {
               updateMutation.mutate(updates);
             };
 
+            const handleActiverMoisProchain = () => {
+              const nextMonth = new Date();
+              nextMonth.setMonth(nextMonth.getMonth() + 1);
+              nextMonth.setDate(1);
+              const nextMonthStr = format(nextMonth, "yyyy-MM-dd");
+              setAboDateDebut(nextMonthStr);
+              setAboStatut("actif");
+              const end = new Date(nextMonth);
+              end.setMonth(end.getMonth() + aboDureeMois);
+              end.setDate(end.getDate() - 1);
+              const newPlanning = {
+                abo_frequence: aboFrequence,
+                abo_jours: aboJours,
+                abo_statut: "actif",
+                date_debut: nextMonthStr,
+                date_fin: format(end, "yyyy-MM-dd"),
+                duree_mois: aboDureeMois,
+                frequence: aboFrequence,
+                notes: aboNotes,
+                date_overrides: aboDateOverrides,
+                total_interventions_estime: totalInterventions,
+              };
+              const updates: Record<string, unknown> = { planning: newPlanning as any };
+              if (FREQUENCES.some((f) => f.value === aboFrequence)) {
+                updates.frequence = aboFrequence;
+              }
+              updateMutation.mutate(updates, {
+                onSuccess: () => {
+                  toast({ title: "Abonnement activé", description: `Démarrage prévu le ${format(nextMonth, "dd/MM/yyyy")}.` });
+                },
+              });
+            };
+
             return (
               <div className="space-y-5">
                 {/* Ligne d'actions : statut + facture + enregistrer */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 rounded-xl border bg-background">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-3 rounded-xl border bg-background">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Statut abonnement</span>
-                    {s ? (
-                      <Badge variant="outline" className={cn("border-0 text-xs", s.color)}>{s.label}</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-xs">{demande.statut}</Badge>
-                    )}
+                    <Select
+                      value={aboStatut}
+                      onValueChange={(v) => setAboStatut(v as "actif" | "suspendu" | "pause")}
+                    >
+                      <SelectTrigger className="h-8 w-40 text-xs bg-background">
+                        <SelectValue placeholder="Statut" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
+                        <SelectItem value="suspendu" className="text-xs">Suspendus</SelectItem>
+                        <SelectItem value="pause" className="text-xs">En pause</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={genererFacture} className="h-8 text-xs gap-1.5">
@@ -920,8 +965,11 @@ export default function CompteClient() {
                       <Send className="h-3.5 w-3.5" />
                       {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
                     </Button>
+                    <Button size="sm" variant="outline" onClick={handleActiverMoisProchain} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
+                      <RefreshCw className="h-3.5 w-3.5" /> Activer le mois prochain
+                    </Button>
                     <Button size="sm" onClick={handleSave} disabled={!isValid || updateMutation.isPending} className="h-8 text-xs gap-1.5">
-                      <Save className="h-3.5 w-3.5" /> Enregistrer : Activer le mois prochain
+                      <Save className="h-3.5 w-3.5" /> Enregistrer
                     </Button>
                   </div>
                 </div>
