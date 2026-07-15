@@ -840,7 +840,7 @@ export default function CompteClient() {
               setAboJours((prev) => prev.map((j) => (j.jour === jour ? { ...j, [field]: value } : j)));
             };
 
-            // Calcul du nombre total d'interventions
+            // Calcul du nombre total d'interventions (cumul sur toute la période)
             const totalInterventions = (() => {
               if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return 0;
               const dayMap: Record<string, number> = {
@@ -869,6 +869,49 @@ export default function CompteClient() {
                 count++;
               }
               return count;
+            })();
+
+            // Nombre d'interventions estimé pour le mois sélectionné
+            const monthlyInterventions = (() => {
+              if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return 0;
+              const dayMap: Record<string, number> = {
+                dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
+              };
+              const selected = aboJours.map((j) => dayMap[j.jour]).filter((n) => n !== undefined);
+              if (selected.length === 0) return 0;
+              let start: Date, end: Date;
+              try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); }
+              catch { return 0; }
+              if (end < start) return 0;
+              const monthStart = startOfMonth(aboCalMonth);
+              const monthEnd = endOfMonth(aboCalMonth);
+              const effectiveStart = start > monthStart ? start : monthStart;
+              const effectiveEnd = end < monthEnd ? end : monthEnd;
+              if (effectiveStart > effectiveEnd) return 0;
+              const startMs = start.getTime();
+              const seenMonth = new Set<string>();
+              const interventionSet = new Set<string>();
+              for (let d = new Date(effectiveStart); d <= effectiveEnd; d = addDays(d, 1)) {
+                if (!selected.includes(d.getDay())) continue;
+                if (aboFrequence === "bi_hebdomadaire") {
+                  const weekNo = Math.floor((d.getTime() - startMs) / (7 * 24 * 3600 * 1000));
+                  if (weekNo % 2 !== 0) continue;
+                }
+                if (aboFrequence === "1_fois_mois") {
+                  const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
+                  if (seenMonth.has(key)) continue;
+                  seenMonth.add(key);
+                }
+                interventionSet.add(format(d, "yyyy-MM-dd"));
+              }
+              const patternCount = Array.from(interventionSet).filter((k) => !aboDateOverrides[k]?.excluded).length;
+              const overrideCount = Object.entries(aboDateOverrides).filter(([k, v]) => {
+                if (v.excluded || !v.heure) return false;
+                let od: Date;
+                try { od = parseISO(k); } catch { return false; }
+                return isSameMonth(od, aboCalMonth) && od >= start && od <= end && !interventionSet.has(k);
+              }).length;
+              return patternCount + overrideCount;
             })();
 
             const isValid = aboFrequence && aboDateDebut && aboJours.length > 0;
@@ -1069,8 +1112,10 @@ export default function CompteClient() {
                       </span>
                     </div>
                     <div className="sm:col-span-2 pt-2 border-t border-primary/20">
-                      <span className="text-muted-foreground">Nombre total d'interventions estimé : </span>
-                      <span className="text-lg font-bold text-primary">{totalInterventions}</span>
+                      <span className="text-muted-foreground">
+                        Interventions estimées pour {format(aboCalMonth, "MMMM yyyy", { locale: fr })} :{' '}
+                      </span>
+                      <span className="text-lg font-bold text-primary">{monthlyInterventions}</span>
                     </div>
                   </div>
                 </div>
@@ -1227,11 +1272,6 @@ export default function CompteClient() {
                     const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
                     const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
                     const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
-                    const finalCount = Array.from(interventionSet).filter(
-                      (k) => !aboDateOverrides[k]?.excluded,
-                    ).length + Object.entries(aboDateOverrides).filter(
-                      ([k, v]) => !interventionSet.has(k) && !v.excluded && v.heure,
-                    ).length;
                     return (
                       <div className="pt-3 space-y-2">
                         <div className="flex items-center justify-between">
@@ -1391,7 +1431,7 @@ export default function CompteClient() {
                           </div>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                          {finalCount} intervention(s) sur la période. Cliquez sur un jour pour ajuster l'heure ou l'exclure.
+                          {monthlyInterventions} intervention(s) sur le mois de {format(aboCalMonth, "MMMM yyyy", { locale: fr })}. Cliquez sur un jour pour ajuster l'heure ou l'exclure.
                         </p>
                       </div>
                     );
