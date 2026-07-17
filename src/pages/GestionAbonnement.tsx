@@ -71,6 +71,12 @@ const DAY_MAP: Record<string, number> = {
   dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
 };
 
+/** Parse "YYYY-MM-DD" as a local Date at noon — évite tout décalage de timezone. */
+function parseYMD(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1, 12, 0, 0, 0);
+}
+
 function isAbonnement(d: Demande) {
   return !!d.frequence && d.frequence !== "ponctuel";
 }
