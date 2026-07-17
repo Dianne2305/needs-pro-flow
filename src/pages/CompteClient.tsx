@@ -1130,13 +1130,66 @@ export default function CompteClient() {
                             className="h-7 w-36 text-xs bg-background"
                           />
                         </div>
-                        <div className="ml-auto text-xs">
-                          <span className="text-muted-foreground">Interventions au prorata : </span>
-                          <span className="text-base font-bold text-primary">{monthlyInterventions}</span>
-                        </div>
                       </>
                     )}
                   </div>
+
+                  {proratActif && (() => {
+                    const montantTotal = Number(demande?.montant_total) || 0;
+                    const prixUnitaire = fullMonthInterventions > 0 ? montantTotal / fullMonthInterventions : 0;
+                    const montantProrata = prixUnitaire * monthlyInterventions;
+                    const fmt = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const dStart = currentProrata?.debut || _monthStartStr;
+                    const dEnd = currentProrata?.fin || _monthEndStr;
+                    let nbJours = 0;
+                    try {
+                      const a = parseISO(dStart); const b = parseISO(dEnd);
+                      nbJours = Math.max(0, Math.round((b.getTime() - a.getTime()) / (24 * 3600 * 1000)) + 1);
+                    } catch {}
+                    return (
+                      <div className="mt-3 rounded-lg border border-primary/20 bg-background/70 p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                            Aperçu du calcul au prorata
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
+                          <div>
+                            <div className="text-muted-foreground">Période prorata</div>
+                            <div className="font-medium">
+                              {(() => { try { return `${format(parseISO(dStart), "dd/MM/yyyy")} → ${format(parseISO(dEnd), "dd/MM/yyyy")}`; } catch { return "—"; } })()}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{nbJours} jour(s) couverts</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Interventions</div>
+                            <div className="font-medium">
+                              <span className="text-primary font-bold">{monthlyInterventions}</span>
+                              <span className="text-muted-foreground"> / {fullMonthInterventions} au mois complet</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Prix unitaire</div>
+                            <div className="font-medium">{fmt(prixUnitaire)} MAD <span className="text-[10px] text-muted-foreground">/ intervention</span></div>
+                          </div>
+                          <div className="col-span-2 sm:col-span-3 pt-2 mt-1 border-t border-primary/10 flex flex-wrap items-baseline justify-between gap-2">
+                            <div className="text-[11px] text-muted-foreground">
+                              Calcul : {fmt(prixUnitaire)} × {monthlyInterventions} intervention(s)
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-[11px] mr-1">Montant au prorata :</span>
+                              <span className="text-base font-bold text-primary">{fmt(montantProrata)} MAD</span>
+                              <span className="text-[10px] text-muted-foreground ml-2">
+                                (mois complet : {fmt(montantTotal)} MAD)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
                 </div>
 
 
