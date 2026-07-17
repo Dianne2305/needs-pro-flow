@@ -1214,6 +1214,21 @@ export default function CompteClient() {
                           {cancelledInterventions} annulée(s)
                         </span>
                       )}
+                      {aRecupMois > 0 && (
+                        <span className="inline-flex items-center text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+                          {aRecupMois} à récupérer (ce mois)
+                        </span>
+                      )}
+                      {reportesMois > 0 && (
+                        <span className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5">
+                          {reportesMois} reportée(s) programmée(s)
+                        </span>
+                      )}
+                      {pendingCreditsGlobal > 0 && (
+                        <span className="inline-flex items-center text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5">
+                          Crédits à récupérer (abonnement) : {pendingCreditsGlobal}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
