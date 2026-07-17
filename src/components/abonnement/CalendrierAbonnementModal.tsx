@@ -1,6 +1,8 @@
 /**
  * CalendrierAbonnementModal.tsx
- * Raccourci : affiche le calendrier des interventions d'un abonnement en modal.
+ * Raccourci : affiche le calendrier mensuel des interventions d'un abonnement,
+ * généré automatiquement à partir de planning.abo_jours + date_debut + date_overrides
+ * (même logique que la section Gestion de l'abonnement dans CompteClient).
  */
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import {
-  addMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
-  eachDayOfInterval, format, isSameMonth, isSameDay, parseISO, addDays,
+  addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  eachDayOfInterval, format, isSameMonth, isSameDay, parseISO, getDay,
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Tables } from "@/integrations/supabase/types";
@@ -17,38 +19,91 @@ import { useNavigate } from "react-router-dom";
 
 type Demande = Tables<"demandes">;
 
+const DAY_MAP: Record<string, number> = {
+  dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
+};
+
+type Override = { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | null };
+
 interface DayInfo {
   date: Date;
-  statut?: string;
+  statut: "a_venir" | "termine" | "annule";
   heure_debut?: string;
   heure_fin?: string;
 }
 
-function extractDays(d: Demande): DayInfo[] {
-  const p = (d.planning as any) || {};
+function buildInterventions(demande: Demande, month: Date): DayInfo[] {
+  const p = ((demande as any).planning || {}) as any;
+  const aboJours: { jour: string; heure_debut?: string; heure_fin?: string }[] =
+    Array.isArray(p.abo_jours) ? p.abo_jours
+    : Array.isArray(p.jours) ? p.jours.map((j: any) => typeof j === "string" ? { jour: j } : j)
+    : [];
+  const dateDebutStr = p.date_debut || (demande.date_prestation as unknown as string) || null;
+  const overrides: Record<string, Override> = p.date_overrides || {};
+  if (!dateDebutStr || aboJours.length === 0) {
+    // fallback : parcours des overrides seuls
+    return Object.entries(overrides)
+      .filter(([, v]) => !v.excluded)
+      .map(([k, v]) => ({
+        date: parseISO(k),
+        statut: (v.statut === "termine" ? "termine" : v.statut === "annule" ? "annule" : "a_venir") as DayInfo["statut"],
+        heure_debut: v.heure,
+        heure_fin: v.heure_fin,
+      }))
+      .filter((di) => isSameMonth(di.date, month));
+  }
+
+  const start = parseISO(dateDebutStr);
+  const dureeMois = typeof p.duree_mois === "number" ? p.duree_mois : 1;
+  const endLimit = addMonths(start, dureeMois);
+  const selectedDows = aboJours.map((j) => DAY_MAP[j.jour]).filter((n) => n !== undefined);
+  const heureByDow: Record<number, { heure_debut?: string; heure_fin?: string }> = {};
+  aboJours.forEach((j) => {
+    heureByDow[DAY_MAP[j.jour]] = { heure_debut: j.heure_debut, heure_fin: j.heure_fin };
+  });
+
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
+  const from = monthStart < start ? start : monthStart;
+  const to = monthEnd > endLimit ? endLimit : monthEnd;
+
   const out: DayInfo[] = [];
-  if (p.semaines?.length) {
-    for (const sem of p.semaines) {
-      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
-      if (!base) continue;
-      for (const j of sem.jours || []) {
-        const offset = typeof j.jour === "number" ? j.jour : 0;
-        out.push({
-          date: addDays(base, offset),
-          statut: j.statut,
-          heure_debut: j.heure_debut,
-          heure_fin: j.heure_fin,
-        });
-      }
+  const seen = new Set<string>();
+  if (from <= to) {
+    for (const day of eachDayOfInterval({ start: from, end: to })) {
+      if (!selectedDows.includes(getDay(day))) continue;
+      const key = format(day, "yyyy-MM-dd");
+      const ov = overrides[key];
+      if (ov?.excluded) continue;
+      const h = heureByDow[getDay(day)] || {};
+      out.push({
+        date: day,
+        statut: (ov?.statut === "termine" ? "termine" : ov?.statut === "annule" ? "annule" : "a_venir"),
+        heure_debut: ov?.heure || h.heure_debut,
+        heure_fin: ov?.heure_fin || h.heure_fin,
+      });
+      seen.add(key);
     }
   }
+  // Overrides ajoutés hors récurrence
+  Object.entries(overrides).forEach(([k, v]) => {
+    if (seen.has(k) || v.excluded) return;
+    const od = parseISO(k);
+    if (!isSameMonth(od, month)) return;
+    out.push({
+      date: od,
+      statut: (v.statut === "termine" ? "termine" : v.statut === "annule" ? "annule" : "a_venir"),
+      heure_debut: v.heure,
+      heure_fin: v.heure_fin,
+    });
+  });
   return out;
 }
 
-const STATUT_STYLE: Record<string, { label: string; cls: string }> = {
-  terminee: { label: "Terminé", cls: "bg-emerald-500 text-white" },
-  annule: { label: "Annulé", cls: "bg-rose-500 text-white line-through" },
+const STATUT_STYLE: Record<DayInfo["statut"], { label: string; cls: string }> = {
   a_venir: { label: "À venir", cls: "bg-primary text-primary-foreground" },
+  termine: { label: "Terminé", cls: "bg-emerald-500 text-white" },
+  annule: { label: "Annulé", cls: "bg-rose-500 text-white line-through" },
 };
 
 export default function CalendrierAbonnementModal({
@@ -59,16 +114,23 @@ export default function CalendrierAbonnementModal({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
-  const [cursor, setCursor] = useState<Date>(new Date());
+  const [cursor, setCursor] = useState<Date>(() => {
+    const p = (demande as any)?.planning;
+    if (p?.date_debut) { try { return parseISO(p.date_debut); } catch { /* noop */ } }
+    return new Date();
+  });
 
-  const days = useMemo(() => (demande ? extractDays(demande) : []), [demande]);
+  const interventions = useMemo(() => (demande ? buildInterventions(demande, cursor) : []), [demande, cursor]);
   const gridDays = useMemo(() => {
-    const start = startOfWeek(startOfMonth(cursor), { locale: fr });
-    const end = endOfWeek(endOfMonth(cursor), { locale: fr });
-    return eachDayOfInterval({ start, end });
+    const s = startOfWeek(startOfMonth(cursor), { locale: fr });
+    const e = endOfWeek(endOfMonth(cursor), { locale: fr });
+    return eachDayOfInterval({ start: s, end: e });
   }, [cursor]);
 
   if (!demande) return null;
+
+  const totalMois = interventions.filter((i) => i.statut !== "annule").length;
+  const annulees = interventions.filter((i) => i.statut === "annule").length;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -90,7 +152,7 @@ export default function CalendrierAbonnementModal({
         </DialogHeader>
 
         <div className="flex items-center justify-between mb-2">
-          <Button size="icon" variant="ghost" onClick={() => setCursor(addMonths(cursor, -1))}>
+          <Button size="icon" variant="ghost" onClick={() => setCursor(subMonths(cursor, 1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="font-semibold capitalize">{format(cursor, "MMMM yyyy", { locale: fr })}</div>
@@ -106,10 +168,9 @@ export default function CalendrierAbonnementModal({
         </div>
         <div className="grid grid-cols-7 gap-1">
           {gridDays.map((day) => {
-            const info = days.find((di) => isSameDay(di.date, day));
+            const info = interventions.find((di) => isSameDay(di.date, day));
             const inMonth = isSameMonth(day, cursor);
-            const statut = info?.statut || (info ? "a_venir" : undefined);
-            const style = statut ? STATUT_STYLE[statut] : null;
+            const style = info ? STATUT_STYLE[info.statut] : null;
             return (
               <div
                 key={day.toISOString()}
@@ -131,10 +192,16 @@ export default function CalendrierAbonnementModal({
           })}
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground mt-3">
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> À venir</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Terminé</span>
-          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-500" /> Annulé</span>
+        <div className="flex items-center justify-between mt-3 text-xs">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> À venir</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Terminé</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-500" /> Annulé</span>
+          </div>
+          <div className="text-muted-foreground">
+            <span className="font-semibold text-foreground">{totalMois}</span> intervention(s)
+            {annulees > 0 && <span className="ml-2 text-rose-600">· {annulees} annulée(s)</span>}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
