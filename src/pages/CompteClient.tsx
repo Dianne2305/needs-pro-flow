@@ -241,7 +241,11 @@ export default function CompteClient() {
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
-  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | null }>>({});
+  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | "a_recuperer" | null; reprogrammed_to?: string | null; reprogrammed_from?: string | null }>>({});
+  // Date cible saisie temporairement pour la reprogrammation d'un crédit "à récupérer".
+  const [reprogTarget, setReprogTarget] = useState<Record<string, string>>({});
+  // Source sélectionnée pour "Utiliser un crédit" depuis un jour libre.
+  const [useCreditSource, setUseCreditSource] = useState<Record<string, string>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
