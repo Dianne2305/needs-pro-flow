@@ -1177,23 +1177,12 @@ export default function CompteClient() {
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Type de fréquence * <span className="normal-case text-[10px] text-muted-foreground/70">(renseigné automatiquement)</span>
                   </Label>
-                  <Select
-                    value={aboFrequence}
-                    onValueChange={(v) => {
-                      setAboFrequence(v);
-                      const opt = ABO_FREQ_OPTIONS.find((o) => o.value === v);
-                      if (opt) setAboJours((prev) => prev.slice(0, opt.maxJours));
-                    }}
-                  >
-                    <SelectTrigger className="bg-background h-8 text-xs">
-                      <SelectValue placeholder="Sélectionner une fréquence..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ABO_FREQ_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value} className="text-xs">{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    value={currentFreq?.label || aboFrequence || "—"}
+                    readOnly
+                    disabled
+                    className="bg-muted/50 h-8 text-xs cursor-not-allowed"
+                  />
                 </div>
 
                 {/* Section 2 : Période (durée fixée à 1 mois) */}
