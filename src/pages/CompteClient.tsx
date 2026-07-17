@@ -787,6 +787,9 @@ export default function CompteClient() {
 
         {/* Gestion de l'abonnement */}
         <Section title="Gestion de l'abonnement" icon={Clock} defaultOpen colorClass="bg-[#BFDDCE]">
+          <Button variant="outline" size="sm" className="mb-3" onClick={() => navigate("/gestion-abonnement")}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Retour à Gestion Abonnement
+          </Button>
           {(() => {
             const ABO_FREQ_OPTIONS = [
               { value: "1_fois_semaine", label: "1 fois par semaine", maxJours: 1 },
