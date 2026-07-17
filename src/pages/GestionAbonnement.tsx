@@ -71,6 +71,12 @@ const DAY_MAP: Record<string, number> = {
   dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
 };
 
+/** Parse "YYYY-MM-DD" as a local Date at noon — évite tout décalage de timezone. */
+function parseYMD(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1, 12, 0, 0, 0);
+}
+
 function isAbonnement(d: Demande) {
   return !!d.frequence && d.frequence !== "ponctuel";
 }
@@ -97,10 +103,10 @@ function buildPlanningDates(d: Demande): {
 
   let start: Date | null = null;
   const dateDebutStr = p.date_debut || (d.date_prestation as unknown as string) || null;
-  if (dateDebutStr) { try { start = parseISO(dateDebutStr); } catch { start = null; } }
+  if (dateDebutStr) { try { start = parseYMD(dateDebutStr); } catch { start = null; } }
   let end: Date | null = null;
   const dateFinStr: string | null = p.date_fin || null;
-  if (dateFinStr) { try { end = parseISO(dateFinStr); } catch { end = null; } }
+  if (dateFinStr) { try { end = parseYMD(dateFinStr); } catch { end = null; } }
   if (!end && start) end = addMonths(start, typeof p.duree_mois === "number" ? p.duree_mois : 1);
 
   const pattern = new Set<string>();
@@ -134,7 +140,7 @@ function buildPlanningDates(d: Demande): {
   for (const k of allKeys) {
     const ov = overrides[k];
     if (ov?.excluded) continue;
-    const dt = parseISO(k);
+    const dt = parseYMD(k);
     const statut =
       ov?.statut === "termine" ? "termine"
       : ov?.statut === "annule" ? "annule"
