@@ -807,17 +807,18 @@ export default function CompteClient() {
             const currentFreq = ABO_FREQ_OPTIONS.find((f) => f.value === aboFrequence);
             const maxJours = currentFreq?.maxJours ?? 7;
 
-            // Date de fin auto = date de début + durée
+            // Date de fin auto = date de début + 1 mois (l'abonnement dure toujours 1 mois)
             const dateFinAuto = (() => {
               if (!aboDateDebut) return "";
               try {
                 const d = parseISO(aboDateDebut);
                 const end = new Date(d);
-                end.setMonth(end.getMonth() + aboDureeMois);
+                end.setMonth(end.getMonth() + 1);
                 end.setDate(end.getDate() - 1);
                 return format(end, "yyyy-MM-dd");
               } catch { return ""; }
             })();
+
 
             const toggleJour = (jour: string) => {
               setAboJours((prev) => {
