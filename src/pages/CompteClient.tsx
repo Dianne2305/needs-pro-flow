@@ -887,8 +887,13 @@ export default function CompteClient() {
               if (end < start) return 0;
               const monthStart = startOfMonth(aboCalMonth);
               const monthEnd = endOfMonth(aboCalMonth);
-              const effectiveStart = start > monthStart ? start : monthStart;
-              const effectiveEnd = end < monthEnd ? end : monthEnd;
+              let effectiveStart = start > monthStart ? start : monthStart;
+              let effectiveEnd = end < monthEnd ? end : monthEnd;
+              // Prorata : restreint la plage d'intervention au sein du mois
+              const _mk = format(aboCalMonth, "yyyy-MM");
+              const _pr = aboProrata[_mk];
+              if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
+              if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
               if (effectiveStart > effectiveEnd) return 0;
               const startMs = start.getTime();
               const seenMonth = new Set<string>();
