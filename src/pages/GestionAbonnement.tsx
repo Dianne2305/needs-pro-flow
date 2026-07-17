@@ -19,14 +19,15 @@ import { Tables } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, addDays, parseISO, differenceInCalendarDays, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   CalendarCheck, CalendarClock, PauseCircle, CalendarDays,
   Sun, Sunrise, FileText, FileWarning, Eye, Building2, User,
-  RefreshCw, History, Receipt, Pause,
+  Calendar as CalendarIcon, Pause, Search, X,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -216,6 +217,52 @@ export default function GestionAbonnement() {
     [facturations]
   );
 
+  // Filtres
+  type KpiKey = "actifs" | "echeance" | "suspendus" | "today" | "tomorrow" | "a-generer" | "impayees";
+  const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
+  const [searchNom, setSearchNom] = useState("");
+  const [dateDu, setDateDu] = useState("");
+  const [dateAu, setDateAu] = useState("");
+
+  const matchesNom = (name?: string | null) =>
+    !searchNom.trim() || (name || "").toLowerCase().includes(searchNom.trim().toLowerCase());
+
+  const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
+    if (!dateDu && !dateAu) return true;
+    const debut = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : (d.confirmed_at ? new Date(d.confirmed_at) : null);
+    const fin = stats.dateFin;
+    const from = dateDu ? parseISO(dateDu) : null;
+    const to = dateAu ? parseISO(dateAu) : null;
+    // On garde s'il y a chevauchement entre [debut, fin] et [from, to]
+    if (from && fin && fin < from) return false;
+    if (to && debut && debut > to) return false;
+    return true;
+  };
+  const matchesInterventionDate = (date: Date) => {
+    if (dateDu && date < parseISO(dateDu)) return false;
+    if (dateAu && date > parseISO(dateAu)) return false;
+    return true;
+  };
+  const matchesFactureDate = (dateStr?: string | null) => {
+    if (!dateDu && !dateAu) return true;
+    if (!dateStr) return false;
+    const dt = parseISO(dateStr);
+    if (dateDu && dt < parseISO(dateDu)) return false;
+    if (dateAu && dt > parseISO(dateAu)) return false;
+    return true;
+  };
+
+  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesAbonnementDate(d, stats)), [abosActifs, searchNom, dateDu, dateAu]);
+  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesAbonnementDate(d, stats)), [abosEcheance, searchNom, dateDu, dateAu]);
+  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesAbonnementDate(d, stats)), [abosSuspendus, searchNom, dateDu, dateAu]);
+  const interventionsTodayF = useMemo(() => interventionsToday.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesInterventionDate(date)), [interventionsToday, searchNom, dateDu, dateAu]);
+  const interventionsTomorrowF = useMemo(() => interventionsTomorrow.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesInterventionDate(date)), [interventionsTomorrow, searchNom, dateDu, dateAu]);
+  const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, searchNom, dateDu, dateAu]);
+  const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, searchNom, dateDu, dateAu]);
+
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); };
+  const hasFilters = !!(searchNom || dateDu || dateAu);
+
   return (
     <div className="space-y-4">
       <div>
@@ -223,50 +270,49 @@ export default function GestionAbonnement() {
         <p className="text-sm text-muted-foreground">Vue centralisée des abonnements, interventions et facturation</p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards cliquables = filtres */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" />
-        <KpiCard label="À échéance ≤ 7j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
-        <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
-        <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" />
-        <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" />
-        <KpiCard label="À générer" value={facturesAGenerer.length} icon={<FileText className="h-5 w-5" />} gradient="from-violet-500 to-purple-600" />
-        <KpiCard label="Impayées" value={facturesImpayees.length} icon={<FileWarning className="h-5 w-5" />} gradient="from-rose-500 to-red-600" />
+        <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" active={activeKpi==="actifs"} onClick={() => setActiveKpi("actifs")} />
+        <KpiCard label="À échéance ≤ 7j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" active={activeKpi==="echeance"} onClick={() => setActiveKpi("echeance")} />
+        <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" active={activeKpi==="suspendus"} onClick={() => setActiveKpi("suspendus")} />
+        <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" active={activeKpi==="today"} onClick={() => setActiveKpi("today")} />
+        <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" active={activeKpi==="tomorrow"} onClick={() => setActiveKpi("tomorrow")} />
+        <KpiCard label="À générer" value={facturesAGenerer.length} icon={<FileText className="h-5 w-5" />} gradient="from-violet-500 to-purple-600" active={activeKpi==="a-generer"} onClick={() => setActiveKpi("a-generer")} />
+        <KpiCard label="Impayées" value={facturesImpayees.length} icon={<FileWarning className="h-5 w-5" />} gradient="from-rose-500 to-red-600" active={activeKpi==="impayees"} onClick={() => setActiveKpi("impayees")} />
       </div>
 
-      <Tabs defaultValue="actifs">
-        <TabsList className="flex flex-wrap h-auto">
-          <TabsTrigger value="actifs" className="gap-1.5"><CalendarCheck className="h-4 w-4" />Actifs ({abosActifs.length})</TabsTrigger>
-          <TabsTrigger value="echeance" className="gap-1.5"><CalendarClock className="h-4 w-4" />À échéance ({abosEcheance.length})</TabsTrigger>
-          <TabsTrigger value="suspendus" className="gap-1.5"><PauseCircle className="h-4 w-4" />Suspendus ({abosSuspendus.length})</TabsTrigger>
-          <TabsTrigger value="today" className="gap-1.5"><Sun className="h-4 w-4" />Aujourd'hui ({interventionsToday.length})</TabsTrigger>
-          <TabsTrigger value="tomorrow" className="gap-1.5"><Sunrise className="h-4 w-4" />Demain ({interventionsTomorrow.length})</TabsTrigger>
-          <TabsTrigger value="a-generer" className="gap-1.5"><FileText className="h-4 w-4" />Factures à générer ({facturesAGenerer.length})</TabsTrigger>
-          <TabsTrigger value="impayees" className="gap-1.5"><FileWarning className="h-4 w-4" />Factures impayées ({facturesImpayees.length})</TabsTrigger>
-        </TabsList>
+      {/* Filtres nom + dates */}
+      <Card className="p-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex-1 min-w-[220px]">
+            <Label className="text-xs">Nom du client</Label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input value={searchNom} onChange={(e) => setSearchNom(e.target.value)} placeholder="Rechercher un client…" className="pl-8" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Du</Label>
+            <Input type="date" value={dateDu} onChange={(e) => setDateDu(e.target.value)} />
+          </div>
+          <div>
+            <Label className="text-xs">Au</Label>
+            <Input type="date" value={dateAu} onChange={(e) => setDateAu(e.target.value)} />
+          </div>
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
+          )}
+        </div>
+      </Card>
 
-        <TabsContent value="actifs">
-          <AbonnementTable rows={abosActifs} navigate={navigate} facturations={facturations} today={today} openAction={openAction} />
-        </TabsContent>
-        <TabsContent value="echeance">
-          <AbonnementTable rows={abosEcheance} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} />
-        </TabsContent>
-        <TabsContent value="suspendus">
-          <AbonnementTable rows={abosSuspendus} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} />
-        </TabsContent>
-        <TabsContent value="today">
-          <InterventionTable rows={interventionsToday} navigate={navigate} />
-        </TabsContent>
-        <TabsContent value="tomorrow">
-          <InterventionTable rows={interventionsTomorrow} navigate={navigate} />
-        </TabsContent>
-        <TabsContent value="a-generer">
-          <FactureAGenererTable rows={facturesAGenerer} navigate={navigate} />
-        </TabsContent>
-        <TabsContent value="impayees">
-          <FactureImpayeeTable rows={facturesImpayees} navigate={navigate} />
-        </TabsContent>
-      </Tabs>
+      {/* Contenu selon KPI actif */}
+      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} />}
+      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} />}
+      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} />}
+      {activeKpi === "today" && <InterventionTable rows={interventionsTodayF} navigate={navigate} />}
+      {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF} navigate={navigate} />}
+      {activeKpi === "a-generer" && <FactureAGenererTable rows={facturesAGenererF} navigate={navigate} />}
+      {activeKpi === "impayees" && <FactureImpayeeTable rows={facturesImpayeesF} navigate={navigate} />}
 
       <AbonnementActionsModal
         demande={actionState?.demande ?? null}
@@ -277,11 +323,11 @@ export default function GestionAbonnement() {
   );
 }
 
-function KpiCard({ label, value, icon, gradient, onClick }: { label: string; value: number | string; icon: React.ReactNode; gradient: string; onClick?: () => void }) {
+function KpiCard({ label, value, icon, gradient, onClick, active }: { label: string; value: number | string; icon: React.ReactNode; gradient: string; onClick?: () => void; active?: boolean }) {
   return (
     <Card
       onClick={onClick}
-      className={`p-3 bg-gradient-to-br ${gradient} text-white border-0 ${onClick ? "cursor-pointer hover:brightness-110 transition" : ""}`}
+      className={`p-3 bg-gradient-to-br ${gradient} text-white border-0 ${onClick ? "cursor-pointer hover:brightness-110 transition" : ""} ${active ? "ring-2 ring-offset-2 ring-white/80 brightness-110" : ""}`}
     >
       <div className="flex items-start justify-between">
         <div>
@@ -450,11 +496,11 @@ function AbonnementTable({
                     <div className="flex items-center justify-end gap-0.5">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement&section=gestion-abonnement`)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Voir fiche</TooltipContent>
+                        <TooltipContent>Voir gestion de l'abonnement</TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -467,26 +513,10 @@ function AbonnementTable({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => openAction(d, "renouveler")}>
-                            <RefreshCw className="h-4 w-4" />
+                            <CalendarIcon className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Renouveler</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => openAction(d, "facturer")}>
-                            <Receipt className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Facturer</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/historique?client=${d.id}`)}>
-                            <History className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Historique</TooltipContent>
                       </Tooltip>
                     </div>
                   </TableCell>
