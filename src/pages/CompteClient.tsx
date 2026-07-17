@@ -1058,6 +1058,7 @@ export default function CompteClient() {
                         {months.map((m, i) => {
                           const active = i === activeIdx;
                           const st = getMonthStatus(m);
+                          const palette = MONTH_TAB_PALETTE[i % MONTH_TAB_PALETTE.length];
                           return (
                             <button
                               key={i}
@@ -1065,7 +1066,7 @@ export default function CompteClient() {
                               onClick={() => setAboCalMonth(m)}
                               className={cn(
                                 "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px flex items-center gap-1.5",
-                                monthTabClasses(st, active),
+                                active ? palette.active : palette.idle,
                               )}
                               title={`${format(m, "MMMM yyyy", { locale: fr })} — ${MONTH_STATUS_LABEL[st]}`}
                             >
@@ -1075,9 +1076,7 @@ export default function CompteClient() {
                               </span>
                               <span className={cn(
                                 "text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full",
-                                st === "termine" && "bg-emerald-500/20 text-emerald-800",
-                                st === "en_cours" && "bg-cyan-500/20 text-cyan-800",
-                                st === "attente" && "bg-amber-500/20 text-amber-800",
+                                palette.badge,
                               )}>
                                 {MONTH_STATUS_LABEL[st]}
                               </span>
