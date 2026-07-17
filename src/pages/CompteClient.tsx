@@ -1091,50 +1091,6 @@ export default function CompteClient() {
                   );
                 })()}
 
-                {/* Facturation au prorata pour le mois sélectionné */}
-                <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-primary cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="h-3.5 w-3.5 accent-primary"
-                        checked={proratActif}
-                        onChange={(e) => {
-                          if (e.target.checked) setProrata({ debut: _monthStartStr, fin: _monthEndStr });
-                          else setProrata(null);
-                        }}
-                      />
-                      Facture au prorata ({format(aboCalMonth, "MMMM yyyy", { locale: fr })})
-                    </label>
-                    {proratActif && (
-                      <>
-                        <div className="flex items-center gap-1.5">
-                          <Label className="text-[11px] text-muted-foreground">Du</Label>
-                          <Input
-                            type="date"
-                            value={currentProrata?.debut || _monthStartStr}
-                            min={_monthStartStr}
-                            max={_monthEndStr}
-                            onChange={(e) => setProrata({ debut: e.target.value })}
-                            className="h-7 w-36 text-xs bg-background"
-                          />
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Label className="text-[11px] text-muted-foreground">Au</Label>
-                          <Input
-                            type="date"
-                            value={currentProrata?.fin || _monthEndStr}
-                            min={_monthStartStr}
-                            max={_monthEndStr}
-                            onChange={(e) => setProrata({ fin: e.target.value })}
-                            className="h-7 w-36 text-xs bg-background"
-                          />
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                </div>
 
 
                 {/* Ligne d'actions : statut + facture + enregistrer */}
