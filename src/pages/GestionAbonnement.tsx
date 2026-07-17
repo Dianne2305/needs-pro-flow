@@ -67,53 +67,103 @@ const FREQ_DAYS: Record<string, number> = {
   "1_fois_mois": 30, "2_fois_mois": 15, "3_fois_mois": 10, "4_fois_mois": 7,
 };
 
+const DAY_MAP: Record<string, number> = {
+  dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
+};
+
 function isAbonnement(d: Demande) {
   return !!d.frequence && d.frequence !== "ponctuel";
 }
 
-function getStats(d: Demande) {
-  const planning = d.planning as any;
-  let total = 0, effectuees = 0, annulees = 0;
-  let maxDate: Date | null = null;
-  if (planning?.semaines?.length) {
-    for (const sem of planning.semaines) {
-      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
-      for (const j of sem.jours || []) {
-        total++;
-        if (j.statut === "terminee") effectuees++;
-        else if (j.statut === "annule") annulees++;
-        if (base) {
-          const dt = addDays(base, typeof j.jour === "number" ? j.jour : 0);
-          if (!maxDate || dt > maxDate) maxDate = dt;
-        }
+/**
+ * Reconstruit l'ensemble des dates d'intervention d'un abonnement,
+ * en suivant exactement la même logique que CalendrierAbonnementModal / CompteClient
+ * (planning.abo_jours + date_debut + date_fin + date_overrides + abo_frequence).
+ */
+function buildPlanningDates(d: Demande): {
+  dates: { key: string; date: Date; statut: "a_venir" | "termine" | "annule" }[];
+  start: Date | null;
+  end: Date | null;
+} {
+  const p = ((d as any).planning || {}) as any;
+  const aboJours: { jour: string }[] = Array.isArray(p.abo_jours)
+    ? p.abo_jours
+    : Array.isArray(p.jours)
+      ? p.jours.map((j: any) => (typeof j === "string" ? { jour: j } : j))
+      : [];
+  const overrides: Record<string, { heure?: string; excluded?: boolean; statut?: "termine" | "annule" | null }> = p.date_overrides || {};
+  const aboFrequence: string = p.abo_frequence || p.frequence || d.frequence || "";
+  const selectedDows = aboJours.map((j) => DAY_MAP[j.jour]).filter((n) => n !== undefined);
+
+  let start: Date | null = null;
+  const dateDebutStr = p.date_debut || (d.date_prestation as unknown as string) || null;
+  if (dateDebutStr) { try { start = parseISO(dateDebutStr); } catch { start = null; } }
+  let end: Date | null = null;
+  const dateFinStr: string | null = p.date_fin || null;
+  if (dateFinStr) { try { end = parseISO(dateFinStr); } catch { end = null; } }
+  if (!end && start) end = addMonths(start, typeof p.duree_mois === "number" ? p.duree_mois : 1);
+
+  const pattern = new Set<string>();
+  if (start && end && selectedDows.length > 0) {
+    const startMs = start.getTime();
+    const seenMonth = new Set<string>();
+    for (let cur = new Date(start); cur <= end; cur = new Date(cur.getTime() + 86400000)) {
+      if (!selectedDows.includes(cur.getDay())) continue;
+      if (aboFrequence === "bi_hebdomadaire") {
+        const w = Math.floor((cur.getTime() - startMs) / (7 * 86400000));
+        if (w % 2 !== 0) continue;
       }
+      if (aboFrequence === "1_fois_mois") {
+        const k = `${cur.getFullYear()}-${cur.getMonth()}-${cur.getDay()}`;
+        if (seenMonth.has(k)) continue;
+        seenMonth.add(k);
+      }
+      pattern.add(format(cur, "yyyy-MM-dd"));
     }
   }
-  return { total, effectuees, annulees, restantes: Math.max(0, total - effectuees - annulees), dateFin: maxDate };
+
+  const allKeys = new Set<string>(pattern);
+  for (const k of Object.keys(overrides)) {
+    const ov = overrides[k];
+    if (ov?.heure && !ov?.excluded) allKeys.add(k);
+  }
+
+  const list: { key: string; date: Date; statut: "a_venir" | "termine" | "annule" }[] = [];
+  for (const k of allKeys) {
+    const ov = overrides[k];
+    if (ov?.excluded) continue;
+    const dt = parseISO(k);
+    const statut = ov?.statut === "termine" ? "termine" : ov?.statut === "annule" ? "annule" : "a_venir";
+    list.push({ key: k, date: dt, statut });
+  }
+  list.sort((a, b) => a.date.getTime() - b.date.getTime());
+  return { dates: list, start, end };
+}
+
+function getStats(d: Demande) {
+  const { dates, end } = buildPlanningDates(d);
+  let total = 0, effectuees = 0, annulees = 0;
+  for (const it of dates) {
+    total++;
+    if (it.statut === "termine") effectuees++;
+    else if (it.statut === "annule") annulees++;
+  }
+  // "prévu" = total planifié (inclut annulées). "restantes" = à venir uniquement.
+  return {
+    total,
+    effectuees,
+    annulees,
+    restantes: Math.max(0, total - effectuees - annulees),
+    dateFin: end || (dates.length ? dates[dates.length - 1].date : null),
+  };
 }
 
 function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
+  const { dates } = buildPlanningDates(d);
   const out: Date[] = [];
-  const planning = d.planning as any;
-  if (planning?.semaines?.length) {
-    for (const sem of planning.semaines) {
-      const base = sem.semaine_debut ? parseISO(sem.semaine_debut) : null;
-      if (!base) continue;
-      for (const j of sem.jours || []) {
-        if (j.statut === "terminee") continue;
-        const date = addDays(base, typeof j.jour === "number" ? j.jour : 0);
-        if (date >= from && date <= to) out.push(date);
-      }
-    }
-    return out;
-  }
-  const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : (d.confirmed_at ? new Date(d.confirmed_at) : null);
-  if (!start) return out;
-  const step = FREQ_DAYS[d.frequence || ""] || 7;
-  let cur = new Date(start);
-  while (cur <= to) {
-    if (cur >= from) out.push(new Date(cur));
-    cur = addDays(cur, step);
+  for (const it of dates) {
+    if (it.statut !== "a_venir") continue;
+    if (it.date >= from && it.date <= to) out.push(it.date);
   }
   return out;
 }
