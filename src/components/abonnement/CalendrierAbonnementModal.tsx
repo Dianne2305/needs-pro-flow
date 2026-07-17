@@ -23,11 +23,11 @@ const DAY_MAP: Record<string, number> = {
   dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
 };
 
-type Override = { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | null };
+type Override = { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | "a_recuperer" | null; reprogrammed_to?: string | null; reprogrammed_from?: string | null };
 
 interface DayInfo {
   date: Date;
-  statut: "a_venir" | "termine" | "annule";
+  statut: "a_venir" | "termine" | "annule" | "a_recuperer" | "reportee";
   heure_debut?: string;
   heure_fin?: string;
 }
@@ -47,7 +47,6 @@ function buildInterventions(demande: Demande, month: Date): DayInfo[] {
   aboJours.forEach((j) => { heureByDow[DAY_MAP[j.jour]] = j.heure_debut; });
   const selectedDows = aboJours.map((j) => DAY_MAP[j.jour]).filter((n) => n !== undefined);
 
-  // Reconstruit le pattern d'interventions (même logique que CompteClient)
   const interventionSet = new Set<string>();
   if (dateDebutStr && selectedDows.length > 0) {
     let start: Date;
@@ -82,11 +81,18 @@ function buildInterventions(demande: Demande, month: Date): DayInfo[] {
     const key = format(day, "yyyy-MM-dd");
     const ov = overrides[key];
     const isPattern = interventionSet.has(key);
-    const isIntervention = (isPattern && !ov?.excluded) || (!!ov?.heure && !ov?.excluded);
+    const hasStatutOnly = ov?.statut === "a_recuperer";
+    const isIntervention = (isPattern && !ov?.excluded) || (!!ov?.heure && !ov?.excluded) || hasStatutOnly;
     if (!isIntervention) continue;
+    let statut: DayInfo["statut"] =
+      ov?.statut === "termine" ? "termine"
+      : ov?.statut === "annule" ? "annule"
+      : ov?.statut === "a_recuperer" ? "a_recuperer"
+      : "a_venir";
+    if (statut === "a_venir" && ov?.reprogrammed_from) statut = "reportee";
     out.push({
       date: day,
-      statut: (ov?.statut === "termine" ? "termine" : ov?.statut === "annule" ? "annule" : "a_venir"),
+      statut,
       heure_debut: ov?.heure || (isPattern ? heureByDow[getDay(day)] : undefined),
       heure_fin: ov?.heure_fin,
     });
@@ -98,6 +104,8 @@ const STATUT_STYLE: Record<DayInfo["statut"], { label: string; cls: string }> = 
   a_venir: { label: "À venir", cls: "bg-primary text-primary-foreground" },
   termine: { label: "Terminé", cls: "bg-emerald-500 text-white" },
   annule: { label: "Annulé", cls: "bg-rose-500 text-white line-through" },
+  a_recuperer: { label: "À récup.", cls: "bg-amber-500 text-white" },
+  reportee: { label: "Reportée", cls: "bg-indigo-500 text-white" },
 };
 
 export default function CalendrierAbonnementModal({
