@@ -1153,7 +1153,20 @@ export default function CompteClient() {
                     </Select>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={genererFacture} className="h-8 text-xs gap-1.5">
+                    <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={() => {
+                      const billable = Math.max(0, monthlyInterventions - reportesMois);
+                      const totalEst = totalInterventions || monthlyInterventions || 0;
+                      const montantTotal = Number((demande as any).montant_total) || 0;
+                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                      setDevisBillingContext({
+                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                        billable,
+                        reportes: reportesMois,
+                        unitAmount: unit,
+                        totalAmount: unit * billable,
+                      });
+                      setDevisModalOpen(true);
+                    }} className="h-8 text-xs gap-1.5">
                       <FileText className="h-3.5 w-3.5" />
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
