@@ -124,6 +124,7 @@ export default function GestionAbonnement() {
   const tomorrow = useMemo(() => addDays(today, 1), [today]);
   const [actionState, setActionState] = useState<{ demande: Demande; action: AbonnementAction } | null>(null);
   const openAction = (demande: Demande, action: AbonnementAction) => setActionState({ demande, action });
+  const [calendarDemande, setCalendarDemande] = useState<Demande | null>(null);
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "gestion-abonnement"],
