@@ -1041,15 +1041,15 @@ export default function CompteClient() {
 
             return (
               <div className="space-y-5">
-                {/* Onglets mensuels — un onglet par mois de la période d'abonnement */}
-                {aboDateDebut && dateFinAuto && (() => {
-                  let start: Date; let end: Date;
-                  try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); }
+                {/* Onglets mensuels — un onglet par clic sur "Activer le mois prochain" */}
+                {aboDateDebut && (() => {
+                  let start: Date;
+                  try { start = parseISO(aboDateDebut); }
                   catch { return null; }
+                  const nbMonths = Math.max(1, aboDureeMois || 1);
                   const months: Date[] = [];
                   let cur = startOfMonth(start);
-                  const last = startOfMonth(end);
-                  while (cur.getTime() <= last.getTime()) {
+                  for (let i = 0; i < nbMonths; i++) {
                     months.push(cur);
                     cur = addMonthsFn(cur, 1);
                   }
