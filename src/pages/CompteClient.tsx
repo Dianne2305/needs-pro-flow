@@ -1463,36 +1463,47 @@ export default function CompteClient() {
                                         (i + 1) % 7 === 0 && "border-r-0",
                                         !inMonth && "bg-muted/30 text-muted-foreground/50 hover:bg-muted/50",
                                         inMonth && !isIntervention && "hover:bg-muted/40",
-                                        isIntervention && inMonth && !statut && "bg-primary/10 hover:bg-primary/15",
+                                        isIntervention && inMonth && !statut && (override?.reprogrammed_from ? "bg-indigo-100 hover:bg-indigo-200" : "bg-primary/10 hover:bg-primary/15"),
                                         isIntervention && inMonth && statut === "termine" && "bg-emerald-100 hover:bg-emerald-200",
                                         isIntervention && inMonth && statut === "annule" && "bg-rose-100 hover:bg-rose-200",
+                                        (statut === "a_recuperer") && "bg-amber-100 hover:bg-amber-200",
                                       )}
                                     >
                                       <span className={cn(
                                         "text-xs font-semibold",
                                         isToday && "text-primary",
-                                        isIntervention && inMonth && !statut && "text-primary",
+                                        isIntervention && inMonth && !statut && !override?.reprogrammed_from && "text-primary",
+                                        override?.reprogrammed_from && "text-indigo-800",
                                         statut === "termine" && "text-emerald-800",
                                         statut === "annule" && "text-rose-800",
+                                        statut === "a_recuperer" && "text-amber-900",
                                       )}>
                                         {format(d, "d")}
                                       </span>
-                                      {isIntervention && inMonth && (
+                                      {(isIntervention || statut === "a_recuperer") && inMonth && (
                                         <div className="mt-auto w-full space-y-0.5">
                                           <span className={cn(
                                             "block text-[9px] font-bold uppercase tracking-wide rounded px-1 py-0.5 text-center",
-                                            !statut && "bg-primary text-primary-foreground",
+                                            !statut && !override?.reprogrammed_from && "bg-primary text-primary-foreground",
+                                            !statut && override?.reprogrammed_from && "bg-indigo-600 text-white",
                                             statut === "termine" && "bg-emerald-600 text-white",
                                             statut === "annule" && "bg-rose-600 text-white line-through",
+                                            statut === "a_recuperer" && "bg-amber-600 text-white",
                                           )}>
-                                            {!statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
+                                            {statut === "a_recuperer"
+                                              ? "À récup."
+                                              : override?.reprogrammed_from && !statut
+                                                ? "Reportée"
+                                                : !statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
                                           </span>
                                           {heure && (
                                             <span className={cn(
                                               "block text-[10px] font-medium rounded px-1 py-0.5 text-center",
-                                              !statut && "bg-primary/80 text-primary-foreground",
+                                              !statut && !override?.reprogrammed_from && "bg-primary/80 text-primary-foreground",
+                                              !statut && override?.reprogrammed_from && "bg-indigo-500 text-white",
                                               statut === "termine" && "bg-emerald-500 text-white",
                                               statut === "annule" && "bg-rose-500 text-white line-through",
+                                              statut === "a_recuperer" && "bg-amber-500 text-white",
                                             )}>
                                               {heure}{heureFin ? `–${heureFin}` : ""}
                                             </span>
@@ -1501,7 +1512,7 @@ export default function CompteClient() {
                                       )}
                                     </button>
                                   </PopoverTrigger>
-                                  <PopoverContent className="w-72 p-3 space-y-3" align="start">
+                                  <PopoverContent className="w-80 p-3 space-y-3" align="start">
                                     <div className="text-sm font-semibold capitalize">
                                       {format(d, "EEEE d MMMM yyyy", { locale: fr })}
                                     </div>
@@ -1533,29 +1544,138 @@ export default function CompteClient() {
                                     </div>
                                     <div className="space-y-1">
                                       <Label className="text-xs">Statut</Label>
-                                      <div className="flex gap-1">
-                                        <Button type="button" size="sm" variant={!statut ? "default" : "outline"} className="flex-1 h-7 text-[11px]"
+                                      <div className="grid grid-cols-2 gap-1">
+                                        <Button type="button" size="sm" variant={!statut ? "default" : "outline"} className="h-7 text-[11px]"
                                           onClick={() => setAboDateOverrides((prev) => ({
                                             ...prev, [key]: { ...prev[key], statut: null },
                                           }))}>
                                           À venir
                                         </Button>
                                         <Button type="button" size="sm" variant={statut === "termine" ? "default" : "outline"}
-                                          className={cn("flex-1 h-7 text-[11px]", statut === "termine" && "bg-emerald-600 hover:bg-emerald-700")}
+                                          className={cn("h-7 text-[11px]", statut === "termine" && "bg-emerald-600 hover:bg-emerald-700")}
                                           onClick={() => setAboDateOverrides((prev) => ({
                                             ...prev, [key]: { ...prev[key], statut: "termine", excluded: false },
                                           }))}>
                                           Terminé
                                         </Button>
                                         <Button type="button" size="sm" variant={statut === "annule" ? "default" : "outline"}
-                                          className={cn("flex-1 h-7 text-[11px]", statut === "annule" && "bg-rose-600 hover:bg-rose-700")}
+                                          className={cn("h-7 text-[11px]", statut === "annule" && "bg-rose-600 hover:bg-rose-700")}
                                           onClick={() => setAboDateOverrides((prev) => ({
                                             ...prev, [key]: { ...prev[key], statut: "annule", excluded: false },
                                           }))}>
-                                          Annulé
+                                          Annulé (perdu)
+                                        </Button>
+                                        <Button type="button" size="sm" variant={statut === "a_recuperer" ? "default" : "outline"}
+                                          className={cn("h-7 text-[11px]", statut === "a_recuperer" && "bg-amber-600 hover:bg-amber-700")}
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], statut: "a_recuperer", excluded: false, reprogrammed_to: null },
+                                          }))}>
+                                          Annulé à récupérer
                                         </Button>
                                       </div>
                                     </div>
+
+                                    {/* Reprogrammation d'un crédit "à récupérer" */}
+                                    {statut === "a_recuperer" && !override?.reprogrammed_to && (
+                                      <div className="rounded-md border border-amber-200 bg-amber-50 p-2 space-y-1.5">
+                                        <div className="text-[11px] font-semibold text-amber-900">Reprogrammer cette intervention</div>
+                                        <div className="flex gap-1.5">
+                                          <Input
+                                            type="date"
+                                            value={reprogTarget[key] || ""}
+                                            onChange={(e) => setReprogTarget((prev) => ({ ...prev, [key]: e.target.value }))}
+                                            className="h-7 text-xs flex-1 bg-background"
+                                          />
+                                          <Button type="button" size="sm" className="h-7 text-[11px] bg-amber-600 hover:bg-amber-700"
+                                            disabled={!reprogTarget[key] || reprogTarget[key] === key}
+                                            onClick={() => {
+                                              const target = reprogTarget[key];
+                                              if (!target) return;
+                                              const h = heure || heureByDow[d.getDay()] || "09:00";
+                                              const hf = heureFin || "";
+                                              setAboDateOverrides((prev) => ({
+                                                ...prev,
+                                                [key]: { ...prev[key], statut: "a_recuperer", reprogrammed_to: target, excluded: false },
+                                                [target]: { ...prev[target], heure: h, heure_fin: hf, statut: null, excluded: false, reprogrammed_from: key },
+                                              }));
+                                              setReprogTarget((prev) => { const { [key]: _, ...rest } = prev; return rest; });
+                                              toast({ title: "Intervention reprogrammée", description: `Reportée au ${format(parseISO(target), "dd/MM/yyyy")}` });
+                                            }}>
+                                            Reprogrammer
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {statut === "a_recuperer" && override?.reprogrammed_to && (
+                                      <div className="rounded-md border border-indigo-200 bg-indigo-50 p-2 text-[11px] text-indigo-900 flex items-center justify-between gap-2">
+                                        <span>Reprogrammée au <b>{format(parseISO(override.reprogrammed_to), "dd/MM/yyyy")}</b></span>
+                                        <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px]"
+                                          onClick={() => {
+                                            const target = override.reprogrammed_to!;
+                                            setAboDateOverrides((prev) => {
+                                              const next = { ...prev };
+                                              next[key] = { ...next[key], reprogrammed_to: null };
+                                              if (next[target]?.reprogrammed_from === key) {
+                                                const { [target]: _, ...rest } = next;
+                                                return { ...rest, [key]: next[key] };
+                                              }
+                                              return next;
+                                            });
+                                          }}>Annuler le report</Button>
+                                      </div>
+                                    )}
+                                    {override?.reprogrammed_from && (
+                                      <div className="rounded-md border border-indigo-200 bg-indigo-50 p-2 text-[11px] text-indigo-900 flex items-center justify-between gap-2">
+                                        <span>Reportée depuis le <b>{format(parseISO(override.reprogrammed_from), "dd/MM/yyyy")}</b></span>
+                                        <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px]"
+                                          onClick={() => {
+                                            const src = override.reprogrammed_from!;
+                                            setAboDateOverrides((prev) => {
+                                              const next = { ...prev };
+                                              if (next[src]) next[src] = { ...next[src], reprogrammed_to: null };
+                                              const { [key]: _, ...rest } = next;
+                                              return rest;
+                                            });
+                                          }}>Annuler le report</Button>
+                                      </div>
+                                    )}
+
+                                    {/* Utiliser un crédit "à récupérer" sur un jour libre */}
+                                    {!isIntervention && !override?.reprogrammed_from && availableCreditSources.length > 0 && (
+                                      <div className="rounded-md border border-amber-200 bg-amber-50 p-2 space-y-1.5">
+                                        <div className="text-[11px] font-semibold text-amber-900">Utiliser un crédit à récupérer</div>
+                                        <div className="flex gap-1.5">
+                                          <select
+                                            value={useCreditSource[key] || ""}
+                                            onChange={(e) => setUseCreditSource((prev) => ({ ...prev, [key]: e.target.value }))}
+                                            className="h-7 text-xs flex-1 rounded border bg-background px-1"
+                                          >
+                                            <option value="">Choisir un crédit…</option>
+                                            {availableCreditSources.map((sk) => (
+                                              <option key={sk} value={sk}>{format(parseISO(sk), "dd/MM/yyyy")}</option>
+                                            ))}
+                                          </select>
+                                          <Button type="button" size="sm" className="h-7 text-[11px] bg-amber-600 hover:bg-amber-700"
+                                            disabled={!useCreditSource[key]}
+                                            onClick={() => {
+                                              const src = useCreditSource[key];
+                                              if (!src) return;
+                                              const h = heure || heureByDow[d.getDay()] || "09:00";
+                                              const hf = heureFin || "";
+                                              setAboDateOverrides((prev) => ({
+                                                ...prev,
+                                                [src]: { ...prev[src], statut: "a_recuperer", reprogrammed_to: key, excluded: false },
+                                                [key]: { ...prev[key], heure: h, heure_fin: hf, statut: null, excluded: false, reprogrammed_from: src },
+                                              }));
+                                              setUseCreditSource((prev) => { const { [key]: _, ...rest } = prev; return rest; });
+                                              toast({ title: "Crédit utilisé", description: `Intervention du ${format(parseISO(src), "dd/MM/yyyy")} reportée ici.` });
+                                            }}>
+                                            Utiliser
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+
                                     <div className="flex gap-2">
                                       {isIntervention ? (
                                         <Button type="button" size="sm" variant="outline" className="flex-1 h-8 text-xs text-destructive"
