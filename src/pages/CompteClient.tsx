@@ -1173,6 +1173,26 @@ export default function CompteClient() {
                       <FileText className="h-3.5 w-3.5" />
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
+                    <Button size="sm" variant="outline" onClick={() => {
+                      const billable = Math.max(0, monthlyInterventions - reportesMois);
+                      const totalEst = totalInterventions || monthlyInterventions || 0;
+                      const montantTotal = Number((demande as any).montant_total) || 0;
+                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                      setFactureFormData({
+                        clientNom: (demande as any).nom_entreprise || demande.nom,
+                        numAbonnement: demande.num_demande,
+                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                        typePrestation: demande.type_prestation || demande.type_service || "",
+                        frequenceLabel: currentFreq?.label || aboFrequence || "",
+                        interventionsPrevues: monthlyInterventions,
+                        reportesPayees: reportesMois,
+                        creditsRestants: pendingCreditsGlobal,
+                        prixUnitaire: unit,
+                      });
+                      setFactureFormOpen(true);
+                    }} className="h-8 text-xs gap-1.5">
+                      <Receipt className="h-3.5 w-3.5" /> Formulaire facture
+                    </Button>
                     <Button size="sm" variant={aboFactureEnvoyee ? "default" : "outline"} onClick={envoyerFacture} disabled={!aboFactureGeneree} className="h-8 text-xs gap-1.5">
                       <Send className="h-3.5 w-3.5" />
                       {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
