@@ -81,7 +81,7 @@ function isAbonnement(d: Demande) {
  * (planning.abo_jours + date_debut + date_fin + date_overrides + abo_frequence).
  */
 function buildPlanningDates(d: Demande): {
-  dates: { key: string; date: Date; statut: "a_venir" | "termine" | "annule" }[];
+  dates: { key: string; date: Date; statut: "a_venir" | "termine" | "annule" | "a_recuperer" }[];
   start: Date | null;
   end: Date | null;
 } {
@@ -91,7 +91,7 @@ function buildPlanningDates(d: Demande): {
     : Array.isArray(p.jours)
       ? p.jours.map((j: any) => (typeof j === "string" ? { jour: j } : j))
       : [];
-  const overrides: Record<string, { heure?: string; excluded?: boolean; statut?: "termine" | "annule" | null }> = p.date_overrides || {};
+  const overrides: Record<string, { heure?: string; excluded?: boolean; statut?: "termine" | "annule" | "a_recuperer" | null; reprogrammed_to?: string | null; reprogrammed_from?: string | null }> = p.date_overrides || {};
   const aboFrequence: string = p.abo_frequence || p.frequence || d.frequence || "";
   const selectedDows = aboJours.map((j) => DAY_MAP[j.jour]).filter((n) => n !== undefined);
 
@@ -125,15 +125,21 @@ function buildPlanningDates(d: Demande): {
   const allKeys = new Set<string>(pattern);
   for (const k of Object.keys(overrides)) {
     const ov = overrides[k];
-    if (ov?.heure && !ov?.excluded) allKeys.add(k);
+    if (ov?.excluded) continue;
+    // Un override "à récupérer" ou "reporté" (heure définie) doit apparaître aussi.
+    if (ov?.heure || ov?.statut === "a_recuperer") allKeys.add(k);
   }
 
-  const list: { key: string; date: Date; statut: "a_venir" | "termine" | "annule" }[] = [];
+  const list: { key: string; date: Date; statut: "a_venir" | "termine" | "annule" | "a_recuperer" }[] = [];
   for (const k of allKeys) {
     const ov = overrides[k];
     if (ov?.excluded) continue;
     const dt = parseISO(k);
-    const statut = ov?.statut === "termine" ? "termine" : ov?.statut === "annule" ? "annule" : "a_venir";
+    const statut =
+      ov?.statut === "termine" ? "termine"
+      : ov?.statut === "annule" ? "annule"
+      : ov?.statut === "a_recuperer" ? "a_recuperer"
+      : "a_venir";
     list.push({ key: k, date: dt, statut });
   }
   list.sort((a, b) => a.date.getTime() - b.date.getTime());
@@ -142,17 +148,19 @@ function buildPlanningDates(d: Demande): {
 
 function getStats(d: Demande) {
   const { dates, end } = buildPlanningDates(d);
-  let total = 0, effectuees = 0, annulees = 0;
+  let total = 0, effectuees = 0, annulees = 0, aRecuperer = 0;
   for (const it of dates) {
+    // "a_recuperer" ne compte pas dans le total (déjà payée mais à reporter)
+    if (it.statut === "a_recuperer") { aRecuperer++; continue; }
     total++;
     if (it.statut === "termine") effectuees++;
     else if (it.statut === "annule") annulees++;
   }
-  // "prévu" = total planifié (inclut annulées). "restantes" = à venir uniquement.
   return {
     total,
     effectuees,
     annulees,
+    aRecuperer,
     restantes: Math.max(0, total - effectuees - annulees),
     dateFin: end || (dates.length ? dates[dates.length - 1].date : null),
   };
