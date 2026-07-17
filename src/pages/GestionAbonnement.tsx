@@ -440,20 +440,17 @@ function AbonnementTable({
                   </TableCell>
                   {/* Type service */}
                   <TableCell className="text-sm">{d.type_prestation || d.type_service || "—"}</TableCell>
-                  {/* Fréquence + Nb interventions + Début/Fin */}
+                  {/* Fréquence + Début/Fin */}
                   <TableCell>
                     <div className="space-y-1 text-xs">
                       <Badge variant="outline" className="text-xs">{freqLabel}</Badge>
-                      <div className="text-muted-foreground">
-                        Nb : <span className="font-semibold text-foreground">{stats.effectuees}/{stats.total}</span>
-                      </div>
                       <div className="text-muted-foreground">
                         {dateDebut ? format(dateDebut, "dd/MM/yy", { locale: fr }) : "—"} → {stats.dateFin ? format(stats.dateFin, "dd/MM/yy", { locale: fr }) : "—"}
                         {finProche && <Badge className="ml-1 bg-red-100 text-red-800 text-[10px] px-1.5 py-0">Fin {joursRestants}j</Badge>}
                       </div>
                     </div>
                   </TableCell>
-                  {/* Progression */}
+                  {/* Interventions : faites / prévues + annulées */}
                   <TableCell>
                     <div className="space-y-1 min-w-[140px]">
                       <div className="flex justify-between text-xs">
@@ -461,6 +458,11 @@ function AbonnementTable({
                         <span className="text-muted-foreground">{progressPct}%</span>
                       </div>
                       <Progress value={progressPct} className="h-2" />
+                      {stats.annulees > 0 && (
+                        <Badge className="bg-rose-100 text-rose-800 text-[10px] px-1.5 py-0">
+                          {stats.annulees} annulée{stats.annulees > 1 ? "s" : ""}
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   {/* Prochaine intervention */}
