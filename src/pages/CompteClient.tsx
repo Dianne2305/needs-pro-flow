@@ -1799,15 +1799,19 @@ export default function CompteClient() {
                             })}
                           </div>
                         </div>
-                        <p className="text-[11px] text-muted-foreground">
-                          {monthlyInterventions} intervention(s) sur le mois de {format(aboCalMonth, "MMMM yyyy", { locale: fr })}
-                          {cancelledInterventions > 0 && (
-                            <span className="text-rose-600 font-medium ml-1">({cancelledInterventions} annulée(s))</span>
+                        <p className="text-[11px] text-muted-foreground text-center">
+                          {monthCount} intervention(s) sur {format(calMonth, "MMMM yyyy", { locale: fr })}
+                          {monthCancelled > 0 && (
+                            <span className="text-rose-600 font-medium ml-1">({monthCancelled} annulée(s))</span>
                           )}
-                          . Cliquez sur un jour pour ajuster l'heure ou l'exclure.
                         </p>
+                          </div>
+                        );
+                        })}
+                        </div>
                       </div>
                     );
+
                   })()}
                 </div>
 
