@@ -472,16 +472,9 @@ export default function CompteClient() {
   };
 
   const genererFacture = () => {
-    try {
-      const data = devisDataFromDemande(demande);
-      const doc = generateDevisPDF(data);
-      doc.save(`facture-abonnement-${demande.num_demande}.pdf`);
-      setAboFactureGeneree(true);
-      toast({ title: "Facture générée", description: "Le PDF a été téléchargé." });
-    } catch (e) {
-      toast({ title: "Erreur", description: "Impossible de générer la facture.", variant: "destructive" });
-    }
+    setDevisModalOpen(true);
   };
+
 
   const envoyerFacture = () => {
     setAboFactureEnvoyee(true);
