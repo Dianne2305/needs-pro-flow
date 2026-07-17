@@ -1190,7 +1190,6 @@ export default function CompteClient() {
                     );
                   })()}
                 </div>
-                </div>
 
 
                 {/* Ligne d'actions : statut + facture + enregistrer */}
