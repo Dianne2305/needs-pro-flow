@@ -878,17 +878,18 @@ export default function CompteClient() {
             })();
 
             // Nombre d'interventions estimé pour le mois sélectionné (avec ou sans prorata)
+            // Les interventions marquées "annulé" sont déduites du total et comptées à part.
             const _computeInterventions = (applyProrata: boolean) => {
-              if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return 0;
+              if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return { total: 0, cancelled: 0 };
               const dayMap: Record<string, number> = {
                 dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
               };
               const selected = aboJours.map((j) => dayMap[j.jour]).filter((n) => n !== undefined);
-              if (selected.length === 0) return 0;
+              if (selected.length === 0) return { total: 0, cancelled: 0 };
               let start: Date, end: Date;
               try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); }
-              catch { return 0; }
-              if (end < start) return 0;
+              catch { return { total: 0, cancelled: 0 }; }
+              if (end < start) return { total: 0, cancelled: 0 };
               const monthStart = startOfMonth(aboCalMonth);
               const monthEnd = endOfMonth(aboCalMonth);
               let effectiveStart = start > monthStart ? start : monthStart;
@@ -899,7 +900,7 @@ export default function CompteClient() {
                 if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
                 if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
               }
-              if (effectiveStart > effectiveEnd) return 0;
+              if (effectiveStart > effectiveEnd) return { total: 0, cancelled: 0 };
               const startMs = start.getTime();
               const seenMonth = new Set<string>();
               const interventionSet = new Set<string>();
@@ -916,17 +917,30 @@ export default function CompteClient() {
                 }
                 interventionSet.add(format(d, "yyyy-MM-dd"));
               }
-              const patternCount = Array.from(interventionSet).filter((k) => !aboDateOverrides[k]?.excluded).length;
-              const overrideCount = Object.entries(aboDateOverrides).filter(([k, v]) => {
-                if (v.excluded || !v.heure) return false;
+
+              let patternCount = 0;
+              let patternCancelled = 0;
+              Array.from(interventionSet).forEach((k) => {
+                const ov = aboDateOverrides[k];
+                if (ov?.excluded) return;
+                if (ov?.statut === "annule") patternCancelled++;
+                else patternCount++;
+              });
+
+              let overrideCount = 0;
+              let overrideCancelled = 0;
+              Object.entries(aboDateOverrides).forEach(([k, v]) => {
+                if (v.excluded || !v.heure) return;
                 let od: Date;
-                try { od = parseISO(k); } catch { return false; }
-                return isSameMonth(od, aboCalMonth) && od >= start && od <= end && !interventionSet.has(k);
-              }).length;
-              return patternCount + overrideCount;
+                try { od = parseISO(k); } catch { return; }
+                if (!isSameMonth(od, aboCalMonth) || od < start || od > end || interventionSet.has(k)) return;
+                if (v.statut === "annule") overrideCancelled++;
+                else overrideCount++;
+              });
+
+              return { total: patternCount + overrideCount, cancelled: patternCancelled + overrideCancelled };
             };
-            const monthlyInterventions = _computeInterventions(true);
-            const fullMonthInterventions = _computeInterventions(false);
+            const { total: monthlyInterventions, cancelled: cancelledInterventions } = _computeInterventions(true);
 
             const isValid = aboFrequence && aboDateDebut && aboJours.length > 0;
 
@@ -1163,11 +1177,16 @@ export default function CompteClient() {
                           : "—"}
                       </span>
                     </div>
-                    <div className="sm:col-span-2 pt-2 border-t border-primary/20">
+                    <div className="sm:col-span-2 pt-2 border-t border-primary/20 flex flex-wrap items-center gap-2">
                       <span className="text-muted-foreground">
                         Interventions estimées pour {format(aboCalMonth, "MMMM yyyy", { locale: fr })} :{' '}
                       </span>
                       <span className="text-lg font-bold text-primary">{monthlyInterventions}</span>
+                      {cancelledInterventions > 0 && (
+                        <span className="inline-flex items-center text-xs font-medium text-rose-700 bg-rose-50 border border-rose-100 rounded px-1.5 py-0.5">
+                          {cancelledInterventions} annulée(s)
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1516,7 +1535,11 @@ export default function CompteClient() {
                           </div>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                          {monthlyInterventions} intervention(s) sur le mois de {format(aboCalMonth, "MMMM yyyy", { locale: fr })}. Cliquez sur un jour pour ajuster l'heure ou l'exclure.
+                          {monthlyInterventions} intervention(s) sur le mois de {format(aboCalMonth, "MMMM yyyy", { locale: fr })}
+                          {cancelledInterventions > 0 && (
+                            <span className="text-rose-600 font-medium ml-1">({cancelledInterventions} annulée(s))</span>
+                          )}
+                          . Cliquez sur un jour pour ajuster l'heure ou l'exclure.
                         </p>
                       </div>
                     );
