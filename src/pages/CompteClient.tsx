@@ -1010,17 +1010,17 @@ export default function CompteClient() {
               en_cours: "En cours",
               attente: "En attente de confirmation",
             };
-            const monthTabClasses = (status: string, active: boolean) => {
-              if (status === "termine") return active
-                ? "bg-emerald-100 border-emerald-400 text-emerald-800"
-                : "bg-emerald-50/60 border-emerald-200 text-emerald-700 hover:bg-emerald-100";
-              if (status === "attente") return active
-                ? "bg-amber-100 border-amber-400 text-amber-800"
-                : "bg-amber-50/60 border-amber-200 text-amber-700 hover:bg-amber-100";
-              return active
-                ? "bg-cyan-100 border-cyan-400 text-cyan-800"
-                : "bg-cyan-50/60 border-cyan-200 text-cyan-700 hover:bg-cyan-100";
-            };
+            // Palette rotative : couleur unique par index de mois (indépendant du statut)
+            const MONTH_TAB_PALETTE: { active: string; idle: string; badge: string }[] = [
+              { active: "bg-sky-100 border-sky-400 text-sky-800", idle: "bg-sky-50/60 border-sky-200 text-sky-700 hover:bg-sky-100", badge: "bg-sky-500/20 text-sky-800" },
+              { active: "bg-violet-100 border-violet-400 text-violet-800", idle: "bg-violet-50/60 border-violet-200 text-violet-700 hover:bg-violet-100", badge: "bg-violet-500/20 text-violet-800" },
+              { active: "bg-rose-100 border-rose-400 text-rose-800", idle: "bg-rose-50/60 border-rose-200 text-rose-700 hover:bg-rose-100", badge: "bg-rose-500/20 text-rose-800" },
+              { active: "bg-orange-100 border-orange-400 text-orange-800", idle: "bg-orange-50/60 border-orange-200 text-orange-700 hover:bg-orange-100", badge: "bg-orange-500/20 text-orange-800" },
+              { active: "bg-emerald-100 border-emerald-400 text-emerald-800", idle: "bg-emerald-50/60 border-emerald-200 text-emerald-700 hover:bg-emerald-100", badge: "bg-emerald-500/20 text-emerald-800" },
+              { active: "bg-fuchsia-100 border-fuchsia-400 text-fuchsia-800", idle: "bg-fuchsia-50/60 border-fuchsia-200 text-fuchsia-700 hover:bg-fuchsia-100", badge: "bg-fuchsia-500/20 text-fuchsia-800" },
+              { active: "bg-teal-100 border-teal-400 text-teal-800", idle: "bg-teal-50/60 border-teal-200 text-teal-700 hover:bg-teal-100", badge: "bg-teal-500/20 text-teal-800" },
+              { active: "bg-indigo-100 border-indigo-400 text-indigo-800", idle: "bg-indigo-50/60 border-indigo-200 text-indigo-700 hover:bg-indigo-100", badge: "bg-indigo-500/20 text-indigo-800" },
+            ];
             const currentMonthKey = format(aboCalMonth, "yyyy-MM");
             const currentProrata = aboProrata[currentMonthKey];
             const proratActif = !!currentProrata;
