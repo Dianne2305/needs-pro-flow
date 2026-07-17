@@ -103,10 +103,10 @@ function buildPlanningDates(d: Demande): {
 
   let start: Date | null = null;
   const dateDebutStr = p.date_debut || (d.date_prestation as unknown as string) || null;
-  if (dateDebutStr) { try { start = parseISO(dateDebutStr); } catch { start = null; } }
+  if (dateDebutStr) { try { start = parseYMD(dateDebutStr); } catch { start = null; } }
   let end: Date | null = null;
   const dateFinStr: string | null = p.date_fin || null;
-  if (dateFinStr) { try { end = parseISO(dateFinStr); } catch { end = null; } }
+  if (dateFinStr) { try { end = parseYMD(dateFinStr); } catch { end = null; } }
   if (!end && start) end = addMonths(start, typeof p.duree_mois === "number" ? p.duree_mois : 1);
 
   const pattern = new Set<string>();
