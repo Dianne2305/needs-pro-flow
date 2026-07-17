@@ -72,7 +72,7 @@ function isAbonnement(d: Demande) {
 
 function getStats(d: Demande) {
   const planning = d.planning as any;
-  let total = 0, effectuees = 0;
+  let total = 0, effectuees = 0, annulees = 0;
   let maxDate: Date | null = null;
   if (planning?.semaines?.length) {
     for (const sem of planning.semaines) {
@@ -80,6 +80,7 @@ function getStats(d: Demande) {
       for (const j of sem.jours || []) {
         total++;
         if (j.statut === "terminee") effectuees++;
+        else if (j.statut === "annule") annulees++;
         if (base) {
           const dt = addDays(base, typeof j.jour === "number" ? j.jour : 0);
           if (!maxDate || dt > maxDate) maxDate = dt;
@@ -87,7 +88,7 @@ function getStats(d: Demande) {
       }
     }
   }
-  return { total, effectuees, restantes: Math.max(0, total - effectuees), dateFin: maxDate };
+  return { total, effectuees, annulees, restantes: Math.max(0, total - effectuees - annulees), dateFin: maxDate };
 }
 
 function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
@@ -363,7 +364,7 @@ function AbonnementTable({
               <TableHead>Client</TableHead>
               <TableHead>Quartier / Ville</TableHead>
               <TableHead>Type de service</TableHead>
-              <TableHead>Fréquence & contrat</TableHead>
+              <TableHead>Fréq / Dates</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut</TableHead>
@@ -439,20 +440,17 @@ function AbonnementTable({
                   </TableCell>
                   {/* Type service */}
                   <TableCell className="text-sm">{d.type_prestation || d.type_service || "—"}</TableCell>
-                  {/* Fréquence + Nb interventions + Début/Fin */}
+                  {/* Fréquence + Début/Fin */}
                   <TableCell>
                     <div className="space-y-1 text-xs">
                       <Badge variant="outline" className="text-xs">{freqLabel}</Badge>
-                      <div className="text-muted-foreground">
-                        Nb : <span className="font-semibold text-foreground">{stats.effectuees}/{stats.total}</span>
-                      </div>
                       <div className="text-muted-foreground">
                         {dateDebut ? format(dateDebut, "dd/MM/yy", { locale: fr }) : "—"} → {stats.dateFin ? format(stats.dateFin, "dd/MM/yy", { locale: fr }) : "—"}
                         {finProche && <Badge className="ml-1 bg-red-100 text-red-800 text-[10px] px-1.5 py-0">Fin {joursRestants}j</Badge>}
                       </div>
                     </div>
                   </TableCell>
-                  {/* Progression */}
+                  {/* Interventions : faites / prévues + annulées */}
                   <TableCell>
                     <div className="space-y-1 min-w-[140px]">
                       <div className="flex justify-between text-xs">
@@ -460,6 +458,11 @@ function AbonnementTable({
                         <span className="text-muted-foreground">{progressPct}%</span>
                       </div>
                       <Progress value={progressPct} className="h-2" />
+                      {stats.annulees > 0 && (
+                        <Badge className="bg-rose-100 text-rose-800 text-[10px] px-1.5 py-0">
+                          {stats.annulees} annulée{stats.annulees > 1 ? "s" : ""}
+                        </Badge>
+                      )}
                     </div>
                   </TableCell>
                   {/* Prochaine intervention */}
