@@ -510,9 +510,13 @@ function AbonnementTable({
                   </TableCell>
                   {/* Interventions : faites / prévues + annulées */}
                   <TableCell>
-                    <div className="space-y-1 min-w-[140px]">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-semibold">{stats.effectuees}/{stats.total}</span>
+                    <div className="space-y-1 min-w-[150px]">
+                      <div className="flex items-baseline justify-between text-xs">
+                        <span>
+                          <span className="font-semibold text-emerald-700">{stats.effectuees}</span>
+                          <span className="text-muted-foreground"> / {stats.total}</span>
+                          <span className="ml-1 text-[10px] text-muted-foreground">effectuées</span>
+                        </span>
                         <span className="text-muted-foreground">{progressPct}%</span>
                       </div>
                       <Progress value={progressPct} className="h-2" />
