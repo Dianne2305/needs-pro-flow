@@ -349,7 +349,7 @@ function KpiCard({ label, value, icon, gradient, onClick, active }: { label: str
 }
 
 function AbonnementTable({
-  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction,
+  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction, openCalendar,
 }: {
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
   navigate: ReturnType<typeof useNavigate>;
@@ -358,6 +358,7 @@ function AbonnementTable({
   facturations?: Facturation[];
   today: Date;
   openAction: (d: Demande, action: AbonnementAction) => void;
+  openCalendar: (d: Demande) => void;
 }) {
   if (!rows.length) return <EmptyState label="Aucun abonnement" />;
   return (
