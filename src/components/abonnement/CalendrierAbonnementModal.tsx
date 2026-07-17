@@ -1,16 +1,16 @@
 /**
  * CalendrierAbonnementModal.tsx
- * Raccourci : affiche le calendrier mensuel des interventions d'un abonnement,
- * généré automatiquement à partir de planning.abo_jours + date_debut + date_overrides
- * (même logique que la section Gestion de l'abonnement dans CompteClient).
+ * Raccourci : affiche un calendrier par mois couvert par l'abonnement,
+ * (max 2 calendriers par ligne), avec le nom du mois au-dessus de chacun.
+ * Même logique de génération que la section Gestion de l'abonnement dans CompteClient.
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import {
-  addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
+  addMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   eachDayOfInterval, format, isSameMonth, isSameDay, parseISO, getDay,
 } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -32,14 +32,28 @@ interface DayInfo {
   heure_fin?: string;
 }
 
+function getBounds(demande: Demande): { start: Date; end: Date } | null {
+  const p = ((demande as any).planning || {}) as any;
+  const dateDebutStr = p.date_debut || (demande.date_prestation as unknown as string) || null;
+  if (!dateDebutStr) return null;
+  let start: Date;
+  try { start = parseISO(dateDebutStr); } catch { return null; }
+  let end: Date;
+  try {
+    end = p.date_fin
+      ? parseISO(p.date_fin)
+      : addMonths(start, typeof p.duree_mois === "number" ? p.duree_mois : 1);
+  } catch { end = addMonths(start, 1); }
+  return { start, end };
+}
+
 function buildInterventions(demande: Demande, month: Date): DayInfo[] {
   const p = ((demande as any).planning || {}) as any;
   const aboJours: { jour: string; heure_debut?: string; heure_fin?: string }[] =
     Array.isArray(p.abo_jours) ? p.abo_jours
     : Array.isArray(p.jours) ? p.jours.map((j: any) => typeof j === "string" ? { jour: j } : j)
     : [];
-  const dateDebutStr = p.date_debut || (demande.date_prestation as unknown as string) || null;
-  const dateFinStr: string | null = p.date_fin || null;
+  const bounds = getBounds(demande);
   const aboFrequence: string = p.abo_frequence || p.frequence || demande.frequence || "";
   const overrides: Record<string, Override> = p.date_overrides || {};
 
@@ -48,15 +62,8 @@ function buildInterventions(demande: Demande, month: Date): DayInfo[] {
   const selectedDows = aboJours.map((j) => DAY_MAP[j.jour]).filter((n) => n !== undefined);
 
   const interventionSet = new Set<string>();
-  if (dateDebutStr && selectedDows.length > 0) {
-    let start: Date;
-    try { start = parseISO(dateDebutStr); } catch { start = new Date(); }
-    let end: Date;
-    try {
-      end = dateFinStr
-        ? parseISO(dateFinStr)
-        : addMonths(start, typeof p.duree_mois === "number" ? p.duree_mois : 1);
-    } catch { end = addMonths(start, 1); }
+  if (bounds && selectedDows.length > 0) {
+    const { start, end } = bounds;
     const startMs = start.getTime();
     const seenMonth = new Set<string>();
     for (let d = new Date(start); d <= end; d = new Date(d.getTime() + 86400000)) {
@@ -108,6 +115,64 @@ const STATUT_STYLE: Record<DayInfo["statut"], { label: string; cls: string }> = 
   reportee: { label: "Reportée", cls: "bg-indigo-500 text-white" },
 };
 
+function MonthCalendar({ demande, month }: { demande: Demande; month: Date }) {
+  const interventions = useMemo(() => buildInterventions(demande, month), [demande, month]);
+  const gridDays = useMemo(() => {
+    const s = startOfWeek(startOfMonth(month), { locale: fr });
+    const e = endOfWeek(endOfMonth(month), { locale: fr });
+    return eachDayOfInterval({ start: s, end: e });
+  }, [month]);
+
+  const totalMois = interventions.filter((i) => i.statut !== "annule" && i.statut !== "a_recuperer").length;
+  const annulees = interventions.filter((i) => i.statut === "annule").length;
+  const aRecuperer = interventions.filter((i) => i.statut === "a_recuperer").length;
+  const reportees = interventions.filter((i) => i.statut === "reportee").length;
+
+  return (
+    <div className="border rounded-lg p-3 bg-card">
+      <div className="font-semibold capitalize text-center mb-2">
+        {format(month, "MMMM yyyy", { locale: fr })}
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-[10px] font-semibold text-muted-foreground uppercase mb-1">
+        {["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"].map((d) => (
+          <div key={d} className="text-center py-1">{d}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {gridDays.map((day) => {
+          const info = interventions.find((di) => isSameDay(di.date, day));
+          const inMonth = isSameMonth(day, month);
+          const style = info ? STATUT_STYLE[info.statut] : null;
+          return (
+            <div
+              key={day.toISOString()}
+              className={`min-h-[60px] border rounded p-1 text-xs flex flex-col ${inMonth ? "bg-background" : "bg-muted/30 text-muted-foreground"}`}
+            >
+              <div className="text-right font-medium text-[11px]">{format(day, "d")}</div>
+              {info && style && (
+                <div className="mt-auto space-y-0.5">
+                  <Badge className={`w-full justify-center ${style.cls} text-[9px] px-1 py-0`}>{style.label}</Badge>
+                  {(info.heure_debut || info.heure_fin) && (
+                    <div className="text-[9px] text-center text-muted-foreground">
+                      {info.heure_debut || "?"}{info.heure_fin ? `–${info.heure_fin}` : ""}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-[11px] text-muted-foreground text-center mt-2">
+        <span className="font-semibold text-foreground">{totalMois}</span> intervention(s)
+        {annulees > 0 && <span className="ml-2 text-rose-600">· {annulees} annulée(s)</span>}
+        {aRecuperer > 0 && <span className="ml-2 text-amber-700">· {aRecuperer} à récup.</span>}
+        {reportees > 0 && <span className="ml-2 text-indigo-700">· {reportees} reportée(s)</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function CalendrierAbonnementModal({
   demande, open, onClose,
 }: {
@@ -116,29 +181,26 @@ export default function CalendrierAbonnementModal({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
-  const [cursor, setCursor] = useState<Date>(() => {
-    const p = (demande as any)?.planning;
-    if (p?.date_debut) { try { return parseISO(p.date_debut); } catch { /* noop */ } }
-    return new Date();
-  });
 
-  const interventions = useMemo(() => (demande ? buildInterventions(demande, cursor) : []), [demande, cursor]);
-  const gridDays = useMemo(() => {
-    const s = startOfWeek(startOfMonth(cursor), { locale: fr });
-    const e = endOfWeek(endOfMonth(cursor), { locale: fr });
-    return eachDayOfInterval({ start: s, end: e });
-  }, [cursor]);
+  const monthsList = useMemo(() => {
+    if (!demande) return [] as Date[];
+    const bounds = getBounds(demande);
+    if (!bounds) return [new Date()];
+    const list: Date[] = [];
+    let cur = startOfMonth(bounds.start);
+    const last = startOfMonth(bounds.end);
+    while (cur <= last) {
+      list.push(cur);
+      cur = addMonths(cur, 1);
+    }
+    return list.length ? list : [startOfMonth(bounds.start)];
+  }, [demande]);
 
   if (!demande) return null;
 
-  const totalMois = interventions.filter((i) => i.statut !== "annule" && i.statut !== "a_recuperer").length;
-  const annulees = interventions.filter((i) => i.statut === "annule").length;
-  const aRecuperer = interventions.filter((i) => i.statut === "a_recuperer").length;
-  const reportees = interventions.filter((i) => i.statut === "reportee").length;
-
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between pr-6">
             <span>Calendrier — {demande.nom_entreprise || demande.nom}</span>
@@ -155,61 +217,18 @@ export default function CalendrierAbonnementModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex items-center justify-between mb-2">
-          <Button size="icon" variant="ghost" onClick={() => setCursor(subMonths(cursor, 1))}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="font-semibold capitalize">{format(cursor, "MMMM yyyy", { locale: fr })}</div>
-          <Button size="icon" variant="ghost" onClick={() => setCursor(addMonths(cursor, 1))}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-7 gap-1 text-[11px] font-semibold text-muted-foreground uppercase mb-1">
-          {["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"].map((d) => (
-            <div key={d} className="text-center py-1">{d}</div>
+        <div className={`grid gap-4 ${monthsList.length > 1 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+          {monthsList.map((m) => (
+            <MonthCalendar key={m.toISOString()} demande={demande} month={m} />
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-1">
-          {gridDays.map((day) => {
-            const info = interventions.find((di) => isSameDay(di.date, day));
-            const inMonth = isSameMonth(day, cursor);
-            const style = info ? STATUT_STYLE[info.statut] : null;
-            return (
-              <div
-                key={day.toISOString()}
-                className={`min-h-[72px] border rounded p-1 text-xs flex flex-col ${inMonth ? "bg-background" : "bg-muted/30 text-muted-foreground"}`}
-              >
-                <div className="text-right font-medium">{format(day, "d")}</div>
-                {info && style && (
-                  <div className="mt-auto space-y-0.5">
-                    <Badge className={`w-full justify-center ${style.cls} text-[9px] px-1 py-0`}>{style.label}</Badge>
-                    {(info.heure_debut || info.heure_fin) && (
-                      <div className="text-[10px] text-center text-muted-foreground">
-                        {info.heure_debut || "?"}{info.heure_fin ? `–${info.heure_fin}` : ""}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
 
-        <div className="flex items-center justify-between mt-3 text-xs flex-wrap gap-2">
-          <div className="flex items-center gap-3 text-muted-foreground flex-wrap">
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> À venir</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Terminé</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-500" /> Annulé</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> À récup.</span>
-            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Reportée</span>
-          </div>
-          <div className="text-muted-foreground">
-            <span className="font-semibold text-foreground">{totalMois}</span> intervention(s)
-            {annulees > 0 && <span className="ml-2 text-rose-600">· {annulees} annulée(s)</span>}
-            {aRecuperer > 0 && <span className="ml-2 text-amber-700">· {aRecuperer} à récupérer</span>}
-            {reportees > 0 && <span className="ml-2 text-indigo-700">· {reportees} reportée(s)</span>}
-          </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-2">
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> À venir</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Terminé</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-500" /> Annulé</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> À récup.</span>
+          <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Reportée</span>
         </div>
       </DialogContent>
     </Dialog>
