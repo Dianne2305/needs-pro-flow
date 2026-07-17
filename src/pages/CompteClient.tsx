@@ -873,8 +873,8 @@ export default function CompteClient() {
               return count;
             })();
 
-            // Nombre d'interventions estimé pour le mois sélectionné
-            const monthlyInterventions = (() => {
+            // Nombre d'interventions estimé pour le mois sélectionné (avec ou sans prorata)
+            const _computeInterventions = (applyProrata: boolean) => {
               if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return 0;
               const dayMap: Record<string, number> = {
                 dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
@@ -889,11 +889,12 @@ export default function CompteClient() {
               const monthEnd = endOfMonth(aboCalMonth);
               let effectiveStart = start > monthStart ? start : monthStart;
               let effectiveEnd = end < monthEnd ? end : monthEnd;
-              // Prorata : restreint la plage d'intervention au sein du mois
-              const _mk = format(aboCalMonth, "yyyy-MM");
-              const _pr = aboProrata[_mk];
-              if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
-              if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
+              if (applyProrata) {
+                const _mk = format(aboCalMonth, "yyyy-MM");
+                const _pr = aboProrata[_mk];
+                if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
+                if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
+              }
               if (effectiveStart > effectiveEnd) return 0;
               const startMs = start.getTime();
               const seenMonth = new Set<string>();
@@ -919,7 +920,9 @@ export default function CompteClient() {
                 return isSameMonth(od, aboCalMonth) && od >= start && od <= end && !interventionSet.has(k);
               }).length;
               return patternCount + overrideCount;
-            })();
+            };
+            const monthlyInterventions = _computeInterventions(true);
+            const fullMonthInterventions = _computeInterventions(false);
 
             const isValid = aboFrequence && aboDateDebut && aboJours.length > 0;
 
