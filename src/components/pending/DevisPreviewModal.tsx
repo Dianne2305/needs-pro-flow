@@ -115,6 +115,29 @@ export function DevisPreviewModal({ demande, open, onOpenChange, onDocumentGener
           </DialogTitle>
         </DialogHeader>
 
+        {billingContext && (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs space-y-1">
+            <div className="font-semibold text-emerald-900">
+              Facturation abonnement — {billingContext.monthLabel}
+            </div>
+            <div className="text-emerald-900">
+              <b>{billingContext.billable}</b> intervention(s) à facturer
+              {typeof billingContext.totalAmount === "number" && billingContext.totalAmount > 0 && (
+                <> · Montant estimé <b>{Math.round(billingContext.totalAmount).toLocaleString("fr-FR")} DH</b></>
+              )}
+            </div>
+            {billingContext.reportes > 0 && (
+              <div className="text-indigo-800">
+                {billingContext.reportes} intervention(s) reportée(s) du mois précédent — <b>non facturée(s)</b> car déjà payée(s).
+              </div>
+            )}
+            <div className="text-[11px] text-emerald-800/80 italic">
+              Règle : une intervention n'est facturée qu'une seule fois. Les reports respectent la fréquence de l'abonnement sans double facturation.
+            </div>
+          </div>
+        )}
+
+
         {/* Preview */}
         <div className="border rounded-lg overflow-hidden bg-muted/30 min-h-[400px] flex items-center justify-center">
           {docType === "pdf" && previewUrl ? (
