@@ -40,7 +40,7 @@ interface Props {
  *  - PNG (récapitulatif réservation) pour les prestations à prix fixe.
  *  - PDF (devis) pour les prestations sur mesure / entreprise.
  */
-export function DevisPreviewModal({ demande, open, onOpenChange, onDocumentGenerated }: Props) {
+export function DevisPreviewModal({ demande, open, onOpenChange, onDocumentGenerated, billingContext }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [docType, setDocType] = useState<"pdf" | "png">("pdf");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
