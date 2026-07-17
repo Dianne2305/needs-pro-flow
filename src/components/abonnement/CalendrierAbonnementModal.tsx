@@ -39,64 +39,58 @@ function buildInterventions(demande: Demande, month: Date): DayInfo[] {
     : Array.isArray(p.jours) ? p.jours.map((j: any) => typeof j === "string" ? { jour: j } : j)
     : [];
   const dateDebutStr = p.date_debut || (demande.date_prestation as unknown as string) || null;
+  const dateFinStr: string | null = p.date_fin || null;
+  const aboFrequence: string = p.abo_frequence || p.frequence || demande.frequence || "";
   const overrides: Record<string, Override> = p.date_overrides || {};
-  if (!dateDebutStr || aboJours.length === 0) {
-    // fallback : parcours des overrides seuls
-    return Object.entries(overrides)
-      .filter(([, v]) => !v.excluded)
-      .map(([k, v]) => ({
-        date: parseISO(k),
-        statut: (v.statut === "termine" ? "termine" : v.statut === "annule" ? "annule" : "a_venir") as DayInfo["statut"],
-        heure_debut: v.heure,
-        heure_fin: v.heure_fin,
-      }))
-      .filter((di) => isSameMonth(di.date, month));
-  }
 
-  const start = parseISO(dateDebutStr);
-  const dureeMois = typeof p.duree_mois === "number" ? p.duree_mois : 1;
-  const endLimit = addMonths(start, dureeMois);
+  const heureByDow: Record<number, string | undefined> = {};
+  aboJours.forEach((j) => { heureByDow[DAY_MAP[j.jour]] = j.heure_debut; });
   const selectedDows = aboJours.map((j) => DAY_MAP[j.jour]).filter((n) => n !== undefined);
-  const heureByDow: Record<number, { heure_debut?: string; heure_fin?: string }> = {};
-  aboJours.forEach((j) => {
-    heureByDow[DAY_MAP[j.jour]] = { heure_debut: j.heure_debut, heure_fin: j.heure_fin };
-  });
 
-  const monthStart = startOfMonth(month);
-  const monthEnd = endOfMonth(month);
-  const from = monthStart < start ? start : monthStart;
-  const to = monthEnd > endLimit ? endLimit : monthEnd;
-
-  const out: DayInfo[] = [];
-  const seen = new Set<string>();
-  if (from <= to) {
-    for (const day of eachDayOfInterval({ start: from, end: to })) {
-      if (!selectedDows.includes(getDay(day))) continue;
-      const key = format(day, "yyyy-MM-dd");
-      const ov = overrides[key];
-      if (ov?.excluded) continue;
-      const h = heureByDow[getDay(day)] || {};
-      out.push({
-        date: day,
-        statut: (ov?.statut === "termine" ? "termine" : ov?.statut === "annule" ? "annule" : "a_venir"),
-        heure_debut: ov?.heure || h.heure_debut,
-        heure_fin: ov?.heure_fin || h.heure_fin,
-      });
-      seen.add(key);
+  // Reconstruit le pattern d'interventions (même logique que CompteClient)
+  const interventionSet = new Set<string>();
+  if (dateDebutStr && selectedDows.length > 0) {
+    let start: Date;
+    try { start = parseISO(dateDebutStr); } catch { start = new Date(); }
+    let end: Date;
+    try {
+      end = dateFinStr
+        ? parseISO(dateFinStr)
+        : addMonths(start, typeof p.duree_mois === "number" ? p.duree_mois : 1);
+    } catch { end = addMonths(start, 1); }
+    const startMs = start.getTime();
+    const seenMonth = new Set<string>();
+    for (let d = new Date(start); d <= end; d = new Date(d.getTime() + 86400000)) {
+      if (!selectedDows.includes(d.getDay())) continue;
+      if (aboFrequence === "bi_hebdomadaire") {
+        const weekNo = Math.floor((d.getTime() - startMs) / (7 * 86400000));
+        if (weekNo % 2 !== 0) continue;
+      }
+      if (aboFrequence === "1_fois_mois") {
+        const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDay()}`;
+        if (seenMonth.has(k)) continue;
+        seenMonth.add(k);
+      }
+      interventionSet.add(format(d, "yyyy-MM-dd"));
     }
   }
-  // Overrides ajoutés hors récurrence
-  Object.entries(overrides).forEach(([k, v]) => {
-    if (seen.has(k) || v.excluded) return;
-    const od = parseISO(k);
-    if (!isSameMonth(od, month)) return;
+
+  const out: DayInfo[] = [];
+  const monthStart = startOfMonth(month);
+  const monthEnd = endOfMonth(month);
+  for (const day of eachDayOfInterval({ start: monthStart, end: monthEnd })) {
+    const key = format(day, "yyyy-MM-dd");
+    const ov = overrides[key];
+    const isPattern = interventionSet.has(key);
+    const isIntervention = (isPattern && !ov?.excluded) || (!!ov?.heure && !ov?.excluded);
+    if (!isIntervention) continue;
     out.push({
-      date: od,
-      statut: (v.statut === "termine" ? "termine" : v.statut === "annule" ? "annule" : "a_venir"),
-      heure_debut: v.heure,
-      heure_fin: v.heure_fin,
+      date: day,
+      statut: (ov?.statut === "termine" ? "termine" : ov?.statut === "annule" ? "annule" : "a_venir"),
+      heure_debut: ov?.heure || (isPattern ? heureByDow[getDay(day)] : undefined),
+      heure_fin: ov?.heure_fin,
     });
-  });
+  }
   return out;
 }
 
