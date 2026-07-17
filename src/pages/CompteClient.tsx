@@ -1071,12 +1071,9 @@ export default function CompteClient() {
                                 "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px flex items-center gap-1.5",
                                 active ? palette.active : palette.idle,
                               )}
-                              title={`${format(m, "MMMM yyyy", { locale: fr })} — ${MONTH_STATUS_LABEL[st]}`}
+                              title={`Mois ${i + 1}`}
                             >
                               <span>Mois {i + 1}</span>
-                              <span className="text-[10px] opacity-70 capitalize">
-                                {format(m, "MMM yy", { locale: fr })}
-                              </span>
                             </button>
                           );
                         })}
