@@ -528,11 +528,18 @@ function AbonnementTable({
                         <span className="text-muted-foreground">{progressPct}%</span>
                       </div>
                       <Progress value={progressPct} className="h-2" />
-                      {stats.annulees > 0 && (
-                        <Badge className="bg-rose-100 text-rose-800 text-[10px] px-1.5 py-0">
-                          {stats.annulees} annulée{stats.annulees > 1 ? "s" : ""}
-                        </Badge>
-                      )}
+                      <div className="flex flex-wrap gap-1">
+                        {stats.annulees > 0 && (
+                          <Badge className="bg-rose-100 text-rose-800 text-[10px] px-1.5 py-0">
+                            {stats.annulees} annulée{stats.annulees > 1 ? "s" : ""}
+                          </Badge>
+                        )}
+                        {stats.aRecuperer > 0 && (
+                          <Badge className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0">
+                            {stats.aRecuperer} à récup.
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   {/* Prochaine intervention */}
