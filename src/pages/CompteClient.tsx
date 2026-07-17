@@ -65,6 +65,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tables } from "@/integrations/supabase/types";
+import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
 import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
@@ -247,6 +248,7 @@ export default function CompteClient() {
   // Source sélectionnée pour "Utiliser un crédit" depuis un jour libre.
   const [useCreditSource, setUseCreditSource] = useState<Record<string, string>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
+  const [devisModalOpen, setDevisModalOpen] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
   // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
@@ -470,16 +472,9 @@ export default function CompteClient() {
   };
 
   const genererFacture = () => {
-    try {
-      const data = devisDataFromDemande(demande);
-      const doc = generateDevisPDF(data);
-      doc.save(`facture-abonnement-${demande.num_demande}.pdf`);
-      setAboFactureGeneree(true);
-      toast({ title: "Facture générée", description: "Le PDF a été téléchargé." });
-    } catch (e) {
-      toast({ title: "Erreur", description: "Impossible de générer la facture.", variant: "destructive" });
-    }
+    setDevisModalOpen(true);
   };
+
 
   const envoyerFacture = () => {
     setAboFactureEnvoyee(true);
@@ -2187,6 +2182,12 @@ export default function CompteClient() {
           </div>
         </DialogContent>
       </Dialog>
+      <DevisPreviewModal
+        demande={demande}
+        open={devisModalOpen}
+        onOpenChange={setDevisModalOpen}
+        onDocumentGenerated={() => setAboFactureGeneree(true)}
+      />
     </div>
   );
 }
