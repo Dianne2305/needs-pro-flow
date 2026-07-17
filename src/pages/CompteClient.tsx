@@ -2182,6 +2182,12 @@ export default function CompteClient() {
           </div>
         </DialogContent>
       </Dialog>
+      <DevisPreviewModal
+        demande={demande}
+        open={devisModalOpen}
+        onOpenChange={setDevisModalOpen}
+        onDocumentGenerated={() => setAboFactureGeneree(true)}
+      />
     </div>
   );
 }
