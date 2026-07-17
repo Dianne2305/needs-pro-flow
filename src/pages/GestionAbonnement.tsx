@@ -496,11 +496,11 @@ function AbonnementTable({
                     <div className="flex items-center justify-end gap-0.5">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement&section=gestion-abonnement`)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Voir fiche</TooltipContent>
+                        <TooltipContent>Voir gestion de l'abonnement</TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -513,26 +513,10 @@ function AbonnementTable({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => openAction(d, "renouveler")}>
-                            <RefreshCw className="h-4 w-4" />
+                            <CalendarIcon className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>Renouveler</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600" onClick={() => openAction(d, "facturer")}>
-                            <Receipt className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Facturer</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => navigate(`/historique?client=${d.id}`)}>
-                            <History className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Historique</TooltipContent>
                       </Tooltip>
                     </div>
                   </TableCell>
