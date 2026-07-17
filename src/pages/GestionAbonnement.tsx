@@ -12,6 +12,7 @@
  */
 import { useMemo, useState } from "react";
 import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
+import CalendrierAbonnementModal from "@/components/abonnement/CalendrierAbonnementModal";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -123,6 +124,7 @@ export default function GestionAbonnement() {
   const tomorrow = useMemo(() => addDays(today, 1), [today]);
   const [actionState, setActionState] = useState<{ demande: Demande; action: AbonnementAction } | null>(null);
   const openAction = (demande: Demande, action: AbonnementAction) => setActionState({ demande, action });
+  const [calendarDemande, setCalendarDemande] = useState<Demande | null>(null);
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "gestion-abonnement"],
@@ -307,9 +309,9 @@ export default function GestionAbonnement() {
       </Card>
 
       {/* Contenu selon KPI actif */}
-      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} />}
-      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} />}
-      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} />}
+      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} />}
+      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} />}
+      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} />}
       {activeKpi === "today" && <InterventionTable rows={interventionsTodayF} navigate={navigate} />}
       {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF} navigate={navigate} />}
       {activeKpi === "a-generer" && <FactureAGenererTable rows={facturesAGenererF} navigate={navigate} />}
@@ -319,6 +321,11 @@ export default function GestionAbonnement() {
         demande={actionState?.demande ?? null}
         action={actionState?.action ?? null}
         onClose={() => setActionState(null)}
+      />
+      <CalendrierAbonnementModal
+        demande={calendarDemande}
+        open={!!calendarDemande}
+        onClose={() => setCalendarDemande(null)}
       />
     </div>
   );
@@ -342,7 +349,7 @@ function KpiCard({ label, value, icon, gradient, onClick, active }: { label: str
 }
 
 function AbonnementTable({
-  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction,
+  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction, openCalendar,
 }: {
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
   navigate: ReturnType<typeof useNavigate>;
@@ -351,6 +358,7 @@ function AbonnementTable({
   facturations?: Facturation[];
   today: Date;
   openAction: (d: Demande, action: AbonnementAction) => void;
+  openCalendar: (d: Demande) => void;
 }) {
   if (!rows.length) return <EmptyState label="Aucun abonnement" />;
   return (
@@ -515,11 +523,11 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement&section=gestion-abonnement`)}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => openCalendar(d)}>
                             <CalendarIcon className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Gestion de l'abonnement</TooltipContent>
+                        <TooltipContent>Voir calendrier de l'abonnement</TooltipContent>
                       </Tooltip>
                     </div>
                   </TableCell>
