@@ -1074,12 +1074,6 @@ export default function CompteClient() {
                               <span className="text-[10px] opacity-70 capitalize">
                                 {format(m, "MMM yy", { locale: fr })}
                               </span>
-                              <span className={cn(
-                                "text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full",
-                                palette.badge,
-                              )}>
-                                {MONTH_STATUS_LABEL[st]}
-                              </span>
                             </button>
                           );
                         })}
