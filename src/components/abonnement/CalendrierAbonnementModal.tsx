@@ -196,15 +196,19 @@ export default function CalendrierAbonnementModal({
           })}
         </div>
 
-        <div className="flex items-center justify-between mt-3 text-xs">
-          <div className="flex items-center gap-3 text-muted-foreground">
+        <div className="flex items-center justify-between mt-3 text-xs flex-wrap gap-2">
+          <div className="flex items-center gap-3 text-muted-foreground flex-wrap">
             <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-primary" /> À venir</span>
             <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Terminé</span>
             <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-rose-500" /> Annulé</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-amber-500" /> À récup.</span>
+            <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Reportée</span>
           </div>
           <div className="text-muted-foreground">
             <span className="font-semibold text-foreground">{totalMois}</span> intervention(s)
             {annulees > 0 && <span className="ml-2 text-rose-600">· {annulees} annulée(s)</span>}
+            {aRecuperer > 0 && <span className="ml-2 text-amber-700">· {aRecuperer} à récupérer</span>}
+            {reportees > 0 && <span className="ml-2 text-indigo-700">· {reportees} reportée(s)</span>}
           </div>
         </div>
       </DialogContent>
