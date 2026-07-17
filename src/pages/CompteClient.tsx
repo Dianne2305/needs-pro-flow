@@ -58,7 +58,7 @@ import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
   FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
-  Ban, History, Plus, Trash2, UserCog, Send, Receipt
+  Ban, History, Plus, Trash2, UserCog, Send, Receipt, X
 } from "lucide-react";
 import { CommercialAffecteModal } from "@/components/dashboard/CommercialAffecteModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
