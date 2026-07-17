@@ -1106,19 +1106,35 @@ export default function CompteClient() {
                           const active = i === activeIdx;
                           const st = getMonthStatus(m);
                           const palette = MONTH_TAB_PALETTE[i % MONTH_TAB_PALETTE.length];
+                          const canDelete = i > 0 && i === months.length - 1;
                           return (
-                            <button
+                            <div
                               key={i}
-                              type="button"
-                              onClick={() => setAboCalMonth(m)}
                               className={cn(
-                                "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px flex items-center gap-1.5",
+                                "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px flex items-center gap-1.5 cursor-pointer",
                                 active ? palette.active : palette.idle,
                               )}
+                              onClick={() => setAboCalMonth(m)}
                               title={`Mois ${i + 1}`}
                             >
                               <span>Mois {i + 1}</span>
-                            </button>
+                              {canDelete && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (!confirm(`Supprimer le Mois ${i + 1} ?`)) return;
+                                    const newDuree = Math.max(1, months.length - 1);
+                                    setAboDureeMois(newDuree);
+                                    if (active) setAboCalMonth(months[i - 1]);
+                                  }}
+                                  className="hover:bg-black/10 rounded p-0.5"
+                                  aria-label={`Supprimer Mois ${i + 1}`}
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
