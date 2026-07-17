@@ -245,6 +245,8 @@ export default function CompteClient() {
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
+  // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
+  const [aboProrata, setAboProrata] = useState<Record<string, { debut: string; fin: string }>>({});
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
