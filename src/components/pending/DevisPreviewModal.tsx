@@ -24,6 +24,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDocumentGenerated?: (docType: string, docName: string) => void;
+  /** Contexte de facturation pour un abonnement (interventions à facturer / reportées). */
+  billingContext?: {
+    monthLabel: string;
+    billable: number;
+    reportes: number;
+    unitAmount?: number;
+    totalAmount?: number;
+  } | null;
 }
 
 /**
