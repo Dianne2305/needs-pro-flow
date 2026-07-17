@@ -249,6 +249,7 @@ export default function CompteClient() {
   const [useCreditSource, setUseCreditSource] = useState<Record<string, string>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [devisModalOpen, setDevisModalOpen] = useState(false);
+  const [devisBillingContext, setDevisBillingContext] = useState<{ monthLabel: string; billable: number; reportes: number; unitAmount?: number; totalAmount?: number } | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
   // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
@@ -1152,7 +1153,20 @@ export default function CompteClient() {
                     </Select>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={genererFacture} className="h-8 text-xs gap-1.5">
+                    <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={() => {
+                      const billable = Math.max(0, monthlyInterventions - reportesMois);
+                      const totalEst = totalInterventions || monthlyInterventions || 0;
+                      const montantTotal = Number((demande as any).montant_total) || 0;
+                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                      setDevisBillingContext({
+                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                        billable,
+                        reportes: reportesMois,
+                        unitAmount: unit,
+                        totalAmount: unit * billable,
+                      });
+                      setDevisModalOpen(true);
+                    }} className="h-8 text-xs gap-1.5">
                       <FileText className="h-3.5 w-3.5" />
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
@@ -1225,6 +1239,35 @@ export default function CompteClient() {
                         </span>
                       )}
                     </div>
+                    {/* Facturation du mois : exclut les interventions reportées (déjà payées le mois précédent) */}
+                    {(() => {
+                      const billable = Math.max(0, monthlyInterventions - reportesMois);
+                      const totalEst = totalInterventions || monthlyInterventions || 0;
+                      const montantTotal = Number((demande as any).montant_total) || 0;
+                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                      const montantBillable = Math.round(unit * billable);
+                      return (
+                        <div className="sm:col-span-2 pt-2 border-t border-primary/20 flex flex-wrap items-center gap-2">
+                          <span className="text-muted-foreground">
+                            Facturation {format(aboCalMonth, "MMMM yyyy", { locale: fr })} :
+                          </span>
+                          <span className="inline-flex items-center text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">
+                            {billable} intervention(s) à facturer
+                            {unit > 0 && ` · ~${montantBillable.toLocaleString("fr-FR")} DH`}
+                          </span>
+                          {reportesMois > 0 && (
+                            <span className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 rounded px-2 py-0.5">
+                              {reportesMois} reportée(s) non facturée(s) (déjà payées le mois précédent)
+                            </span>
+                          )}
+                          {reportesMois > 0 && (
+                            <span className="text-[11px] text-muted-foreground italic">
+                              Une intervention n'est facturée qu'une seule fois — les reports sont exclus de la facture.
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
@@ -2185,8 +2228,9 @@ export default function CompteClient() {
       <DevisPreviewModal
         demande={demande}
         open={devisModalOpen}
-        onOpenChange={setDevisModalOpen}
+        onOpenChange={(o) => { setDevisModalOpen(o); if (!o) setDevisBillingContext(null); }}
         onDocumentGenerated={() => setAboFactureGeneree(true)}
+        billingContext={devisBillingContext}
       />
     </div>
   );
