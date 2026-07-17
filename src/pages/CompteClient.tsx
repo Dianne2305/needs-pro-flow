@@ -1435,15 +1435,27 @@ export default function CompteClient() {
                                       )}>
                                         {format(d, "d")}
                                       </span>
-                                      {isIntervention && inMonth && heure && (
-                                        <span className={cn(
-                                          "mt-auto text-[10px] font-medium rounded px-1 py-0.5",
-                                          !statut && "bg-primary text-primary-foreground",
-                                          statut === "termine" && "bg-emerald-600 text-white",
-                                          statut === "annule" && "bg-rose-600 text-white line-through",
-                                        )}>
-                                          {heure}{heureFin ? `–${heureFin}` : ""}
-                                        </span>
+                                      {isIntervention && inMonth && (
+                                        <div className="mt-auto w-full space-y-0.5">
+                                          <span className={cn(
+                                            "block text-[9px] font-bold uppercase tracking-wide rounded px-1 py-0.5 text-center",
+                                            !statut && "bg-primary text-primary-foreground",
+                                            statut === "termine" && "bg-emerald-600 text-white",
+                                            statut === "annule" && "bg-rose-600 text-white line-through",
+                                          )}>
+                                            {!statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
+                                          </span>
+                                          {heure && (
+                                            <span className={cn(
+                                              "block text-[10px] font-medium rounded px-1 py-0.5 text-center",
+                                              !statut && "bg-primary/80 text-primary-foreground",
+                                              statut === "termine" && "bg-emerald-500 text-white",
+                                              statut === "annule" && "bg-rose-500 text-white line-through",
+                                            )}>
+                                              {heure}{heureFin ? `–${heureFin}` : ""}
+                                            </span>
+                                          )}
+                                        </div>
                                       )}
                                     </button>
                                   </PopoverTrigger>
