@@ -323,11 +323,11 @@ export default function GestionAbonnement() {
   );
 }
 
-function KpiCard({ label, value, icon, gradient, onClick }: { label: string; value: number | string; icon: React.ReactNode; gradient: string; onClick?: () => void }) {
+function KpiCard({ label, value, icon, gradient, onClick, active }: { label: string; value: number | string; icon: React.ReactNode; gradient: string; onClick?: () => void; active?: boolean }) {
   return (
     <Card
       onClick={onClick}
-      className={`p-3 bg-gradient-to-br ${gradient} text-white border-0 ${onClick ? "cursor-pointer hover:brightness-110 transition" : ""}`}
+      className={`p-3 bg-gradient-to-br ${gradient} text-white border-0 ${onClick ? "cursor-pointer hover:brightness-110 transition" : ""} ${active ? "ring-2 ring-offset-2 ring-white/80 brightness-110" : ""}`}
     >
       <div className="flex items-start justify-between">
         <div>
