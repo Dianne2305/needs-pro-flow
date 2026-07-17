@@ -19,14 +19,15 @@ import { Tables } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, addDays, parseISO, differenceInCalendarDays, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   CalendarCheck, CalendarClock, PauseCircle, CalendarDays,
   Sun, Sunrise, FileText, FileWarning, Eye, Building2, User,
-  RefreshCw, History, Receipt, Pause,
+  Calendar as CalendarIcon, Pause, Search, X,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
