@@ -131,8 +131,10 @@ export default function CalendrierAbonnementModal({
 
   if (!demande) return null;
 
-  const totalMois = interventions.filter((i) => i.statut !== "annule").length;
+  const totalMois = interventions.filter((i) => i.statut !== "annule" && i.statut !== "a_recuperer").length;
   const annulees = interventions.filter((i) => i.statut === "annule").length;
+  const aRecuperer = interventions.filter((i) => i.statut === "a_recuperer").length;
+  const reportees = interventions.filter((i) => i.statut === "reportee").length;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
