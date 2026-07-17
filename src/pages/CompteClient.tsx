@@ -892,8 +892,8 @@ export default function CompteClient() {
               if (selected.length === 0) return { total: 0, cancelled: 0 };
               let start: Date, end: Date;
               try { start = parseISO(aboDateDebut); end = parseISO(dateFinAuto); }
-              catch { return { total: 0, cancelled: 0 }; }
-              if (end < start) return { total: 0, cancelled: 0 };
+              catch { return { total: 0, cancelled: 0, aRecup: 0, reportes: 0 }; }
+              if (end < start) return { total: 0, cancelled: 0, aRecup: 0, reportes: 0 };
               const monthStart = startOfMonth(aboCalMonth);
               const monthEnd = endOfMonth(aboCalMonth);
               let effectiveStart = start > monthStart ? start : monthStart;
@@ -904,7 +904,7 @@ export default function CompteClient() {
                 if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
                 if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
               }
-              if (effectiveStart > effectiveEnd) return { total: 0, cancelled: 0 };
+              if (effectiveStart > effectiveEnd) return { total: 0, cancelled: 0, aRecup: 0, reportes: 0 };
               const startMs = start.getTime();
               const seenMonth = new Set<string>();
               const interventionSet = new Set<string>();
@@ -924,27 +924,50 @@ export default function CompteClient() {
 
               let patternCount = 0;
               let patternCancelled = 0;
+              let patternARecup = 0;
               Array.from(interventionSet).forEach((k) => {
                 const ov = aboDateOverrides[k];
                 if (ov?.excluded) return;
                 if (ov?.statut === "annule") patternCancelled++;
+                else if (ov?.statut === "a_recuperer") patternARecup++;
                 else patternCount++;
               });
 
               let overrideCount = 0;
               let overrideCancelled = 0;
+              let overrideARecup = 0;
+              let overrideReportes = 0;
               Object.entries(aboDateOverrides).forEach(([k, v]) => {
                 if (v.excluded || !v.heure) return;
                 let od: Date;
                 try { od = parseISO(k); } catch { return; }
                 if (!isSameMonth(od, aboCalMonth) || od < start || od > end || interventionSet.has(k)) return;
                 if (v.statut === "annule") overrideCancelled++;
-                else overrideCount++;
+                else if (v.statut === "a_recuperer") overrideARecup++;
+                else {
+                  overrideCount++;
+                  if (v.reprogrammed_from) overrideReportes++;
+                }
               });
 
-              return { total: patternCount + overrideCount, cancelled: patternCancelled + overrideCancelled };
+              return {
+                total: patternCount + overrideCount,
+                cancelled: patternCancelled + overrideCancelled,
+                aRecup: patternARecup + overrideARecup,
+                reportes: overrideReportes,
+              };
             };
-            const { total: monthlyInterventions, cancelled: cancelledInterventions } = _computeInterventions(true);
+            const { total: monthlyInterventions, cancelled: cancelledInterventions, aRecup: aRecupMois, reportes: reportesMois } = _computeInterventions(true);
+
+            // Crédits globaux "à récupérer" (tout l'abonnement, non encore reprogrammés)
+            const pendingCreditsGlobal = Object.values(aboDateOverrides).filter(
+              (v) => v?.statut === "a_recuperer" && !v?.reprogrammed_to,
+            ).length;
+            // Sources disponibles pour reprogrammation (clé + libellé date)
+            const availableCreditSources = Object.entries(aboDateOverrides)
+              .filter(([, v]) => v?.statut === "a_recuperer" && !v?.reprogrammed_to)
+              .map(([k]) => k)
+              .sort();
 
             const isValid = aboFrequence && aboDateDebut && aboJours.length > 0;
 
