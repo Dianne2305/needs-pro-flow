@@ -58,7 +58,7 @@ import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
   FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
-  Ban, History, Plus, Trash2, UserCog, Send
+  Ban, History, Plus, Trash2, UserCog, Send, Receipt
 } from "lucide-react";
 import { CommercialAffecteModal } from "@/components/dashboard/CommercialAffecteModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -66,6 +66,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Tables } from "@/integrations/supabase/types";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
+import AbonnementFactureFormModal, { FactureFormData } from "@/components/abonnement/AbonnementFactureFormModal";
 import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
@@ -250,6 +251,8 @@ export default function CompteClient() {
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [devisModalOpen, setDevisModalOpen] = useState(false);
   const [devisBillingContext, setDevisBillingContext] = useState<{ monthLabel: string; billable: number; reportes: number; unitAmount?: number; totalAmount?: number } | null>(null);
+  const [factureFormOpen, setFactureFormOpen] = useState(false);
+  const [factureFormData, setFactureFormData] = useState<FactureFormData | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
   // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
@@ -1169,6 +1172,26 @@ export default function CompteClient() {
                     }} className="h-8 text-xs gap-1.5">
                       <FileText className="h-3.5 w-3.5" />
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => {
+                      const billable = Math.max(0, monthlyInterventions - reportesMois);
+                      const totalEst = totalInterventions || monthlyInterventions || 0;
+                      const montantTotal = Number((demande as any).montant_total) || 0;
+                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                      setFactureFormData({
+                        clientNom: (demande as any).nom_entreprise || demande.nom,
+                        numAbonnement: demande.num_demande,
+                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                        typePrestation: demande.type_prestation || demande.type_service || "",
+                        frequenceLabel: currentFreq?.label || aboFrequence || "",
+                        interventionsPrevues: monthlyInterventions,
+                        reportesPayees: reportesMois,
+                        creditsRestants: pendingCreditsGlobal,
+                        prixUnitaire: unit,
+                      });
+                      setFactureFormOpen(true);
+                    }} className="h-8 text-xs gap-1.5">
+                      <Receipt className="h-3.5 w-3.5" /> Formulaire facture
                     </Button>
                     <Button size="sm" variant={aboFactureEnvoyee ? "default" : "outline"} onClick={envoyerFacture} disabled={!aboFactureGeneree} className="h-8 text-xs gap-1.5">
                       <Send className="h-3.5 w-3.5" />
@@ -2231,6 +2254,12 @@ export default function CompteClient() {
         onOpenChange={(o) => { setDevisModalOpen(o); if (!o) setDevisBillingContext(null); }}
         onDocumentGenerated={() => setAboFactureGeneree(true)}
         billingContext={devisBillingContext}
+      />
+      <AbonnementFactureFormModal
+        open={factureFormOpen}
+        onOpenChange={(o) => { setFactureFormOpen(o); if (!o) setFactureFormData(null); }}
+        data={factureFormData}
+        onValidate={() => setAboFactureGeneree(true)}
       />
     </div>
   );
