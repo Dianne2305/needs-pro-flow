@@ -72,7 +72,7 @@ function isAbonnement(d: Demande) {
 
 function getStats(d: Demande) {
   const planning = d.planning as any;
-  let total = 0, effectuees = 0;
+  let total = 0, effectuees = 0, annulees = 0;
   let maxDate: Date | null = null;
   if (planning?.semaines?.length) {
     for (const sem of planning.semaines) {
@@ -80,6 +80,7 @@ function getStats(d: Demande) {
       for (const j of sem.jours || []) {
         total++;
         if (j.statut === "terminee") effectuees++;
+        else if (j.statut === "annule") annulees++;
         if (base) {
           const dt = addDays(base, typeof j.jour === "number" ? j.jour : 0);
           if (!maxDate || dt > maxDate) maxDate = dt;
@@ -87,7 +88,7 @@ function getStats(d: Demande) {
       }
     }
   }
-  return { total, effectuees, restantes: Math.max(0, total - effectuees), dateFin: maxDate };
+  return { total, effectuees, annulees, restantes: Math.max(0, total - effectuees - annulees), dateFin: maxDate };
 }
 
 function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
