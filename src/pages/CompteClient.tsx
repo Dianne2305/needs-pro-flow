@@ -249,6 +249,7 @@ export default function CompteClient() {
   const [useCreditSource, setUseCreditSource] = useState<Record<string, string>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [devisModalOpen, setDevisModalOpen] = useState(false);
+  const [devisBillingContext, setDevisBillingContext] = useState<{ monthLabel: string; billable: number; reportes: number; unitAmount?: number; totalAmount?: number } | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
   // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
