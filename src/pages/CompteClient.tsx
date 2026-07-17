@@ -2228,8 +2228,9 @@ export default function CompteClient() {
       <DevisPreviewModal
         demande={demande}
         open={devisModalOpen}
-        onOpenChange={setDevisModalOpen}
+        onOpenChange={(o) => { setDevisModalOpen(o); if (!o) setDevisBillingContext(null); }}
         onDocumentGenerated={() => setAboFactureGeneree(true)}
+        billingContext={devisBillingContext}
       />
     </div>
   );
