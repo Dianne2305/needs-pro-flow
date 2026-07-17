@@ -1489,28 +1489,41 @@ export default function CompteClient() {
                       }
                       interventionSet.add(format(d, "yyyy-MM-dd"));
                     }
-                    const monthStart = startOfMonth(aboCalMonth);
-                    const monthEnd = endOfMonth(aboCalMonth);
-                    const gridStart = addDays(monthStart, -monthStart.getDay());
-                    const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
-                    const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+                    // Liste des mois couverts par l'abonnement (start -> end)
+                    const monthsList: Date[] = [];
+                    {
+                      let cur = startOfMonth(start);
+                      const last = startOfMonth(end);
+                      while (cur <= last) { monthsList.push(cur); cur = addMonthsFn(cur, 1); }
+                    }
                     const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
                     return (
                       <div className="pt-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            Calendrier des interventions
-                          </Label>
-                          <div className="flex items-center gap-2">
-                            <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0"
-                              onClick={() => setAboCalMonth(subMonths(aboCalMonth, 1))}>‹</Button>
-                            <span className="text-sm font-semibold capitalize min-w-[130px] text-center">
-                              {format(aboCalMonth, "MMMM yyyy", { locale: fr })}
-                            </span>
-                            <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0"
-                              onClick={() => setAboCalMonth(addMonthsFn(aboCalMonth, 1))}>›</Button>
-                          </div>
-                        </div>
+                        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Calendrier des interventions
+                        </Label>
+                        <div className={cn("grid gap-4", monthsList.length > 1 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
+                        {monthsList.map((calMonth) => {
+                        const monthStart = startOfMonth(calMonth);
+                        const monthEnd = endOfMonth(calMonth);
+                        const gridStart = addDays(monthStart, -monthStart.getDay());
+                        const gridEnd = addDays(monthEnd, 6 - monthEnd.getDay());
+                        const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
+                        let monthCount = 0;
+                        let monthCancelled = 0;
+                        interventionSet.forEach((k) => {
+                          const dt = parseISO(k);
+                          if (!isSameMonth(dt, calMonth)) return;
+                          const ov = aboDateOverrides[k];
+                          if (ov?.excluded) return;
+                          if (ov?.statut === "annule") { monthCancelled++; return; }
+                          monthCount++;
+                        });
+                        return (
+                          <div key={calMonth.toISOString()} className="space-y-2">
+                            <div className="text-sm font-semibold capitalize text-center">
+                              {format(calMonth, "MMMM yyyy", { locale: fr })}
+                            </div>
                         <div className="rounded-xl border overflow-hidden bg-background">
                           <div className="grid grid-cols-7 bg-primary/10">
                             {headers.map((h) => (
@@ -1522,7 +1535,8 @@ export default function CompteClient() {
                           <div className="grid grid-cols-7">
                             {days.map((d, i) => {
                               const key = format(d, "yyyy-MM-dd");
-                              const inMonth = isSameMonth(d, aboCalMonth);
+                              const inMonth = isSameMonth(d, calMonth);
+
                               const override = aboDateOverrides[key];
                               const isPattern = interventionSet.has(key);
                               const isIntervention = (isPattern && !override?.excluded) || (!!override?.heure && !override?.excluded);
