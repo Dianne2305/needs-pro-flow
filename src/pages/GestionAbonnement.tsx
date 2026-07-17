@@ -512,11 +512,11 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => openAction(d, "renouveler")}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement&section=gestion-abonnement`)}>
                             <CalendarIcon className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Renouveler</TooltipContent>
+                        <TooltipContent>Gestion de l'abonnement</TooltipContent>
                       </Tooltip>
                     </div>
                   </TableCell>
