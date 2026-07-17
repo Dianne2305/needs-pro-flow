@@ -140,7 +140,7 @@ function buildPlanningDates(d: Demande): {
   for (const k of allKeys) {
     const ov = overrides[k];
     if (ov?.excluded) continue;
-    const dt = parseISO(k);
+    const dt = parseYMD(k);
     const statut =
       ov?.statut === "termine" ? "termine"
       : ov?.statut === "annule" ? "annule"
