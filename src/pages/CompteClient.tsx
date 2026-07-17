@@ -245,6 +245,8 @@ export default function CompteClient() {
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
+  // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
+  const [aboProrata, setAboProrata] = useState<Record<string, { debut: string; fin: string }>>({});
 
   // Renouveler & Switcher modals
   const [renewOpen, setRenewOpen] = useState(false);
@@ -885,8 +887,13 @@ export default function CompteClient() {
               if (end < start) return 0;
               const monthStart = startOfMonth(aboCalMonth);
               const monthEnd = endOfMonth(aboCalMonth);
-              const effectiveStart = start > monthStart ? start : monthStart;
-              const effectiveEnd = end < monthEnd ? end : monthEnd;
+              let effectiveStart = start > monthStart ? start : monthStart;
+              let effectiveEnd = end < monthEnd ? end : monthEnd;
+              // Prorata : restreint la plage d'intervention au sein du mois
+              const _mk = format(aboCalMonth, "yyyy-MM");
+              const _pr = aboProrata[_mk];
+              if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
+              if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
               if (effectiveStart > effectiveEnd) return 0;
               const startMs = start.getTime();
               const seenMonth = new Set<string>();
@@ -990,6 +997,45 @@ export default function CompteClient() {
               });
             };
 
+            // Statut d'un mois selon la date du jour
+            const _today = new Date();
+            const getMonthStatus = (m: Date): "termine" | "en_cours" | "attente" => {
+              const ms = startOfMonth(m); const me = endOfMonth(m);
+              if (me < _today) return "termine";
+              if (ms > _today) return "attente";
+              return "en_cours";
+            };
+            const MONTH_STATUS_LABEL: Record<string, string> = {
+              termine: "Terminé",
+              en_cours: "En cours",
+              attente: "En attente de confirmation",
+            };
+            const monthTabClasses = (status: string, active: boolean) => {
+              if (status === "termine") return active
+                ? "bg-emerald-100 border-emerald-400 text-emerald-800"
+                : "bg-emerald-50/60 border-emerald-200 text-emerald-700 hover:bg-emerald-100";
+              if (status === "attente") return active
+                ? "bg-amber-100 border-amber-400 text-amber-800"
+                : "bg-amber-50/60 border-amber-200 text-amber-700 hover:bg-amber-100";
+              return active
+                ? "bg-cyan-100 border-cyan-400 text-cyan-800"
+                : "bg-cyan-50/60 border-cyan-200 text-cyan-700 hover:bg-cyan-100";
+            };
+            const currentMonthKey = format(aboCalMonth, "yyyy-MM");
+            const currentProrata = aboProrata[currentMonthKey];
+            const proratActif = !!currentProrata;
+            const _monthStartStr = format(startOfMonth(aboCalMonth), "yyyy-MM-dd");
+            const _monthEndStr = format(endOfMonth(aboCalMonth), "yyyy-MM-dd");
+            const setProrata = (patch: Partial<{ debut: string; fin: string }> | null) => {
+              setAboProrata((prev) => {
+                const next = { ...prev };
+                if (patch === null) { delete next[currentMonthKey]; return next; }
+                const cur = next[currentMonthKey] || { debut: _monthStartStr, fin: _monthEndStr };
+                next[currentMonthKey] = { ...cur, ...patch };
+                return next;
+              });
+            };
+
             return (
               <div className="space-y-5">
                 {/* Onglets mensuels — un onglet par mois de la période d'abonnement */}
@@ -1011,22 +1057,29 @@ export default function CompteClient() {
                       <div className="flex flex-wrap gap-1.5">
                         {months.map((m, i) => {
                           const active = i === activeIdx;
+                          const st = getMonthStatus(m);
                           return (
                             <button
                               key={i}
                               type="button"
                               onClick={() => setAboCalMonth(m)}
                               className={cn(
-                                "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px",
-                                active
-                                  ? "bg-primary/10 border-primary/30 text-primary"
-                                  : "bg-muted/40 border-transparent text-muted-foreground hover:bg-muted",
+                                "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px flex items-center gap-1.5",
+                                monthTabClasses(st, active),
                               )}
-                              title={format(m, "MMMM yyyy", { locale: fr })}
+                              title={`${format(m, "MMMM yyyy", { locale: fr })} — ${MONTH_STATUS_LABEL[st]}`}
                             >
-                              Mois {i + 1}
-                              <span className="ml-1.5 text-[10px] opacity-70 capitalize">
+                              <span>Mois {i + 1}</span>
+                              <span className="text-[10px] opacity-70 capitalize">
                                 {format(m, "MMM yy", { locale: fr })}
+                              </span>
+                              <span className={cn(
+                                "text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full",
+                                st === "termine" && "bg-emerald-500/20 text-emerald-800",
+                                st === "en_cours" && "bg-cyan-500/20 text-cyan-800",
+                                st === "attente" && "bg-amber-500/20 text-amber-800",
+                              )}>
+                                {MONTH_STATUS_LABEL[st]}
                               </span>
                             </button>
                           );
@@ -1044,6 +1097,55 @@ export default function CompteClient() {
                     </div>
                   );
                 })()}
+
+                {/* Facturation au prorata pour le mois sélectionné */}
+                <div className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-primary cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="h-3.5 w-3.5 accent-primary"
+                        checked={proratActif}
+                        onChange={(e) => {
+                          if (e.target.checked) setProrata({ debut: _monthStartStr, fin: _monthEndStr });
+                          else setProrata(null);
+                        }}
+                      />
+                      Facture au prorata ({format(aboCalMonth, "MMMM yyyy", { locale: fr })})
+                    </label>
+                    {proratActif && (
+                      <>
+                        <div className="flex items-center gap-1.5">
+                          <Label className="text-[11px] text-muted-foreground">Du</Label>
+                          <Input
+                            type="date"
+                            value={currentProrata?.debut || _monthStartStr}
+                            min={_monthStartStr}
+                            max={_monthEndStr}
+                            onChange={(e) => setProrata({ debut: e.target.value })}
+                            className="h-7 w-36 text-xs bg-background"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Label className="text-[11px] text-muted-foreground">Au</Label>
+                          <Input
+                            type="date"
+                            value={currentProrata?.fin || _monthEndStr}
+                            min={_monthStartStr}
+                            max={_monthEndStr}
+                            onChange={(e) => setProrata({ fin: e.target.value })}
+                            className="h-7 w-36 text-xs bg-background"
+                          />
+                        </div>
+                        <div className="ml-auto text-xs">
+                          <span className="text-muted-foreground">Interventions au prorata : </span>
+                          <span className="text-base font-bold text-primary">{monthlyInterventions}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
 
                 {/* Ligne d'actions : statut + facture + enregistrer */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-3 rounded-xl border bg-background">
