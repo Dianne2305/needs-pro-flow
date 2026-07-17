@@ -873,8 +873,8 @@ export default function CompteClient() {
               return count;
             })();
 
-            // Nombre d'interventions estimé pour le mois sélectionné
-            const monthlyInterventions = (() => {
+            // Nombre d'interventions estimé pour le mois sélectionné (avec ou sans prorata)
+            const _computeInterventions = (applyProrata: boolean) => {
               if (!aboDateDebut || !dateFinAuto || aboJours.length === 0 || !aboFrequence) return 0;
               const dayMap: Record<string, number> = {
                 dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6,
@@ -889,11 +889,12 @@ export default function CompteClient() {
               const monthEnd = endOfMonth(aboCalMonth);
               let effectiveStart = start > monthStart ? start : monthStart;
               let effectiveEnd = end < monthEnd ? end : monthEnd;
-              // Prorata : restreint la plage d'intervention au sein du mois
-              const _mk = format(aboCalMonth, "yyyy-MM");
-              const _pr = aboProrata[_mk];
-              if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
-              if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
+              if (applyProrata) {
+                const _mk = format(aboCalMonth, "yyyy-MM");
+                const _pr = aboProrata[_mk];
+                if (_pr?.debut) { try { const d = parseISO(_pr.debut); if (d > effectiveStart) effectiveStart = d; } catch {} }
+                if (_pr?.fin) { try { const d = parseISO(_pr.fin); if (d < effectiveEnd) effectiveEnd = d; } catch {} }
+              }
               if (effectiveStart > effectiveEnd) return 0;
               const startMs = start.getTime();
               const seenMonth = new Set<string>();
@@ -919,7 +920,9 @@ export default function CompteClient() {
                 return isSameMonth(od, aboCalMonth) && od >= start && od <= end && !interventionSet.has(k);
               }).length;
               return patternCount + overrideCount;
-            })();
+            };
+            const monthlyInterventions = _computeInterventions(true);
+            const fullMonthInterventions = _computeInterventions(false);
 
             const isValid = aboFrequence && aboDateDebut && aboJours.length > 0;
 
@@ -1068,12 +1071,9 @@ export default function CompteClient() {
                                 "px-3 py-1.5 rounded-t-lg text-xs font-semibold border border-b-0 transition-colors -mb-px flex items-center gap-1.5",
                                 active ? palette.active : palette.idle,
                               )}
-                              title={`${format(m, "MMMM yyyy", { locale: fr })} — ${MONTH_STATUS_LABEL[st]}`}
+                              title={`Mois ${i + 1}`}
                             >
                               <span>Mois {i + 1}</span>
-                              <span className="text-[10px] opacity-70 capitalize">
-                                {format(m, "MMM yy", { locale: fr })}
-                              </span>
                             </button>
                           );
                         })}
@@ -1130,13 +1130,65 @@ export default function CompteClient() {
                             className="h-7 w-36 text-xs bg-background"
                           />
                         </div>
-                        <div className="ml-auto text-xs">
-                          <span className="text-muted-foreground">Interventions au prorata : </span>
-                          <span className="text-base font-bold text-primary">{monthlyInterventions}</span>
-                        </div>
                       </>
                     )}
                   </div>
+
+                  {proratActif && (() => {
+                    const montantTotal = Number(demande?.montant_total) || 0;
+                    const prixUnitaire = fullMonthInterventions > 0 ? montantTotal / fullMonthInterventions : 0;
+                    const montantProrata = prixUnitaire * monthlyInterventions;
+                    const fmt = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const dStart = currentProrata?.debut || _monthStartStr;
+                    const dEnd = currentProrata?.fin || _monthEndStr;
+                    let nbJours = 0;
+                    try {
+                      const a = parseISO(dStart); const b = parseISO(dEnd);
+                      nbJours = Math.max(0, Math.round((b.getTime() - a.getTime()) / (24 * 3600 * 1000)) + 1);
+                    } catch {}
+                    return (
+                      <div className="mt-3 rounded-lg border border-primary/20 bg-background/70 p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-primary">
+                            Aperçu du calcul au prorata
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
+                          <div>
+                            <div className="text-muted-foreground">Période prorata</div>
+                            <div className="font-medium">
+                              {(() => { try { return `${format(parseISO(dStart), "dd/MM/yyyy")} → ${format(parseISO(dEnd), "dd/MM/yyyy")}`; } catch { return "—"; } })()}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{nbJours} jour(s) couverts</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Interventions</div>
+                            <div className="font-medium">
+                              <span className="text-primary font-bold">{monthlyInterventions}</span>
+                              <span className="text-muted-foreground"> / {fullMonthInterventions} au mois complet</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Prix unitaire</div>
+                            <div className="font-medium">{fmt(prixUnitaire)} MAD <span className="text-[10px] text-muted-foreground">/ intervention</span></div>
+                          </div>
+                          <div className="col-span-2 sm:col-span-3 pt-2 mt-1 border-t border-primary/10 flex flex-wrap items-baseline justify-between gap-2">
+                            <div className="text-[11px] text-muted-foreground">
+                              Calcul : {fmt(prixUnitaire)} × {monthlyInterventions} intervention(s)
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground text-[11px] mr-1">Montant au prorata :</span>
+                              <span className="text-base font-bold text-primary">{fmt(montantProrata)} MAD</span>
+                              <span className="text-[10px] text-muted-foreground ml-2">
+                                (mois complet : {fmt(montantTotal)} MAD)
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
 
