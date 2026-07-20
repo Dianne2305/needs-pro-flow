@@ -246,7 +246,6 @@ function MOCK_INTERVENTIONS(date: Date) {
     d: _mockDemande({
       num_demande: num, nom, quartier, type_prestation: service, type_service: service,
       heure_prestation: heure, telephone_direct: tel,
-      // @ts-expect-error demo profil
       profil_nom: profil, heure_debut: heure,
     }),
     date,
