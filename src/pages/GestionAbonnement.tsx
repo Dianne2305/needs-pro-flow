@@ -14,7 +14,8 @@ import { useMemo, useState } from "react";
 import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
 import CalendrierAbonnementModal from "@/components/abonnement/CalendrierAbonnementModal";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
@@ -184,11 +185,27 @@ function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
 
 export default function GestionAbonnement() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const tomorrow = useMemo(() => addDays(today, 1), [today]);
   const [actionState, setActionState] = useState<{ demande: Demande; action: AbonnementAction } | null>(null);
   const openAction = (demande: Demande, action: AbonnementAction) => setActionState({ demande, action });
   const [calendarDemande, setCalendarDemande] = useState<Demande | null>(null);
+
+  const suspendreDemande = async (d: Demande) => {
+    if (!window.confirm(`Suspendre l'abonnement #${d.num_demande} — ${d.nom_entreprise || d.nom} ?`)) return;
+    const { error } = await supabase
+      .from("demandes")
+      .update({ statut: "suspendu", motif_annulation: "Suspendu depuis Gestion Abonnement" })
+      .eq("id", d.id);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["demandes"] });
+    toast({ title: "Abonnement suspendu", description: `#${d.num_demande} · ${d.nom_entreprise || d.nom}` });
+  };
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "gestion-abonnement"],
@@ -373,9 +390,9 @@ export default function GestionAbonnement() {
       </Card>
 
       {/* Contenu selon KPI actif */}
-      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} />}
-      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} />}
-      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} />}
+      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
       {activeKpi === "today" && <InterventionTable rows={interventionsTodayF} navigate={navigate} />}
       {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF} navigate={navigate} />}
       {activeKpi === "a-generer" && <FactureAGenererTable rows={facturesAGenererF} navigate={navigate} />}
@@ -413,7 +430,7 @@ function KpiCard({ label, value, icon, gradient, onClick, active }: { label: str
 }
 
 function AbonnementTable({
-  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction, openCalendar,
+  rows, navigate, highlightEcheance, forceStatut, facturations = [], today, openAction, openCalendar, onSuspend,
 }: {
   rows: { d: Demande; stats: ReturnType<typeof getStats>; joursRestants: number | null }[];
   navigate: ReturnType<typeof useNavigate>;
@@ -423,6 +440,7 @@ function AbonnementTable({
   today: Date;
   openAction: (d: Demande, action: AbonnementAction) => void;
   openCalendar: (d: Demande) => void;
+  onSuspend: (d: Demande) => void;
 }) {
   if (!rows.length) return <EmptyState label="Aucun abonnement" />;
   return (
@@ -440,7 +458,6 @@ function AbonnementTable({
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut</TableHead>
-              <TableHead>Paiement</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -451,7 +468,7 @@ function AbonnementTable({
                 .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
               const enRetard = impaye > 0;
               const statut: "actif" | "echeance" | "suspendu" =
-                forceStatut ?? (enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 7 ? "echeance" : "actif"));
+                forceStatut ?? (d.statut === "suspendu" ? "suspendu" : enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 7 ? "echeance" : "actif"));
               const statutMeta = {
                 actif: { dot: "bg-emerald-500", label: "Actif", cls: "bg-emerald-100 text-emerald-800" },
                 echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
@@ -566,17 +583,7 @@ function AbonnementTable({
                       <Badge className={statutMeta.cls}>{statutMeta.label}</Badge>
                     </div>
                   </TableCell>
-                  {/* Paiement */}
-                  <TableCell>
-                    {enRetard ? (
-                      <div className="text-xs">
-                        <Badge className="bg-red-100 text-red-800">En retard</Badge>
-                        <div className="mt-0.5 font-semibold text-red-600">{Math.round(impaye).toLocaleString("fr-FR")} DH</div>
-                      </div>
-                    ) : (
-                      <Badge className="bg-emerald-100 text-emerald-800">À jour</Badge>
-                    )}
-                  </TableCell>
+                  {/* Actions */}
                   {/* Actions */}
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-0.5">
@@ -590,7 +597,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => openAction(d, "suspendre")}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => onSuspend(d)}>
                             <Pause className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
