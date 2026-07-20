@@ -185,11 +185,27 @@ function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
 
 export default function GestionAbonnement() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const qc = useQueryClient();
   const today = useMemo(() => { const d = new Date(); d.setHours(0,0,0,0); return d; }, []);
   const tomorrow = useMemo(() => addDays(today, 1), [today]);
   const [actionState, setActionState] = useState<{ demande: Demande; action: AbonnementAction } | null>(null);
   const openAction = (demande: Demande, action: AbonnementAction) => setActionState({ demande, action });
   const [calendarDemande, setCalendarDemande] = useState<Demande | null>(null);
+
+  const suspendreDemande = async (d: Demande) => {
+    if (!window.confirm(`Suspendre l'abonnement #${d.num_demande} — ${d.nom_entreprise || d.nom} ?`)) return;
+    const { error } = await supabase
+      .from("demandes")
+      .update({ statut: "suspendu", motif_annulation: "Suspendu depuis Gestion Abonnement" })
+      .eq("id", d.id);
+    if (error) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["demandes"] });
+    toast({ title: "Abonnement suspendu", description: `#${d.num_demande} · ${d.nom_entreprise || d.nom}` });
+  };
 
   const { data: demandes = [] } = useQuery({
     queryKey: ["demandes", "gestion-abonnement"],
