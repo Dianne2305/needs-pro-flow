@@ -362,7 +362,7 @@ export default function GestionAbonnement() {
         <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" active={activeKpi==="today"} onClick={() => setActiveKpi("today")} />
         <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" active={activeKpi==="tomorrow"} onClick={() => setActiveKpi("tomorrow")} />
         <KpiCard label="À générer" value={facturesAGenerer.length} icon={<FileText className="h-5 w-5" />} gradient="from-violet-500 to-purple-600" active={activeKpi==="a-generer"} onClick={() => setActiveKpi("a-generer")} />
-        <KpiCard label="Impayées" value={facturesImpayees.length} icon={<FileWarning className="h-5 w-5" />} gradient="from-rose-500 to-red-600" active={activeKpi==="impayees"} onClick={() => setActiveKpi("impayees")} />
+        
       </div>
 
       {/* Filtres nom + dates */}
