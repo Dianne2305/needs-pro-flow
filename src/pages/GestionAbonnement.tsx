@@ -395,8 +395,7 @@ export default function GestionAbonnement() {
       {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
       {activeKpi === "today" && <InterventionTable rows={interventionsTodayF} navigate={navigate} />}
       {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF} navigate={navigate} />}
-      {activeKpi === "a-generer" && <FactureAGenererTable rows={facturesAGenererF} navigate={navigate} />}
-      {activeKpi === "impayees" && <FactureImpayeeTable rows={facturesImpayeesF} navigate={navigate} />}
+      {activeKpi === "a-generer" && <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />}
 
       <AbonnementActionsModal
         demande={actionState?.demande ?? null}
