@@ -390,9 +390,9 @@ export default function GestionAbonnement() {
       </Card>
 
       {/* Contenu selon KPI actif */}
-      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} />}
-      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} />}
-      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} />}
+      {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+      {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+      {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
       {activeKpi === "today" && <InterventionTable rows={interventionsTodayF} navigate={navigate} />}
       {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF} navigate={navigate} />}
       {activeKpi === "a-generer" && <FactureAGenererTable rows={facturesAGenererF} navigate={navigate} />}
