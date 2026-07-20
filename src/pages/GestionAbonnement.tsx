@@ -451,7 +451,7 @@ function AbonnementTable({
                 .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
               const enRetard = impaye > 0;
               const statut: "actif" | "echeance" | "suspendu" =
-                forceStatut ?? (enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 7 ? "echeance" : "actif"));
+                forceStatut ?? (d.statut === "suspendu" ? "suspendu" : enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 7 ? "echeance" : "actif"));
               const statutMeta = {
                 actif: { dot: "bg-emerald-500", label: "Actif", cls: "bg-emerald-100 text-emerald-800" },
                 echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
