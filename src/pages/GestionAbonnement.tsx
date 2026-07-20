@@ -183,6 +183,88 @@ function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
   return out;
 }
 
+// ============================================================
+// Données mock affichées par défaut quand une catégorie est vide
+// (permet de visualiser l'UI même sans données en base)
+// ============================================================
+function _mockDemande(overrides: Partial<Demande> & { num_demande: string; nom: string }): Demande {
+  return {
+    id: `mock-${overrides.num_demande}`,
+    frequence: "2_fois_semaine",
+    ville: "Casablanca",
+    quartier: "Maârif",
+    type_prestation: "Ménage standard",
+    type_service: "Ménage standard",
+    heure_prestation: "09:00",
+    montant_total: 1200,
+    commercial: "Kaoutar",
+    telephone_direct: "+212 6 00 00 00 00",
+    ...overrides,
+  } as unknown as Demande;
+}
+
+function MOCK_ABOS_ECHEANCE(today: Date) {
+  const mk = (num: string, nom: string, joursRestants: number, quartier: string, service: string) => {
+    const dateFin = addDays(today, joursRestants);
+    const dateDebut = addMonths(dateFin, -1);
+    const d = _mockDemande({
+      num_demande: num, nom, quartier, type_prestation: service, type_service: service,
+      date_prestation: format(dateDebut, "yyyy-MM-dd") as any,
+    });
+    const stats = { total: 8, effectuees: 6, annulees: 0, aRecuperer: 1, restantes: 2, dateFin } as ReturnType<typeof getStats>;
+    return { d, stats, joursRestants };
+  };
+  return [
+    mk("A-1042", "Yasmine Alaoui", 3, "Gauthier", "Ménage standard"),
+    mk("A-1043", "Karim Benjelloun", 8, "Anfa", "Grand ménage"),
+    mk("A-1044", "SARL Nova Bureaux", 12, "Sidi Maarouf", "Ménage Bureaux"),
+    mk("A-1045", "Nadia El Fassi", 14, "Racine", "Ménage standard"),
+  ];
+}
+
+function MOCK_ABOS_SUSPENDUS(today: Date) {
+  const mk = (num: string, nom: string, quartier: string, service: string) => {
+    const dateFin = addDays(today, 20);
+    const dateDebut = addMonths(dateFin, -1);
+    const d = _mockDemande({
+      num_demande: num, nom, quartier, type_prestation: service, type_service: service,
+      date_prestation: format(dateDebut, "yyyy-MM-dd") as any,
+      statut: "suspendu" as any,
+    });
+    const stats = { total: 8, effectuees: 4, annulees: 1, aRecuperer: 0, restantes: 3, dateFin } as ReturnType<typeof getStats>;
+    return { d, stats, joursRestants: 20 };
+  };
+  return [
+    mk("A-1020", "Salma Chraibi", "Bourgogne", "Ménage standard"),
+    mk("A-1021", "Groupe Atlas SA", "Ain Diab", "Ménage Bureaux"),
+    mk("A-1022", "Youssef Berrada", "Californie", "Ménage Air BnB"),
+  ];
+}
+
+function MOCK_INTERVENTIONS(date: Date) {
+  const mk = (num: string, nom: string, quartier: string, service: string, heure: string, profil: string, tel: string) => ({
+    d: _mockDemande({
+      num_demande: num, nom, quartier, type_prestation: service, type_service: service,
+      heure_prestation: heure, telephone_direct: tel,
+      // @ts-expect-error demo profil
+      profil_nom: profil, heure_debut: heure,
+    }),
+    date,
+  });
+  return [
+    mk("I-2051", "Leila Amrani", "Maârif", "Ménage standard", "09:00", "Fatima Zahra", "+212 6 61 12 34 56"),
+    mk("I-2052", "Omar Tazi", "Anfa", "Grand ménage", "10:30", "Aicha Bennani", "+212 6 62 78 90 12"),
+    mk("I-2053", "Résidence Palm", "Bouskoura", "Ménage standard", "14:00", "Nadia Idrissi", "+212 6 63 45 67 89"),
+    mk("I-2054", "Rachid Bennis", "Gauthier", "Ménage Air BnB", "16:00", "Sanaa Kabbaj", "+212 6 64 23 45 67"),
+  ];
+}
+
+const MOCK_FACTURES_A_GENERER: Demande[] = [
+  _mockDemande({ num_demande: "F-3071", nom: "Hassan El Yamani", montant_total: 900, date_prestation: format(new Date(), "yyyy-MM-dd") as any }),
+  _mockDemande({ num_demande: "F-3072", nom: "Amine Cherkaoui", type_prestation: "Grand ménage", montant_total: 1800, date_prestation: format(addDays(new Date(), -2), "yyyy-MM-dd") as any }),
+  _mockDemande({ num_demande: "F-3073", nom: "SARL Horizon", type_prestation: "Ménage Bureaux", montant_total: 2400, date_prestation: format(addDays(new Date(), -1), "yyyy-MM-dd") as any }),
+];
+
 export default function GestionAbonnement() {
   const navigate = useNavigate();
   const { toast } = useToast();
