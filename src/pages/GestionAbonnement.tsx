@@ -187,8 +187,8 @@ function getInterventionsBetween(d: Demande, from: Date, to: Date): Date[] {
 // Données mock affichées par défaut quand une catégorie est vide
 // (permet de visualiser l'UI même sans données en base)
 // ============================================================
-function _mockDemande(overrides: Partial<Demande> & { num_demande: string; nom: string }): Demande {
-  return {
+function _mockDemande(overrides: Record<string, any>): Demande {
+  return ({
     id: `mock-${overrides.num_demande}`,
     frequence: "2_fois_semaine",
     ville: "Casablanca",
@@ -200,7 +200,7 @@ function _mockDemande(overrides: Partial<Demande> & { num_demande: string; nom: 
     commercial: "Kaoutar",
     telephone_direct: "+212 6 00 00 00 00",
     ...overrides,
-  } as unknown as Demande;
+  }) as unknown as Demande;
 }
 
 function MOCK_ABOS_ECHEANCE(today: Date) {
