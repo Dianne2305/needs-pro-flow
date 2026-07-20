@@ -302,7 +302,7 @@ export default function GestionAbonnement() {
   );
 
   // Filtres
-  type KpiKey = "actifs" | "echeance" | "suspendus" | "today" | "tomorrow" | "a-generer" | "impayees";
+  type KpiKey = "actifs" | "echeance" | "suspendus" | "today" | "tomorrow" | "a-generer";
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
   const [dateDu, setDateDu] = useState("");
