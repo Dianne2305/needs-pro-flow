@@ -441,7 +441,6 @@ function AbonnementTable({
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut</TableHead>
-              <TableHead>Paiement</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
