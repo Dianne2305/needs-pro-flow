@@ -597,7 +597,7 @@ function AbonnementTable({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => openAction(d, "suspendre")}>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600" onClick={() => onSuspend(d)}>
                             <Pause className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
