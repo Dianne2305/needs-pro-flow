@@ -566,17 +566,7 @@ function AbonnementTable({
                       <Badge className={statutMeta.cls}>{statutMeta.label}</Badge>
                     </div>
                   </TableCell>
-                  {/* Paiement */}
-                  <TableCell>
-                    {enRetard ? (
-                      <div className="text-xs">
-                        <Badge className="bg-red-100 text-red-800">En retard</Badge>
-                        <div className="mt-0.5 font-semibold text-red-600">{Math.round(impaye).toLocaleString("fr-FR")} DH</div>
-                      </div>
-                    ) : (
-                      <Badge className="bg-emerald-100 text-emerald-800">À jour</Badge>
-                    )}
-                  </TableCell>
+                  {/* Actions */}
                   {/* Actions */}
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-0.5">
