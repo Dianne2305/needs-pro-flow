@@ -1926,7 +1926,22 @@ export default function CompteClient() {
                         );
                         })}
                         </div>
+                        {/* Légende du calendrier */}
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1 text-[11px] text-muted-foreground">
+                          {[
+                            { label: "Passage prévu", cls: "border-emerald-500 bg-emerald-50" },
+                            { label: "5ème semaine (facturée en +)", cls: "border-violet-500 bg-violet-50" },
+                            { label: "Suspension fête religieuse", cls: "border-amber-500 bg-amber-50" },
+                            { label: "Aujourd'hui", cls: "border-yellow-400 bg-yellow-100" },
+                          ].map((l) => (
+                            <span key={l.label} className="flex items-center gap-1.5">
+                              <span className={`h-3 w-3 rounded-[3px] border ${l.cls}`} />
+                              {l.label}
+                            </span>
+                          ))}
+                        </div>
                       </div>
+
                     );
 
                   })()}
