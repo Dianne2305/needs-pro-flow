@@ -1084,7 +1084,9 @@ export default function CompteClient() {
             };
 
             return (
+              <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
               <div className="space-y-5">
+
                 {/* Onglets mensuels — un onglet par clic sur "Activer le mois prochain" */}
                 {aboDateDebut && (() => {
                   let start: Date;
