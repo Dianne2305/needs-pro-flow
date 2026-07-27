@@ -1874,6 +1874,20 @@ export default function CompteClient() {
               })()}
               </div>
 
+              {/* Factures & règlements — hors onglets mensuels */}
+              <div className="mt-4">
+                <FacturesReglementsCard
+                  factures={[
+                    { reference: "AM/F118/2026", periode: "Juillet 2026", montant: 1944, envoyeeLe: "16 juin", statut: { type: "envoyee", label: "Envoyée — éch. 20/06" } },
+                    { reference: "AM/F095/2026", periode: "Juin 2026", montant: 1944, envoyeeLe: "17 mai", statut: { type: "payee", label: "Payée le 19/05" } },
+                    { reference: "AM/F072/2026", periode: "Mai 2026", montant: 1728, envoyeeLe: "16 avr", statut: { type: "payee", label: "Payée le 18/04" } },
+                    { reference: "AM/F048/2026", periode: "Avril 2026", montant: 1728, envoyeeLe: "15 mars", statut: { type: "payee", label: "Payée le 20/03" } },
+                  ]}
+                />
+              </div>
+              </>
+
+
             );
           })()}
         </Section>
