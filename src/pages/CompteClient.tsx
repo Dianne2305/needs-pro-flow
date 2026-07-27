@@ -1227,7 +1227,62 @@ export default function CompteClient() {
                 </div>
 
 
+                {/* En-tête abonnement (KPIs + alerte 5ème semaine) */}
+                {(() => {
+                  const monthKey = format(aboCalMonth, "yyyy-MM");
+                  const entries = Object.entries(aboDateOverrides).filter(([k]) => k.startsWith(monthKey));
+                  const passages = entries.filter(([, v]) => (v as any)?.statut === "termine").length;
+                  const reports = entries.filter(([, v]) => ["reporte", "a_recuperer"].includes((v as any)?.statut)).length;
+                  const annules = entries.filter(([, v]) => (v as any)?.statut === "annule").length;
+                  const base = monthlyInterventions + annules || 1;
+                  const assiduite = Math.min(100, Math.round(((base - annules) / base) * 100));
+
+                  const totalEst = totalInterventions || monthlyInterventions || 0;
+                  const montantTotal = Number((demande as any).montant_total) || 0;
+                  const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+
+                  // Détection 5ème semaine sur le mois affiché
+                  let cinq: { moisLabel: string; jourPluriel: string; dateLabel: string; montant: number } | null = null;
+                  const mStart = startOfMonth(aboCalMonth);
+                  const mEnd = endOfMonth(aboCalMonth);
+                  for (const j of aboJours) {
+                    const dow = JOURS_SEMAINE.findIndex((x) => x.value === j.jour);
+                    if (dow < 0) continue;
+                    const dowJs = (dow + 1) % 7; // JOURS_SEMAINE commence lundi
+                    const occ = eachDayOfInterval({ start: mStart, end: mEnd }).filter((d) => d.getDay() === dowJs);
+                    if (occ.length >= 5) {
+                      const last = occ[occ.length - 1];
+                      cinq = {
+                        moisLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                        jourPluriel: `${(JOURS_SEMAINE[dow]?.label || j.jour).toLowerCase()}s`,
+                        dateLabel: format(last, "EEEE d MMMM", { locale: fr }),
+                        montant: unit,
+                      };
+                      break;
+                    }
+                  }
+
+                  return (
+                    <AbonnementHeaderCard
+                      reference={`AB-${demande.num_demande}`}
+                      nom={(demande as any).nom_entreprise || demande.nom}
+                      sousTitre={[
+                        demande.type_prestation,
+                        aboDateDebut ? `Abonnement depuis le ${format(parseISO(aboDateDebut), "dd MMMM yyyy", { locale: fr })}` : null,
+                        [demande.quartier, demande.ville].filter(Boolean).join(", "),
+                        demande.telephone_direct || demande.telephone_whatsapp,
+                      ].filter(Boolean).join(" · ")}
+                      passages={passages}
+                      reports={reports}
+                      impayes={0}
+                      assiduite={assiduite}
+                      cinquiemeSemaine={cinq}
+                    />
+                  );
+                })()}
+
                 {/* Section 4 : Paramètres de l'abonnement */}
+
                 {(() => {
                   const joursLabel = aboJours.length
                     ? aboJours.map((j) => JOURS_SEMAINE.find((x) => x.value === j.jour)?.label).filter(Boolean).join(" + ")
