@@ -1471,19 +1471,14 @@ export default function CompteClient() {
                       interventionSet.add(format(d, "yyyy-MM-dd"));
                     }
                     // Liste des mois couverts par l'abonnement (start -> end)
-                    const monthsList: Date[] = [];
-                    {
-                      let cur = startOfMonth(start);
-                      const last = startOfMonth(end);
-                      while (cur <= last) { monthsList.push(cur); cur = addMonthsFn(cur, 1); }
-                    }
+                    const monthsList: Date[] = [startOfMonth(aboCalMonth)];
                     const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
                     return (
                       <div className="pt-3 space-y-2">
                         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                           Calendrier des interventions
                         </Label>
-                        <div className={cn("grid gap-4", monthsList.length > 1 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
+                        <div className="grid gap-4 grid-cols-1">
                         {monthsList.map((calMonth) => {
                         const monthStart = startOfMonth(calMonth);
                         const monthEnd = endOfMonth(calMonth);
