@@ -1252,7 +1252,7 @@ export default function CompteClient() {
                           <Settings className="h-4 w-4 text-primary" />
                           <span className="text-sm font-semibold">Paramètres de l'abonnement</span>
                         </div>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setAboEditOpen(true)}>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => document.getElementById("abo-params-edit")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
                           Modifier
                         </Button>
                       </div>
