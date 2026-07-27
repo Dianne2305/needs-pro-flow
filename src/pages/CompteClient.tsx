@@ -67,6 +67,7 @@ import { Label } from "@/components/ui/label";
 import { Tables } from "@/integrations/supabase/types";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
 import AbonnementFactureFormModal, { FactureFormData } from "@/components/abonnement/AbonnementFactureFormModal";
+import AbonnementSidePanel from "@/components/abonnement/AbonnementSidePanel";
 import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
@@ -1851,7 +1852,7 @@ export default function CompteClient() {
                       { texte: "Produits ménagers : " + ((demande as any).avec_produit ? "fournis par l'agence" : "fournis par le client") },
                       { texte: "Préférence contact : WhatsApp" },
                     ]}
-                    journal={aboHistorique.slice(0, 5).map((h: any) => ({
+                    journal={demandeHistorique.slice(0, 5).map((h: any) => ({
                       date: format(new Date(h.created_at), "dd MMM", { locale: fr }),
                       texte: h.details || h.action,
                     }))}
