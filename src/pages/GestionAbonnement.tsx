@@ -389,9 +389,38 @@ export default function GestionAbonnement() {
   const [searchNom, setSearchNom] = useState("");
   const [dateDu, setDateDu] = useState("");
   const [dateAu, setDateAu] = useState("");
+  const [filtreService, setFiltreService] = useState("all");
+  const [filtreCommercial, setFiltreCommercial] = useState("all");
+  const [filtreVille, setFiltreVille] = useState("all");
+
+  const uniq = (arr: (string | null | undefined)[]) =>
+    Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
+  const servicesOptions = useMemo(
+    () => uniq([...demandes.map((d) => d.type_prestation || d.type_service), ...facturations.map((f) => f.type_service)]),
+    [demandes, facturations]
+  );
+  const commerciauxOptions = useMemo(
+    () => uniq([...demandes.map((d) => d.commercial || d.commercial_createur), ...facturations.map((f) => f.commercial)]),
+    [demandes, facturations]
+  );
+  const villesOptions = useMemo(
+    () => uniq([...demandes.map((d) => d.ville), ...facturations.map((f) => f.ville)]),
+    [demandes, facturations]
+  );
 
   const matchesNom = (name?: string | null) =>
     !searchNom.trim() || (name || "").toLowerCase().includes(searchNom.trim().toLowerCase());
+
+  const matchesDemande = (d: Demande) =>
+    (filtreService === "all" || (d.type_prestation || d.type_service) === filtreService) &&
+    (filtreCommercial === "all" || (d.commercial || d.commercial_createur) === filtreCommercial) &&
+    (filtreVille === "all" || d.ville === filtreVille);
+
+  const matchesFacture = (f: any) =>
+    (filtreService === "all" || f.type_service === filtreService) &&
+    (filtreCommercial === "all" || f.commercial === filtreCommercial) &&
+    (filtreVille === "all" || f.ville === filtreVille);
+
 
   const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
     if (!dateDu && !dateAu) return true;
