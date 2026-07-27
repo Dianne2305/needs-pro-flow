@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format, addDays, addMonths, parseISO, differenceInCalendarDays, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -388,9 +389,38 @@ export default function GestionAbonnement() {
   const [searchNom, setSearchNom] = useState("");
   const [dateDu, setDateDu] = useState("");
   const [dateAu, setDateAu] = useState("");
+  const [filtreService, setFiltreService] = useState("all");
+  const [filtreCommercial, setFiltreCommercial] = useState("all");
+  const [filtreVille, setFiltreVille] = useState("all");
+
+  const uniq = (arr: (string | null | undefined)[]) =>
+    Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
+  const servicesOptions = useMemo(
+    () => uniq([...demandes.map((d) => d.type_prestation || d.type_service), ...facturations.map((f) => f.type_service)]),
+    [demandes, facturations]
+  );
+  const commerciauxOptions = useMemo(
+    () => uniq([...demandes.map((d) => d.commercial || d.commercial_createur), ...facturations.map((f) => f.commercial)]),
+    [demandes, facturations]
+  );
+  const villesOptions = useMemo(
+    () => uniq([...demandes.map((d) => d.ville), ...facturations.map((f) => f.ville)]),
+    [demandes, facturations]
+  );
 
   const matchesNom = (name?: string | null) =>
     !searchNom.trim() || (name || "").toLowerCase().includes(searchNom.trim().toLowerCase());
+
+  const matchesDemande = (d: Demande) =>
+    (filtreService === "all" || (d.type_prestation || d.type_service) === filtreService) &&
+    (filtreCommercial === "all" || (d.commercial || d.commercial_createur) === filtreCommercial) &&
+    (filtreVille === "all" || d.ville === filtreVille);
+
+  const matchesFacture = (f: any) =>
+    (filtreService === "all" || f.type_service === filtreService) &&
+    (filtreCommercial === "all" || f.commercial === filtreCommercial) &&
+    (filtreVille === "all" || f.ville === filtreVille);
+
 
   const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
     if (!dateDu && !dateAu) return true;
@@ -417,16 +447,18 @@ export default function GestionAbonnement() {
     return true;
   };
 
-  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesAbonnementDate(d, stats)), [abosActifs, searchNom, dateDu, dateAu]);
-  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesAbonnementDate(d, stats)), [abosEcheance, searchNom, dateDu, dateAu]);
-  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesAbonnementDate(d, stats)), [abosSuspendus, searchNom, dateDu, dateAu]);
-  const interventionsTodayF = useMemo(() => interventionsToday.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesInterventionDate(date)), [interventionsToday, searchNom, dateDu, dateAu]);
-  const interventionsTomorrowF = useMemo(() => interventionsTomorrow.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesInterventionDate(date)), [interventionsTomorrow, searchNom, dateDu, dateAu]);
-  const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, searchNom, dateDu, dateAu]);
-  const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, searchNom, dateDu, dateAu]);
+  const deps = [searchNom, dateDu, dateAu, filtreService, filtreCommercial, filtreVille];
+  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats)), [abosActifs, ...deps]);
+  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats)), [abosEcheance, ...deps]);
+  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats)), [abosSuspendus, ...deps]);
+  const interventionsTodayF = useMemo(() => interventionsToday.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesInterventionDate(date)), [interventionsToday, ...deps]);
+  const interventionsTomorrowF = useMemo(() => interventionsTomorrow.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesInterventionDate(date)), [interventionsTomorrow, ...deps]);
+  const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, ...deps]);
+  const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFacture(f) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, ...deps]);
 
-  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); };
-  const hasFilters = !!(searchNom || dateDu || dateAu);
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); };
+  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all";
+
 
   return (
     <div className="space-y-4">
@@ -463,6 +495,36 @@ export default function GestionAbonnement() {
           <div>
             <Label className="text-xs">Au</Label>
             <Input type="date" value={dateAu} onChange={(e) => setDateAu(e.target.value)} />
+          </div>
+          <div className="min-w-[170px]">
+            <Label className="text-xs">Service</Label>
+            <Select value={filtreService} onValueChange={setFiltreService}>
+              <SelectTrigger><SelectValue placeholder="Tous les services" /></SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Tous les services</SelectItem>
+                {servicesOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[160px]">
+            <Label className="text-xs">Commercial</Label>
+            <Select value={filtreCommercial} onValueChange={setFiltreCommercial}>
+              <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Tous les commerciaux</SelectItem>
+                {commerciauxOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[150px]">
+            <Label className="text-xs">Ville</Label>
+            <Select value={filtreVille} onValueChange={setFiltreVille}>
+              <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Toutes les villes</SelectItem>
+                {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
           {hasFilters && (
             <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
