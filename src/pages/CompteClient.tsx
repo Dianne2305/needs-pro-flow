@@ -69,6 +69,7 @@ import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
 import AbonnementFactureFormModal, { FactureFormData } from "@/components/abonnement/AbonnementFactureFormModal";
 import AbonnementSidePanel from "@/components/abonnement/AbonnementSidePanel";
 import FacturesReglementsCard from "@/components/abonnement/FacturesReglementsCard";
+import AbonnementHeaderCard from "@/components/abonnement/AbonnementHeaderCard";
 import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
