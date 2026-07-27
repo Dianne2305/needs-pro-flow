@@ -1288,7 +1288,8 @@ export default function CompteClient() {
 
 
                 {/* Section 1 : Type de fréquence (renseigné automatiquement par le système) */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5" id="abo-params-edit">
+
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Type de fréquence * <span className="normal-case text-[10px] text-muted-foreground/70">(renseigné automatiquement)</span>
                   </Label>
