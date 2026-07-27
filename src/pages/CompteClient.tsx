@@ -67,6 +67,7 @@ import { Label } from "@/components/ui/label";
 import { Tables } from "@/integrations/supabase/types";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
 import AbonnementFactureFormModal, { FactureFormData } from "@/components/abonnement/AbonnementFactureFormModal";
+import AbonnementSidePanel from "@/components/abonnement/AbonnementSidePanel";
 import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
@@ -1084,7 +1085,9 @@ export default function CompteClient() {
             };
 
             return (
+              <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
               <div className="space-y-5">
+
                 {/* Onglets mensuels — un onglet par clic sur "Activer le mois prochain" */}
                 {aboDateDebut && (() => {
                   let start: Date;
@@ -1808,6 +1811,60 @@ export default function CompteClient() {
                 </div>
 
               </div>
+
+              {/* Colonne latérale : prochain passage, intervenantes, infos terrain, journal, actions */}
+              {(() => {
+                const dayMap: Record<string, number> = { dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6 };
+                const today = new Date(); today.setHours(0, 0, 0, 0);
+                let prochainDate: Date | null = null;
+                let prochainHeure = "";
+                if (aboJours.length) {
+                  let end: Date;
+                  try { end = dateFinAuto ? parseISO(dateFinAuto) : addMonthsFn(today, 1); } catch { end = addMonthsFn(today, 1); }
+                  for (let d = new Date(today); d <= end; d = addDays(d, 1)) {
+                    const jd = aboJours.find((j) => dayMap[j.jour] === d.getDay());
+                    if (!jd) continue;
+                    const ov = aboDateOverrides[format(d, "yyyy-MM-dd")];
+                    if (ov?.excluded || ov?.statut === "annule") continue;
+                    prochainDate = new Date(d);
+                    prochainHeure = ov?.heure || jd.heure_debut || "";
+                    break;
+                  }
+                }
+                const tel = (demande as any).telephone_whatsapp || (demande as any).telephone_direct || "";
+                return (
+                  <AbonnementSidePanel
+                    prochainDate={prochainDate}
+                    prochainHeure={prochainHeure}
+                    dureeHeures={Number(demande.duree_heures) || undefined}
+                    avecProduit={!!(demande as any).avec_produit}
+                    intervenanteAssignee={(demande as any).candidat_nom || null}
+                    intervenantes={[
+                      { nom: "Fatima Z.", passages: 14, note: "appréciée du client" },
+                      { nom: "Khadija M.", passages: 4, note: "remplacements" },
+                      { nom: "Samira B.", passages: 1 },
+                    ]}
+                    infosTerrain={[
+                      { texte: [demande.adresse, demande.quartier, demande.ville].filter(Boolean).join(", ") || "Adresse non renseignée" },
+                      { texte: "Code entrée : à renseigner — gardien : —" },
+                      { texte: "Accès / ascenseur : à renseigner" },
+                      { texte: "Animaux : à renseigner" },
+                      { texte: "Produits ménagers : " + ((demande as any).avec_produit ? "fournis par l'agence" : "fournis par le client") },
+                      { texte: "Préférence contact : WhatsApp" },
+                    ]}
+                    journal={demandeHistorique.slice(0, 5).map((h: any) => ({
+                      date: format(new Date(h.created_at), "dd MMM", { locale: fr }),
+                      texte: h.details || h.action,
+                    }))}
+                    onSuspendre={() => setAboStatut("suspendu")}
+                    onModifierJours={() => document.getElementById("abo-params-edit")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    onContacter={() => tel && window.open(`https://wa.me/${tel.replace(/\D/g, "")}`, "_blank")}
+                    onResilier={() => setAboStatut("pause")}
+                  />
+                );
+              })()}
+              </div>
+
             );
           })()}
         </Section>
