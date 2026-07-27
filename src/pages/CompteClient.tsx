@@ -1646,6 +1646,13 @@ export default function CompteClient() {
                                           }))}>
                                           Annulé à récupérer
                                         </Button>
+                                        <Button type="button" size="sm" variant={statut === "reporte" ? "default" : "outline"}
+                                          className={cn("h-7 text-[11px] col-span-2", statut === "reporte" && "bg-indigo-600 hover:bg-indigo-700")}
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], statut: "reporte", excluded: false },
+                                          }))}>
+                                          Reportée
+                                        </Button>
                                       </div>
                                     </div>
 
