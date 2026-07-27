@@ -68,6 +68,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { DevisPreviewModal } from "@/components/pending/DevisPreviewModal";
 import AbonnementFactureFormModal, { FactureFormData } from "@/components/abonnement/AbonnementFactureFormModal";
 import AbonnementSidePanel from "@/components/abonnement/AbonnementSidePanel";
+import FacturesReglementsCard from "@/components/abonnement/FacturesReglementsCard";
 import { format, parseISO, addDays, startOfMonth, endOfMonth, eachDayOfInterval, addMonths as addMonthsFn, subMonths, isSameDay, isSameMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
@@ -244,7 +245,7 @@ export default function CompteClient() {
   const [aboNotes, setAboNotes] = useState<string>("");
   const [aboFormInitialized, setAboFormInitialized] = useState(false);
   const [aboCalMonth, setAboCalMonth] = useState<Date>(() => new Date());
-  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | "a_recuperer" | null; reprogrammed_to?: string | null; reprogrammed_from?: string | null }>>({});
+  const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | "a_recuperer" | "reporte" | null; reprogrammed_to?: string | null; reprogrammed_from?: string | null }>>({});
   // Date cible saisie temporairement pour la reprogrammation d'un crédit "à récupérer".
   const [reprogTarget, setReprogTarget] = useState<Record<string, string>>({});
   // Source sélectionnée pour "Utiliser un crédit" depuis un jour libre.
@@ -1085,6 +1086,7 @@ export default function CompteClient() {
             };
 
             return (
+              <>
               <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
               <div className="space-y-5">
 
@@ -1471,19 +1473,14 @@ export default function CompteClient() {
                       interventionSet.add(format(d, "yyyy-MM-dd"));
                     }
                     // Liste des mois couverts par l'abonnement (start -> end)
-                    const monthsList: Date[] = [];
-                    {
-                      let cur = startOfMonth(start);
-                      const last = startOfMonth(end);
-                      while (cur <= last) { monthsList.push(cur); cur = addMonthsFn(cur, 1); }
-                    }
+                    const monthsList: Date[] = [startOfMonth(aboCalMonth)];
                     const headers = ["DIM", "LUN", "MAR", "MER", "JEU", "VEN", "SAM"];
                     return (
                       <div className="pt-3 space-y-2">
                         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                           Calendrier des interventions
                         </Label>
-                        <div className={cn("grid gap-4", monthsList.length > 1 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1")}>
+                        <div className="grid gap-4 grid-cols-1">
                         {monthsList.map((calMonth) => {
                         const monthStart = startOfMonth(calMonth);
                         const monthEnd = endOfMonth(calMonth);
@@ -1539,6 +1536,7 @@ export default function CompteClient() {
                                         isIntervention && inMonth && statut === "termine" && "bg-emerald-100 hover:bg-emerald-200",
                                         isIntervention && inMonth && statut === "annule" && "bg-rose-100 hover:bg-rose-200",
                                         (statut === "a_recuperer") && "bg-amber-100 hover:bg-amber-200",
+                                        (statut === "reporte") && "bg-indigo-100 hover:bg-indigo-200",
                                       )}
                                     >
                                       <span className={cn(
@@ -1549,10 +1547,11 @@ export default function CompteClient() {
                                         statut === "termine" && "text-emerald-800",
                                         statut === "annule" && "text-rose-800",
                                         statut === "a_recuperer" && "text-amber-900",
+                                        statut === "reporte" && "text-indigo-800",
                                       )}>
                                         {format(d, "d")}
                                       </span>
-                                      {(isIntervention || statut === "a_recuperer") && inMonth && (
+                                      {(isIntervention || statut === "a_recuperer" || statut === "reporte") && inMonth && (
                                         <div className="mt-auto w-full space-y-0.5">
                                           <span className={cn(
                                             "block text-[9px] font-bold uppercase tracking-wide rounded px-1 py-0.5 text-center",
@@ -1561,12 +1560,15 @@ export default function CompteClient() {
                                             statut === "termine" && "bg-emerald-600 text-white",
                                             statut === "annule" && "bg-rose-600 text-white line-through",
                                             statut === "a_recuperer" && "bg-amber-600 text-white",
+                                            statut === "reporte" && "bg-indigo-600 text-white",
                                           )}>
                                             {statut === "a_recuperer"
                                               ? "À récup."
-                                              : override?.reprogrammed_from && !statut
+                                              : statut === "reporte"
                                                 ? "Reportée"
-                                                : !statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
+                                                : override?.reprogrammed_from && !statut
+                                                  ? "Reportée"
+                                                  : !statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
                                           </span>
                                           {heure && (
                                             <span className={cn(
@@ -1576,6 +1578,7 @@ export default function CompteClient() {
                                               statut === "termine" && "bg-emerald-500 text-white",
                                               statut === "annule" && "bg-rose-500 text-white line-through",
                                               statut === "a_recuperer" && "bg-amber-500 text-white",
+                                              statut === "reporte" && "bg-indigo-500 text-white",
                                             )}>
                                               {heure}{heureFin ? `–${heureFin}` : ""}
                                             </span>
@@ -1643,6 +1646,13 @@ export default function CompteClient() {
                                             ...prev, [key]: { ...prev[key], statut: "a_recuperer", excluded: false, reprogrammed_to: null },
                                           }))}>
                                           Annulé à récupérer
+                                        </Button>
+                                        <Button type="button" size="sm" variant={statut === "reporte" ? "default" : "outline"}
+                                          className={cn("h-7 text-[11px] col-span-2", statut === "reporte" && "bg-indigo-600 hover:bg-indigo-700")}
+                                          onClick={() => setAboDateOverrides((prev) => ({
+                                            ...prev, [key]: { ...prev[key], statut: "reporte", excluded: false },
+                                          }))}>
+                                          Reportée
                                         </Button>
                                       </div>
                                     </div>
@@ -1864,6 +1874,20 @@ export default function CompteClient() {
                 );
               })()}
               </div>
+
+              {/* Factures & règlements — hors onglets mensuels */}
+              <div className="mt-4">
+                <FacturesReglementsCard
+                  factures={[
+                    { reference: "AM/F118/2026", periode: "Juillet 2026", montant: 1944, envoyeeLe: "16 juin", statut: { type: "envoyee", label: "Envoyée — éch. 20/06" } },
+                    { reference: "AM/F095/2026", periode: "Juin 2026", montant: 1944, envoyeeLe: "17 mai", statut: { type: "payee", label: "Payée le 19/05" } },
+                    { reference: "AM/F072/2026", periode: "Mai 2026", montant: 1728, envoyeeLe: "16 avr", statut: { type: "payee", label: "Payée le 18/04" } },
+                    { reference: "AM/F048/2026", periode: "Avril 2026", montant: 1728, envoyeeLe: "15 mars", statut: { type: "payee", label: "Payée le 20/03" } },
+                  ]}
+                />
+              </div>
+              </>
+
 
             );
           })()}
