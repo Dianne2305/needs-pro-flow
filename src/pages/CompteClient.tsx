@@ -1651,13 +1651,86 @@ export default function CompteClient() {
                                         </Button>
                                         <Button type="button" size="sm" variant={statut === "reporte" ? "default" : "outline"}
                                           className={cn("h-7 text-[11px] col-span-2", statut === "reporte" && "bg-indigo-600 hover:bg-indigo-700")}
-                                          onClick={() => setAboDateOverrides((prev) => ({
-                                            ...prev, [key]: { ...prev[key], statut: "reporte", excluded: false },
+                                          onClick={() => setReporteDraft((prev) => ({
+                                            ...prev,
+                                            [key]: prev[key] || {
+                                              date: override?.reprogrammed_to || "",
+                                              heure: heure || heureByDow[d.getDay()] || "09:00",
+                                              heure_fin: heureFin || "",
+                                            },
                                           }))}>
                                           Reportée
                                         </Button>
                                       </div>
                                     </div>
+
+                                    {/* Report : saisie nouvelle date/heure, statut appliqué seulement après confirmation */}
+                                    {reporteDraft[key] && (
+                                      <div className="rounded-md border border-indigo-200 bg-indigo-50 p-2 space-y-1.5">
+                                        <div className="text-[11px] font-semibold text-indigo-900">Reporter cette intervention</div>
+                                        <Input
+                                          type="date"
+                                          value={reporteDraft[key].date}
+                                          onChange={(e) => setReporteDraft((prev) => ({ ...prev, [key]: { ...prev[key], date: e.target.value } }))}
+                                          className="h-7 text-xs bg-background"
+                                        />
+                                        <div className="grid grid-cols-2 gap-1.5">
+                                          <Input
+                                            type="time"
+                                            value={reporteDraft[key].heure}
+                                            onChange={(e) => setReporteDraft((prev) => ({ ...prev, [key]: { ...prev[key], heure: e.target.value } }))}
+                                            className="h-7 text-xs bg-background"
+                                          />
+                                          <Input
+                                            type="time"
+                                            value={reporteDraft[key].heure_fin}
+                                            onChange={(e) => setReporteDraft((prev) => ({ ...prev, [key]: { ...prev[key], heure_fin: e.target.value } }))}
+                                            className="h-7 text-xs bg-background"
+                                          />
+                                        </div>
+                                        <div className="flex gap-1.5">
+                                          <Button type="button" size="sm" className="h-7 text-[11px] flex-1 bg-indigo-600 hover:bg-indigo-700"
+                                            disabled={!reporteDraft[key].date || reporteDraft[key].date === key || !reporteDraft[key].heure}
+                                            onClick={() => {
+                                              const dr = reporteDraft[key];
+                                              setAboDateOverrides((prev) => ({
+                                                ...prev,
+                                                [key]: { ...prev[key], statut: "reporte", excluded: false, reprogrammed_to: dr.date },
+                                                [dr.date]: { ...prev[dr.date], heure: dr.heure, heure_fin: dr.heure_fin, statut: null, excluded: false, reprogrammed_from: key },
+                                              }));
+                                              setReporteDraft((prev) => { const { [key]: _, ...rest } = prev; return rest; });
+                                              toast({ title: "Intervention reportée", description: `Reportée au ${format(parseISO(dr.date), "dd/MM/yyyy")} à ${dr.heure}` });
+                                            }}>
+                                            Confirmer le report
+                                          </Button>
+                                          <Button type="button" size="sm" variant="ghost" className="h-7 text-[11px]"
+                                            onClick={() => setReporteDraft((prev) => { const { [key]: _, ...rest } = prev; return rest; })}>
+                                            Annuler
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                    {statut === "reporte" && override?.reprogrammed_to && !reporteDraft[key] && (
+                                      <div className="rounded-md border border-indigo-200 bg-indigo-50 p-2 text-[11px] text-indigo-900 flex items-center justify-between gap-2">
+                                        <span>Reportée au <b>{format(parseISO(override.reprogrammed_to), "dd/MM/yyyy")}</b>{aboDateOverrides[override.reprogrammed_to]?.heure ? ` à ${aboDateOverrides[override.reprogrammed_to]?.heure}` : ""}</span>
+                                        <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px]"
+                                          onClick={() => {
+                                            const target = override.reprogrammed_to!;
+                                            setAboDateOverrides((prev) => {
+                                              const next = { ...prev };
+                                              next[key] = { ...next[key], statut: null, reprogrammed_to: null };
+                                              if (next[target]?.reprogrammed_from === key) {
+                                                const { [target]: _, ...rest } = next;
+                                                return rest;
+                                              }
+                                              return next;
+                                            });
+                                          }}>
+                                          Annuler le report
+                                        </Button>
+                                      </div>
+                                    )}
+
 
                                     {/* Reprogrammation d'un crédit "à récupérer" */}
                                     {statut === "a_recuperer" && !override?.reprogrammed_to && (
