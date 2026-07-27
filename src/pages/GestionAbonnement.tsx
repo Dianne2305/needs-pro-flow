@@ -496,6 +496,36 @@ export default function GestionAbonnement() {
             <Label className="text-xs">Au</Label>
             <Input type="date" value={dateAu} onChange={(e) => setDateAu(e.target.value)} />
           </div>
+          <div className="min-w-[170px]">
+            <Label className="text-xs">Service</Label>
+            <Select value={filtreService} onValueChange={setFiltreService}>
+              <SelectTrigger><SelectValue placeholder="Tous les services" /></SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Tous les services</SelectItem>
+                {servicesOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[160px]">
+            <Label className="text-xs">Commercial</Label>
+            <Select value={filtreCommercial} onValueChange={setFiltreCommercial}>
+              <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Tous les commerciaux</SelectItem>
+                {commerciauxOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[150px]">
+            <Label className="text-xs">Ville</Label>
+            <Select value={filtreVille} onValueChange={setFiltreVille}>
+              <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Toutes les villes</SelectItem>
+                {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           {hasFilters && (
             <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
           )}
