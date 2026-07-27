@@ -248,6 +248,8 @@ export default function CompteClient() {
   const [aboDateOverrides, setAboDateOverrides] = useState<Record<string, { heure?: string; heure_fin?: string; excluded?: boolean; statut?: "termine" | "annule" | "a_recuperer" | "reporte" | null; reprogrammed_to?: string | null; reprogrammed_from?: string | null }>>({});
   // Date cible saisie temporairement pour la reprogrammation d'un crédit "à récupérer".
   const [reprogTarget, setReprogTarget] = useState<Record<string, string>>({});
+  // Brouillon de report : saisie date/heure avant confirmation (le statut ne change qu'après validation)
+  const [reporteDraft, setReporteDraft] = useState<Record<string, { date: string; heure: string; heure_fin: string }>>({});
   // Source sélectionnée pour "Utiliser un crédit" depuis un jour libre.
   const [useCreditSource, setUseCreditSource] = useState<Record<string, string>>({});
   const [aboFactureGeneree, setAboFactureGeneree] = useState(false);
