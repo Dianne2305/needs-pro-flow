@@ -58,7 +58,7 @@ import {
   ChevronDown, ArrowLeft, User, MessageSquare, Clock, CreditCard,
   Users, Phone, MapPin, Calendar as CalendarIcon, Hash, Briefcase,
   FileDown, Eye, Heart, FileText, Save, RefreshCw, Repeat, Star, ThumbsUp, ThumbsDown,
-  Ban, History, Plus, Trash2, UserCog, Send, Receipt, X
+  Ban, History, Plus, Trash2, UserCog, Send, Receipt, X, Settings
 } from "lucide-react";
 import { CommercialAffecteModal } from "@/components/dashboard/CommercialAffecteModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1220,98 +1220,76 @@ export default function CompteClient() {
                 </div>
 
 
-                {/* Section 4 : Récapitulatif */}
-                <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-4 space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <FileText className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-semibold text-primary">Récapitulatif de l'abonnement</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Fréquence : </span>
-                      <span className="font-medium">{currentFreq?.label || "—"}</span>
+                {/* Section 4 : Paramètres de l'abonnement */}
+                {(() => {
+                  const joursLabel = aboJours.length
+                    ? aboJours.map((j) => JOURS_SEMAINE.find((x) => x.value === j.jour)?.label).filter(Boolean).join(" + ")
+                    : "—";
+                  const premier = aboJours[0];
+                  const dureeH = Number(demande.duree_heures) || 0;
+                  const plage = premier?.heure_debut
+                    ? ` (${premier.heure_debut}${premier.heure_fin ? ` → ${premier.heure_fin}` : ""})`
+                    : "";
+                  const totalEst = totalInterventions || monthlyInterventions || 0;
+                  const montantTotal = Number((demande as any).montant_total) || 0;
+                  const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                  const tarifHoraire = dureeH > 0 ? unit / dureeH : 0;
+                  const mensuel = Math.round(unit * monthlyInterventions);
+                  const service = [demande.type_prestation, demande.type_service === "SPP" ? "particulier" : "entreprise"]
+                    .filter(Boolean).join(" — ");
+
+                  const Line = ({ label, children }: { label: string; children: React.ReactNode }) => (
+                    <div className="grid grid-cols-[160px_1fr] gap-2 py-1.5 text-sm">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="font-semibold text-foreground">{children}</span>
                     </div>
-                    <div>
-                      <span className="text-muted-foreground">Période : </span>
-                      <span className="font-medium">
-                        {aboDateDebut && dateFinAuto
-                          ? `du ${format(parseISO(aboDateDebut), "dd/MM/yyyy")} au ${format(parseISO(dateFinAuto), "dd/MM/yyyy")}`
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="sm:col-span-2">
-                      <span className="text-muted-foreground">Jours & heures : </span>
-                      <span className="font-medium">
-                        {aboJours.length > 0
-                          ? aboJours
-                              .map(
-                                (j) =>
-                                  `${JOURS_SEMAINE.find((x) => x.value === j.jour)?.label}${j.heure_debut ? ` ${j.heure_debut}${j.heure_fin ? `–${j.heure_fin}` : ""}` : ""}`,
-                              )
-                              .join(", ")
-                          : "—"}
-                      </span>
-                    </div>
-                    <div className="sm:col-span-2 pt-2 border-t border-primary/20 flex flex-wrap items-center gap-2">
-                      <span className="text-muted-foreground">
-                        Interventions estimées pour {format(aboCalMonth, "MMMM yyyy", { locale: fr })} :{' '}
-                      </span>
-                      <span className="text-lg font-bold text-primary">{monthlyInterventions}</span>
-                      {cancelledInterventions > 0 && (
-                        <span className="inline-flex items-center text-xs font-medium text-rose-700 bg-rose-50 border border-rose-100 rounded px-1.5 py-0.5">
-                          {cancelledInterventions} annulée(s)
-                        </span>
-                      )}
-                      {aRecupMois > 0 && (
-                        <span className="inline-flex items-center text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
-                          {aRecupMois} à récupérer (ce mois)
-                        </span>
-                      )}
-                      {reportesMois > 0 && (
-                        <span className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 rounded px-1.5 py-0.5">
-                          {reportesMois} reportée(s) programmée(s)
-                        </span>
-                      )}
-                      {pendingCreditsGlobal > 0 && (
-                        <span className="inline-flex items-center text-xs font-semibold text-amber-900 bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5">
-                          Crédits à récupérer (abonnement) : {pendingCreditsGlobal}
-                        </span>
-                      )}
-                    </div>
-                    {/* Facturation du mois : exclut les interventions reportées (déjà payées le mois précédent) */}
-                    {(() => {
-                      const billable = Math.max(0, monthlyInterventions - reportesMois);
-                      const totalEst = totalInterventions || monthlyInterventions || 0;
-                      const montantTotal = Number((demande as any).montant_total) || 0;
-                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
-                      const montantBillable = Math.round(unit * billable);
-                      return (
-                        <div className="sm:col-span-2 pt-2 border-t border-primary/20 flex flex-wrap items-center gap-2">
-                          <span className="text-muted-foreground">
-                            Facturation {format(aboCalMonth, "MMMM yyyy", { locale: fr })} :
-                          </span>
-                          <span className="inline-flex items-center text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">
-                            {billable} intervention(s) à facturer
-                            {unit > 0 && ` · ~${montantBillable.toLocaleString("fr-FR")} DH`}
-                          </span>
-                          {reportesMois > 0 && (
-                            <span className="inline-flex items-center text-xs font-medium text-indigo-800 bg-indigo-50 border border-indigo-200 rounded px-2 py-0.5">
-                              {reportesMois} reportée(s) non facturée(s) (déjà payées le mois précédent)
-                            </span>
-                          )}
-                          {reportesMois > 0 && (
-                            <span className="text-[11px] text-muted-foreground italic">
-                              Une intervention n'est facturée qu'une seule fois — les reports sont exclus de la facture.
-                            </span>
-                          )}
+                  );
+
+                  return (
+                    <div className="rounded-xl border bg-background overflow-hidden">
+                      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b bg-muted/30">
+                        <div className="flex items-center gap-2">
+                          <Settings className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-semibold">Paramètres de l'abonnement</span>
                         </div>
-                      );
-                    })()}
-                  </div>
-                </div>
+                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => document.getElementById("abo-params-edit")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+                          Modifier
+                        </Button>
+                      </div>
+                      <div className="px-4 py-2 divide-y divide-border/60">
+                        <Line label="Service">{service || "—"}</Line>
+                        <Line label="Jours de passage">{joursLabel}</Line>
+                        <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
+                        <Line label="Tarif horaire">
+                          {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
+                        </Line>
+                        <Line label="Options">
+                          {(demande as any).avec_produit ? "Produits ménagers inclus" : "Aucune option"}
+                        </Line>
+                        <Line label="Mensuel de base">
+                          {monthlyInterventions > 0 && unit > 0 ? (
+                            <>
+                              {monthlyInterventions} passages × {Math.round(unit)} DH ={" "}
+                              {mensuel.toLocaleString("fr-FR")} DH
+                              {cancelledInterventions > 0 && (
+                                <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                                  ({cancelledInterventions} annulée(s))
+                                </span>
+                              )}
+                            </>
+                          ) : "—"}
+                        </Line>
+                        <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
+                        <Line label="Chargée de clientèle">{(demande as any).commercial || "—"}</Line>
+                      </div>
+                    </div>
+                  );
+                })()}
+
 
                 {/* Section 1 : Type de fréquence (renseigné automatiquement par le système) */}
-                <div className="space-y-1.5">
+                <div className="space-y-1.5" id="abo-params-edit">
+
                   <Label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Type de fréquence * <span className="normal-case text-[10px] text-muted-foreground/70">(renseigné automatiquement)</span>
                   </Label>
