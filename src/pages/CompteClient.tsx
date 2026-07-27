@@ -1568,9 +1568,7 @@ export default function CompteClient() {
                                               ? "À récup."
                                               : statut === "reporte"
                                                 ? "Reportée"
-                                                : override?.reprogrammed_from && !statut
-                                                  ? "Reportée"
-                                                  : !statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
+                                                : !statut ? "À venir" : statut === "termine" ? "Terminé" : "Annulé"}
                                           </span>
                                           {heure && (
                                             <span className={cn(
