@@ -1534,7 +1534,7 @@ export default function CompteClient() {
                                         (i + 1) % 7 === 0 && "border-r-0",
                                         !inMonth && "bg-muted/30 text-muted-foreground/50 hover:bg-muted/50",
                                         inMonth && !isIntervention && "hover:bg-muted/40",
-                                        isIntervention && inMonth && !statut && (override?.reprogrammed_from ? "bg-indigo-100 hover:bg-indigo-200" : "bg-primary/10 hover:bg-primary/15"),
+                                        isIntervention && inMonth && !statut && "bg-primary/10 hover:bg-primary/15",
                                         isIntervention && inMonth && statut === "termine" && "bg-emerald-100 hover:bg-emerald-200",
                                         isIntervention && inMonth && statut === "annule" && "bg-rose-100 hover:bg-rose-200",
                                         (statut === "a_recuperer") && "bg-amber-100 hover:bg-amber-200",
@@ -1544,8 +1544,7 @@ export default function CompteClient() {
                                       <span className={cn(
                                         "text-xs font-semibold",
                                         isToday && "text-primary",
-                                        isIntervention && inMonth && !statut && !override?.reprogrammed_from && "text-primary",
-                                        override?.reprogrammed_from && "text-indigo-800",
+                                        isIntervention && inMonth && !statut && "text-primary",
                                         statut === "termine" && "text-emerald-800",
                                         statut === "annule" && "text-rose-800",
                                         statut === "a_recuperer" && "text-amber-900",
@@ -1557,8 +1556,7 @@ export default function CompteClient() {
                                         <div className="mt-auto w-full space-y-0.5">
                                           <span className={cn(
                                             "block text-[9px] font-bold uppercase tracking-wide rounded px-1 py-0.5 text-center",
-                                            !statut && !override?.reprogrammed_from && "bg-primary text-primary-foreground",
-                                            !statut && override?.reprogrammed_from && "bg-indigo-600 text-white",
+                                            !statut && "bg-primary text-primary-foreground",
                                             statut === "termine" && "bg-emerald-600 text-white",
                                             statut === "annule" && "bg-rose-600 text-white line-through",
                                             statut === "a_recuperer" && "bg-amber-600 text-white",
@@ -1573,8 +1571,7 @@ export default function CompteClient() {
                                           {heure && (
                                             <span className={cn(
                                               "block text-[10px] font-medium rounded px-1 py-0.5 text-center",
-                                              !statut && !override?.reprogrammed_from && "bg-primary/80 text-primary-foreground",
-                                              !statut && override?.reprogrammed_from && "bg-indigo-500 text-white",
+                                              !statut && "bg-primary/80 text-primary-foreground",
                                               statut === "termine" && "bg-emerald-500 text-white",
                                               statut === "annule" && "bg-rose-500 text-white line-through",
                                               statut === "a_recuperer" && "bg-amber-500 text-white",
