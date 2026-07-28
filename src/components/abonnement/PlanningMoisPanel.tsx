@@ -99,11 +99,11 @@ export default function PlanningMoisPanel({
                   isToday ? "border-amber-400 border-2 bg-amber-50/40" : "border-border"
                 } ${isWeekend && !isToday ? "bg-muted/20" : "bg-background"}`}
               >
-                <p className={`text-xs ${isToday ? "font-bold text-amber-700" : "text-foreground"}`}>{c.date.getDate()}</p>
+                <p className={`text-base font-semibold ${isToday ? "text-amber-700" : "text-foreground"}`}>{c.date.getDate()}</p>
                 {c.count > 0 ? (
-                  <p className="text-[11px] font-semibold text-primary mt-0.5">{c.count} passage{c.count > 1 ? "s" : ""}</p>
+                  <p className="text-sm font-semibold text-primary mt-0.5">{c.count} passage{c.count > 1 ? "s" : ""}</p>
                 ) : (
-                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">—</p>
+                  <p className="text-sm text-muted-foreground/60 mt-0.5">—</p>
                 )}
               </div>
             );
