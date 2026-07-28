@@ -47,11 +47,11 @@ export default function PlanningMoisPanel({
     const servicesEx = ["Ménage", "Nettoyage vitres", "Repassage"];
     const villesEx = ["Casablanca", "Rabat"];
     const commerciauxEx = ["Kaoutar", "Mehdi", "Youssef"];
-    const statuts: PlanningStatut[] = ["termine", "annule", "a_recuperer", "a_venir"];
+    const statuts: PlanningStatut[] = ["termine", "termine", "annule", "a_recuperer", "a_venir"];
     let idx = 0;
-    for (let d = 5; d <= 26; d += 3) {
+    for (let d = 5; d <= 29; d += 2) {
       const baseDate = new Date(monthRef.getFullYear(), monthRef.getMonth(), d);
-      const count = 2 + (idx % 3);
+      const count = 3 + (idx % 4); // 3 à 6 interventions par jour
       for (let k = 0; k < count; k++) {
         examples.push({
           date: baseDate,
