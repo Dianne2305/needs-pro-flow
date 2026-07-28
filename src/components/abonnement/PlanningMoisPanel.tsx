@@ -92,6 +92,13 @@ export default function PlanningMoisPanel({
               {services.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={commercial} onValueChange={setCommercial}>
+            <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Tous les commerciaux" /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Tous les commerciaux</SelectItem>
+              {commerciaux.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <Select value={ville} onValueChange={setVille}>
             <SelectTrigger className="w-[170px] h-9"><SelectValue placeholder="Toutes les villes" /></SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -123,10 +130,16 @@ export default function PlanningMoisPanel({
               >
                 <p className={`text-base font-semibold ${isToday ? "text-amber-700" : "text-foreground"}`}>{c.date.getDate()}</p>
                 {c.count > 0 ? (
-                  <p className="text-sm font-semibold text-primary mt-0.5">{c.count} passage{c.count > 1 ? "s" : ""}</p>
+                  <div className="mt-0.5 space-y-0.5">
+                    <p className="text-sm font-semibold text-primary">{c.count} intervention{c.count > 1 ? "s" : ""}</p>
+                    {c.termine > 0 && <p className="text-xs font-medium text-emerald-600">{c.termine} terminée{c.termine > 1 ? "s" : ""}</p>}
+                    {c.reporte > 0 && <p className="text-xs font-medium text-indigo-600">{c.reporte} reportée{c.reporte > 1 ? "s" : ""}</p>}
+                    {c.annule > 0 && <p className="text-xs font-medium text-destructive">{c.annule} annulée{c.annule > 1 ? "s" : ""}</p>}
+                  </div>
                 ) : (
                   <p className="text-sm text-muted-foreground/60 mt-0.5">—</p>
                 )}
+
               </div>
             );
           })}
