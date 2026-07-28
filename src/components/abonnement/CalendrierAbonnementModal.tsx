@@ -1,7 +1,6 @@
 /**
  * CalendrierAbonnementModal.tsx
- * Raccourci : affiche un calendrier par mois couvert par l'abonnement,
- * (max 2 calendriers par ligne), avec le nom du mois au-dessus de chacun.
+ * Raccourci : affiche un seul calendrier — le mois de début de l'abonnement.
  * Même logique de génération que la section Gestion de l'abonnement dans CompteClient.
  */
 import { useMemo } from "react";
