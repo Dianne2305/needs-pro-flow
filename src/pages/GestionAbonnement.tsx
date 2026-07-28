@@ -503,7 +503,9 @@ export default function GestionAbonnement() {
 
 
         {/* Filtres nom + dates */}
+        {mainTab !== "planning" && (
         <Card className="p-3">
+
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[220px]">
               <Label className="text-xs">Nom du client</Label>
