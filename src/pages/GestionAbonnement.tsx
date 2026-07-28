@@ -14,6 +14,8 @@ import { useMemo, useState } from "react";
 import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
 import CalendrierAbonnementModal from "@/components/abonnement/CalendrierAbonnementModal";
 import CycleFacturationPanel from "@/components/abonnement/CycleFacturationPanel";
+import PlanningMoisPanel, { PlanningEntry } from "@/components/abonnement/PlanningMoisPanel";
+
 
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
