@@ -181,25 +181,17 @@ export default function CalendrierAbonnementModal({
 }) {
   const navigate = useNavigate();
 
-  const monthsList = useMemo(() => {
-    if (!demande) return [] as Date[];
+  const month = useMemo(() => {
+    if (!demande) return new Date();
     const bounds = getBounds(demande);
-    if (!bounds) return [new Date()];
-    const list: Date[] = [];
-    let cur = startOfMonth(bounds.start);
-    const last = startOfMonth(bounds.end);
-    while (cur <= last) {
-      list.push(cur);
-      cur = addMonths(cur, 1);
-    }
-    return list.length ? list : [startOfMonth(bounds.start)];
+    return bounds ? startOfMonth(bounds.start) : new Date();
   }, [demande]);
 
   if (!demande) return null;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between pr-6">
             <span>Calendrier — {demande.nom_entreprise || demande.nom}</span>
@@ -216,10 +208,8 @@ export default function CalendrierAbonnementModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className={`grid gap-4 ${monthsList.length > 1 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
-          {monthsList.map((m) => (
-            <MonthCalendar key={m.toISOString()} demande={demande} month={m} />
-          ))}
+        <div className="grid gap-4 grid-cols-1">
+          <MonthCalendar demande={demande} month={month} />
         </div>
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-2">
