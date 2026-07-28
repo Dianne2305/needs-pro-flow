@@ -131,10 +131,10 @@ export default function PlanningMoisPanel({
                 <p className={`text-base font-semibold ${isToday ? "text-amber-700" : "text-foreground"}`}>{c.date.getDate()}</p>
                 {c.count > 0 ? (
                   <div className="mt-0.5 space-y-0.5">
-                    <p className="text-sm font-semibold text-primary">{c.count} intervention{c.count > 1 ? "s" : ""}</p>
-                    {c.termine > 0 && <p className="text-xs font-medium text-emerald-600">{c.termine} terminée{c.termine > 1 ? "s" : ""}</p>}
-                    {c.reporte > 0 && <p className="text-xs font-medium text-indigo-600">{c.reporte} reportée{c.reporte > 1 ? "s" : ""}</p>}
-                    {c.annule > 0 && <p className="text-xs font-medium text-destructive">{c.annule} annulée{c.annule > 1 ? "s" : ""}</p>}
+                    <p className="text-sm font-semibold text-primary">Nbre d'interventions : {c.count}</p>
+                    {c.termine > 0 && <p className="text-xs font-medium text-emerald-600">Nbr terminé : {c.termine}</p>}
+                    {c.reporte > 0 && <p className="text-xs font-medium text-indigo-600">Nbre reporté : {c.reporte}</p>}
+                    {c.annule > 0 && <p className="text-xs font-medium text-destructive">Nombre annulé : {c.annule}</p>}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground/60 mt-0.5">—</p>
