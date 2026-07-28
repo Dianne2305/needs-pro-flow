@@ -618,7 +618,7 @@ export default function GestionAbonnement() {
         </TabsContent>
 
         <TabsContent value="planning" className="m-0 space-y-4">
-          <PlanningMoisPanel getEntries={getPlanningEntries} services={servicesOptions} villes={villesOptions} />
+          <PlanningMoisPanel getEntries={getPlanningEntries} services={servicesOptions} villes={villesOptions} commerciaux={commerciauxOptions} />
         </TabsContent>
 
         <TabsContent value="facturation" className="m-0 space-y-4">
