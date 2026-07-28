@@ -502,10 +502,25 @@ export default function GestionAbonnement() {
         }}
         className="space-y-4"
       >
-        <TabsList>
-          <TabsTrigger value="abonnement">Vue d'ensemble Abonnement</TabsTrigger>
-          <TabsTrigger value="planning">Planning</TabsTrigger>
-          <TabsTrigger value="facturation">Facturation Abonnement</TabsTrigger>
+        <TabsList className="w-full justify-center gap-2 bg-transparent p-0 h-auto">
+          <TabsTrigger
+            value="abonnement"
+            className="text-2xl font-semibold h-14 px-8 rounded-md bg-muted text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-colors"
+          >
+            Vue d'ensemble Abonnement
+          </TabsTrigger>
+          <TabsTrigger
+            value="planning"
+            className="text-2xl font-semibold h-14 px-8 rounded-md bg-muted text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-colors"
+          >
+            Planning
+          </TabsTrigger>
+          <TabsTrigger
+            value="facturation"
+            className="text-2xl font-semibold h-14 px-8 rounded-md bg-muted text-muted-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-colors"
+          >
+            Facturation Abonnement
+          </TabsTrigger>
         </TabsList>
 
         {/* KPI Cards cliquables = filtres */}
