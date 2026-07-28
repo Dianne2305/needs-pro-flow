@@ -386,6 +386,8 @@ export default function GestionAbonnement() {
 
   // Filtres
   type KpiKey = "actifs" | "echeance" | "suspendus" | "today" | "tomorrow" | "a-generer";
+  type MainTab = "abonnement" | "planning" | "facturation";
+  const [mainTab, setMainTab] = useState<MainTab>("abonnement");
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
   const [dateDu, setDateDu] = useState("");
