@@ -377,19 +377,34 @@ export default function GestionAbonnement() {
   const getPlanningEntries = useCallback((from: Date, to: Date): PlanningEntry[] => {
     const list: PlanningEntry[] = [];
     for (const { d } of abosEnriched) {
-      for (const date of getInterventionsBetween(d, from, to)) {
-        list.push({ date, service: d.type_prestation || (d as any).type_service, ville: d.ville });
+      for (const it of buildPlanningDates(d).dates) {
+        if (it.date < from || it.date > to) continue;
+        list.push({
+          date: it.date,
+          service: d.type_prestation || (d as any).type_service,
+          ville: d.ville,
+          commercial: d.commercial || d.commercial_createur,
+          statut: it.statut,
+        });
       }
     }
     for (const d of demandes) {
       if (isAbonnement(d)) continue;
       const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : null;
       if (start && start >= from && start <= to) {
-        list.push({ date: start, service: d.type_prestation || (d as any).type_service, ville: d.ville });
+        list.push({
+          date: start,
+          service: d.type_prestation || (d as any).type_service,
+          ville: d.ville,
+          commercial: d.commercial || d.commercial_createur,
+          statut: ["prestation_effectuee", "termine", "terminee"].includes(d.statut) ? "termine"
+            : d.statut === "annule" ? "annule" : "a_venir",
+        });
       }
     }
     return list;
   }, [abosEnriched, demandes]);
+
 
 
   // Factures à générer : prestations terminées sans ligne de facturation
