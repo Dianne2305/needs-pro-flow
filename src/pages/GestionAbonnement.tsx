@@ -486,7 +486,7 @@ export default function GestionAbonnement() {
         </TabsList>
 
         {/* KPI Cards cliquables = filtres */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="flex flex-wrap gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
           {mainTab === "abonnement" && (<>
             <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" active={activeKpi==="actifs"} onClick={() => setActiveKpi("actifs")} />
             <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" active={activeKpi==="echeance"} onClick={() => setActiveKpi("echeance")} />
