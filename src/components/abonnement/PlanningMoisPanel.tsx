@@ -10,7 +10,14 @@ import { format, startOfMonth, endOfMonth, addMonths, subMonths, isSameDay, isSa
 import { fr } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export type PlanningEntry = { date: Date; service?: string | null; ville?: string | null };
+export type PlanningStatut = "a_venir" | "termine" | "annule" | "a_recuperer";
+export type PlanningEntry = {
+  date: Date;
+  service?: string | null;
+  ville?: string | null;
+  commercial?: string | null;
+  statut?: PlanningStatut;
+};
 
 const DOWS = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
@@ -18,34 +25,49 @@ export default function PlanningMoisPanel({
   getEntries,
   services,
   villes,
+  commerciaux = [],
 }: {
   getEntries: (from: Date, to: Date) => PlanningEntry[];
   services: string[];
   villes: string[];
+  commerciaux?: string[];
 }) {
   const today = new Date();
   const [monthRef, setMonthRef] = useState<Date>(startOfMonth(today));
   const [service, setService] = useState("all");
   const [ville, setVille] = useState("all");
+  const [commercial, setCommercial] = useState("all");
 
   const monthStart = startOfMonth(monthRef);
   const monthEnd = endOfMonth(monthRef);
 
   const cells = useMemo(() => {
     const entries = getEntries(monthStart, monthEnd).filter(
-      (e) => (service === "all" || e.service === service) && (ville === "all" || e.ville === ville)
+      (e) =>
+        (service === "all" || e.service === service) &&
+        (ville === "all" || e.ville === ville) &&
+        (commercial === "all" || e.commercial === commercial)
     );
     // grille : lundi -> dimanche
     const firstDow = (monthStart.getDay() + 6) % 7;
-    const days: { date: Date | null; count: number }[] = [];
-    for (let i = 0; i < firstDow; i++) days.push({ date: null, count: 0 });
+    const days: { date: Date | null; count: number; termine: number; annule: number; reporte: number }[] = [];
+    const empty = { date: null, count: 0, termine: 0, annule: 0, reporte: 0 };
+    for (let i = 0; i < firstDow; i++) days.push({ ...empty });
     for (let d = 1; d <= monthEnd.getDate(); d++) {
       const date = new Date(monthRef.getFullYear(), monthRef.getMonth(), d);
-      days.push({ date, count: entries.filter((e) => isSameDay(e.date, date)).length });
+      const dayEntries = entries.filter((e) => isSameDay(e.date, date));
+      days.push({
+        date,
+        count: dayEntries.length,
+        termine: dayEntries.filter((e) => e.statut === "termine").length,
+        annule: dayEntries.filter((e) => e.statut === "annule").length,
+        reporte: dayEntries.filter((e) => e.statut === "a_recuperer").length,
+      });
     }
-    while (days.length % 7 !== 0) days.push({ date: null, count: 0 });
+    while (days.length % 7 !== 0) days.push({ ...empty });
     return days;
-  }, [getEntries, monthStart, monthEnd, monthRef, service, ville]);
+  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial]);
+
 
   const totalMois = cells.reduce((s, c) => s + c.count, 0);
 
@@ -68,6 +90,13 @@ export default function PlanningMoisPanel({
             <SelectContent className="bg-popover z-50">
               <SelectItem value="all">Tous les services</SelectItem>
               {services.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={commercial} onValueChange={setCommercial}>
+            <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Tous les commerciaux" /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Tous les commerciaux</SelectItem>
+              {commerciaux.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={ville} onValueChange={setVille}>
@@ -101,10 +130,16 @@ export default function PlanningMoisPanel({
               >
                 <p className={`text-base font-semibold ${isToday ? "text-amber-700" : "text-foreground"}`}>{c.date.getDate()}</p>
                 {c.count > 0 ? (
-                  <p className="text-sm font-semibold text-primary mt-0.5">{c.count} passage{c.count > 1 ? "s" : ""}</p>
+                  <div className="mt-0.5 space-y-0.5">
+                    <p className="text-sm font-semibold text-primary">{c.count} intervention{c.count > 1 ? "s" : ""}</p>
+                    {c.termine > 0 && <p className="text-xs font-medium text-emerald-600">{c.termine} terminée{c.termine > 1 ? "s" : ""}</p>}
+                    {c.reporte > 0 && <p className="text-xs font-medium text-indigo-600">{c.reporte} reportée{c.reporte > 1 ? "s" : ""}</p>}
+                    {c.annule > 0 && <p className="text-xs font-medium text-destructive">{c.annule} annulée{c.annule > 1 ? "s" : ""}</p>}
+                  </div>
                 ) : (
                   <p className="text-sm text-muted-foreground/60 mt-0.5">—</p>
                 )}
+
               </div>
             );
           })}
