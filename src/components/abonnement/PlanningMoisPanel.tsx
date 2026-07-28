@@ -74,14 +74,17 @@ export default function PlanningMoisPanel({
         (ville === "all" || e.ville === ville) &&
         (commercial === "all" || e.commercial === commercial)
     );
-    // Affiche des exemples si aucune donnée réelle n'existe pour le mois
-    if (entries.length === 0) {
-      entries = exampleEntries.filter(
-        (e) =>
-          (service === "all" || e.service === service) &&
-          (ville === "all" || e.ville === ville) &&
-          (commercial === "all" || e.commercial === commercial)
-      );
+    // Fusionne des exemples visuels pour illustrer les statuts
+    if (showExamples) {
+      entries = [
+        ...entries,
+        ...exampleEntries.filter(
+          (e) =>
+            (service === "all" || e.service === service) &&
+            (ville === "all" || e.ville === ville) &&
+            (commercial === "all" || e.commercial === commercial)
+        ),
+      ];
     }
     // grille : lundi -> dimanche
     const firstDow = (monthStart.getDay() + 6) % 7;
