@@ -557,6 +557,8 @@ export default function GestionAbonnement() {
             )}
           </div>
         </Card>
+        )}
+
 
         <TabsContent value="abonnement" className="m-0 space-y-4">
           {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
