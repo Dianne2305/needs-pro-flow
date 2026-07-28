@@ -166,14 +166,30 @@ export default function CycleFacturationPanel() {
                 <TableCell>
                   <Badge variant="outline" className={`text-[11px] font-medium ${TON_CLASS[l.ton]}`}>{l.statut}</Badge>
                 </TableCell>
+                <TableCell>
+                  {fichiers[l.reference + i] ? (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-emerald-600" />
+                      <span className="text-xs">{fichiers[l.reference + i]}</span>
+                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => genererFacture(l, i)}>
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-7" onClick={() => genererFacture(l, i)}>
+                      <FileText className="h-3.5 w-3.5 mr-1" />Générer
+                    </Button>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
                 </TableCell>
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
             )}
+
           </TableBody>
         </Table>
       </Card>
