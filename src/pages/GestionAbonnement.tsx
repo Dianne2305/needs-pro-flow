@@ -10,7 +10,7 @@
  *  - Factures à générer
  *  - Factures impayées
  */
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
 import CalendrierAbonnementModal from "@/components/abonnement/CalendrierAbonnementModal";
 import CycleFacturationPanel from "@/components/abonnement/CycleFacturationPanel";
