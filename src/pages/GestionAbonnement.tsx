@@ -373,6 +373,25 @@ export default function GestionAbonnement() {
     return list;
   }, [abosEnriched, demandes, tomorrow]);
 
+  // Toutes les interventions (abonnements + ponctuelles) sur une période donnée
+  const getPlanningEntries = useCallback((from: Date, to: Date): PlanningEntry[] => {
+    const list: PlanningEntry[] = [];
+    for (const { d } of abosEnriched) {
+      for (const date of getInterventionsBetween(d, from, to)) {
+        list.push({ date, service: d.type_prestation || (d as any).type_service, ville: d.ville });
+      }
+    }
+    for (const d of demandes) {
+      if (isAbonnement(d)) continue;
+      const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : null;
+      if (start && start >= from && start <= to) {
+        list.push({ date: start, service: d.type_prestation || (d as any).type_service, ville: d.ville });
+      }
+    }
+    return list;
+  }, [abosEnriched, demandes]);
+
+
   // Factures à générer : prestations terminées sans ligne de facturation
   const facturesAGenerer = useMemo(() => {
     const facturationDemandeIds = new Set(facturations.map((f) => f.demande_id));
