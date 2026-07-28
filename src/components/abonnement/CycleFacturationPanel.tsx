@@ -10,7 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Download, Settings2 } from "lucide-react";
+import { Search, Download, Settings2, FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import { toast } from "sonner";
+
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -47,7 +50,29 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
 export default function CycleFacturationPanel() {
   const [search, setSearch] = useState("");
   const [statut, setStatut] = useState("all");
+  const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
+
+  const genererFacture = (l: FactureLigne, i: number) => {
+    const ref = l.reference === "—" ? `BROUILLON-${i + 1}` : l.reference;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("FACTURE ABONNEMENT", 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Référence : ${ref}`, 14, 35);
+    doc.text(`Client : ${l.client}`, 14, 43);
+    doc.text(`Période : ${l.periode}`, 14, 51);
+    doc.text(`Statut : ${l.statut}`, 14, 59);
+    doc.setFontSize(13);
+    doc.text(`Montant TTC : ${l.montant.toLocaleString("fr-FR")} DH`, 14, 72);
+    doc.setFontSize(9);
+    doc.text(`Généré le ${format(new Date(), "dd/MM/yyyy à HH:mm", { locale: fr })}`, 14, 285);
+    const nom = `${ref.replace(/\//g, "-")}.pdf`;
+    doc.save(nom);
+    setFichiers((p) => ({ ...p, [l.reference + i]: nom }));
+    toast.success(`Facture générée : ${nom}`);
+  };
+
 
   const etapes: Etape[] = [
     { titre: "15 juin", l1: "Génération auto", l2: "des factures" },
@@ -151,7 +176,9 @@ export default function CycleFacturationPanel() {
               <TableHead className="text-[11px] uppercase">Période</TableHead>
               <TableHead className="text-[11px] uppercase">Montant TTC</TableHead>
               <TableHead className="text-[11px] uppercase">Statut</TableHead>
+              <TableHead className="text-[11px] uppercase">Fichier facture</TableHead>
               <TableHead className="text-[11px] uppercase text-right">Action</TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -164,14 +191,30 @@ export default function CycleFacturationPanel() {
                 <TableCell>
                   <Badge variant="outline" className={`text-[11px] font-medium ${TON_CLASS[l.ton]}`}>{l.statut}</Badge>
                 </TableCell>
+                <TableCell>
+                  {fichiers[l.reference + i] ? (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-emerald-600" />
+                      <span className="text-xs">{fichiers[l.reference + i]}</span>
+                      <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => genererFacture(l, i)}>
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-7" onClick={() => genererFacture(l, i)}>
+                      <FileText className="h-3.5 w-3.5 mr-1" />Générer
+                    </Button>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
                 </TableCell>
               </TableRow>
             ))}
             {rows.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
             )}
+
           </TableBody>
         </Table>
       </Card>
