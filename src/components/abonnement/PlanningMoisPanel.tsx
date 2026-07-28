@@ -41,13 +41,47 @@ export default function PlanningMoisPanel({
   const monthStart = startOfMonth(monthRef);
   const monthEnd = endOfMonth(monthRef);
 
+  const exampleEntries = useMemo<PlanningEntry[]>(() => {
+    // Exemples visuels : terminé, annulé, reporté, à venir
+    const examples: PlanningEntry[] = [];
+    const servicesEx = ["Ménage", "Nettoyage vitres", "Repassage"];
+    const villesEx = ["Casablanca", "Rabat"];
+    const commerciauxEx = ["Kaoutar", "Mehdi", "Youssef"];
+    const statuts: PlanningStatut[] = ["termine", "annule", "a_recuperer", "a_venir"];
+    let idx = 0;
+    for (let d = 5; d <= 26; d += 3) {
+      const baseDate = new Date(monthRef.getFullYear(), monthRef.getMonth(), d);
+      const count = 2 + (idx % 3);
+      for (let k = 0; k < count; k++) {
+        examples.push({
+          date: baseDate,
+          service: servicesEx[(idx + k) % servicesEx.length],
+          ville: villesEx[(idx + k) % villesEx.length],
+          commercial: commerciauxEx[(idx + k) % commerciauxEx.length],
+          statut: statuts[(idx + k) % statuts.length],
+        });
+      }
+      idx++;
+    }
+    return examples;
+  }, [monthRef]);
+
   const cells = useMemo(() => {
-    const entries = getEntries(monthStart, monthEnd).filter(
+    let entries = getEntries(monthStart, monthEnd).filter(
       (e) =>
         (service === "all" || e.service === service) &&
         (ville === "all" || e.ville === ville) &&
         (commercial === "all" || e.commercial === commercial)
     );
+    // Affiche des exemples si aucune donnée réelle n'existe pour le mois
+    if (entries.length === 0) {
+      entries = exampleEntries.filter(
+        (e) =>
+          (service === "all" || e.service === service) &&
+          (ville === "all" || e.ville === ville) &&
+          (commercial === "all" || e.commercial === commercial)
+      );
+    }
     // grille : lundi -> dimanche
     const firstDow = (monthStart.getDay() + 6) % 7;
     const days: { date: Date | null; count: number; termine: number; annule: number; reporte: number }[] = [];
@@ -66,7 +100,7 @@ export default function PlanningMoisPanel({
     }
     while (days.length % 7 !== 0) days.push({ ...empty });
     return days;
-  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial]);
+  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial, exampleEntries]);
 
 
   const totalMois = cells.reduce((s, c) => s + c.count, 0);
