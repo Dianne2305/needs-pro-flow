@@ -45,7 +45,7 @@ export default function Messagerie() {
   // Load users + auto-detect current user via session
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.from("profiles").select("id, display_name, avatar_url");
+      const { data: u } = await supabase.rpc("get_directory_profiles");
       const list = (u as ChatUser[]) || [];
       setUsers(list);
       if (!meId) {
