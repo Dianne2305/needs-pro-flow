@@ -562,9 +562,9 @@ export default function GestionAbonnement() {
         </TabsContent>
 
         <TabsContent value="planning" className="m-0 space-y-4">
-          {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
-          {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
+          <CycleFacturationPanel />
         </TabsContent>
+
 
         <TabsContent value="facturation" className="m-0 space-y-4">
           <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />
