@@ -37,6 +37,7 @@ export default function PlanningMoisPanel({
   const [service, setService] = useState("all");
   const [ville, setVille] = useState("all");
   const [commercial, setCommercial] = useState("all");
+  const [showExamples, setShowExamples] = useState(true);
 
   const monthStart = startOfMonth(monthRef);
   const monthEnd = endOfMonth(monthRef);
