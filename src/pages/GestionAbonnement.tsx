@@ -608,7 +608,7 @@ export default function GestionAbonnement() {
 
         <TabsContent value="facturation" className="m-0 space-y-4">
           <CycleFacturationPanel />
-          <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />
+
         </TabsContent>
 
       </Tabs>

@@ -151,7 +151,9 @@ export default function CycleFacturationPanel() {
               <TableHead className="text-[11px] uppercase">Période</TableHead>
               <TableHead className="text-[11px] uppercase">Montant TTC</TableHead>
               <TableHead className="text-[11px] uppercase">Statut</TableHead>
+              <TableHead className="text-[11px] uppercase">Fichier facture</TableHead>
               <TableHead className="text-[11px] uppercase text-right">Action</TableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
