@@ -10,10 +10,12 @@
  *  - Factures à générer
  *  - Factures impayées
  */
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
 import CalendrierAbonnementModal from "@/components/abonnement/CalendrierAbonnementModal";
 import CycleFacturationPanel from "@/components/abonnement/CycleFacturationPanel";
+import PlanningMoisPanel, { PlanningEntry } from "@/components/abonnement/PlanningMoisPanel";
+
 
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -371,6 +373,25 @@ export default function GestionAbonnement() {
     return list;
   }, [abosEnriched, demandes, tomorrow]);
 
+  // Toutes les interventions (abonnements + ponctuelles) sur une période donnée
+  const getPlanningEntries = useCallback((from: Date, to: Date): PlanningEntry[] => {
+    const list: PlanningEntry[] = [];
+    for (const { d } of abosEnriched) {
+      for (const date of getInterventionsBetween(d, from, to)) {
+        list.push({ date, service: d.type_prestation || (d as any).type_service, ville: d.ville });
+      }
+    }
+    for (const d of demandes) {
+      if (isAbonnement(d)) continue;
+      const start = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : null;
+      if (start && start >= from && start <= to) {
+        list.push({ date: start, service: d.type_prestation || (d as any).type_service, ville: d.ville });
+      }
+    }
+    return list;
+  }, [abosEnriched, demandes]);
+
+
   // Factures à générer : prestations terminées sans ligne de facturation
   const facturesAGenerer = useMemo(() => {
     const facturationDemandeIds = new Set(facturations.map((f) => f.demande_id));
@@ -482,24 +503,22 @@ export default function GestionAbonnement() {
         className="space-y-4"
       >
         <TabsList>
-          <TabsTrigger value="abonnement">Abonnement</TabsTrigger>
+          <TabsTrigger value="abonnement">Vue d'ensemble Abonnement</TabsTrigger>
           <TabsTrigger value="planning">Planning</TabsTrigger>
           <TabsTrigger value="facturation">Facturation Abonnement</TabsTrigger>
         </TabsList>
 
         {/* KPI Cards cliquables = filtres */}
-        {mainTab !== "planning" && (
+        {mainTab === "abonnement" && (
         <div className="flex flex-wrap gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
-          {mainTab === "abonnement" && (<>
-            <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" active={activeKpi==="actifs"} onClick={() => setActiveKpi("actifs")} />
-            <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" active={activeKpi==="echeance"} onClick={() => setActiveKpi("echeance")} />
-            <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" active={activeKpi==="suspendus"} onClick={() => setActiveKpi("suspendus")} />
-          </>)}
-          {mainTab === "facturation" && (
-            <KpiCard label="À générer" value={facturesAGenerer.length} icon={<FileText className="h-5 w-5" />} gradient="from-violet-500 to-purple-600" active={activeKpi==="a-generer"} onClick={() => setActiveKpi("a-generer")} />
-          )}
+          <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" active={activeKpi==="actifs"} onClick={() => setActiveKpi("actifs")} />
+          <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" active={activeKpi==="echeance"} onClick={() => setActiveKpi("echeance")} />
+          <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" active={activeKpi==="suspendus"} onClick={() => setActiveKpi("suspendus")} />
+          <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" active={activeKpi==="today"} onClick={() => setActiveKpi("today")} />
+          <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" active={activeKpi==="tomorrow"} onClick={() => setActiveKpi("tomorrow")} />
         </div>
         )}
+
 
 
         {/* Filtres nom + dates */}
@@ -564,16 +583,19 @@ export default function GestionAbonnement() {
           {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
           {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF.length ? abosEcheanceF : (MOCK_ABOS_ECHEANCE(today) as any)} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
           {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF.length ? abosSuspendusF : (MOCK_ABOS_SUSPENDUS(today) as any)} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+          {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
+          {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
         </TabsContent>
 
         <TabsContent value="planning" className="m-0 space-y-4">
-          <CycleFacturationPanel />
+          <PlanningMoisPanel getEntries={getPlanningEntries} services={servicesOptions} villes={villesOptions} />
         </TabsContent>
-
 
         <TabsContent value="facturation" className="m-0 space-y-4">
+          <CycleFacturationPanel />
           <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />
         </TabsContent>
+
       </Tabs>
 
       <AbonnementActionsModal
