@@ -13,6 +13,8 @@
 import { useMemo, useState } from "react";
 import AbonnementActionsModal, { AbonnementAction } from "@/components/abonnement/AbonnementActionsModal";
 import CalendrierAbonnementModal from "@/components/abonnement/CalendrierAbonnementModal";
+import CycleFacturationPanel from "@/components/abonnement/CycleFacturationPanel";
+
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -486,23 +488,24 @@ export default function GestionAbonnement() {
         </TabsList>
 
         {/* KPI Cards cliquables = filtres */}
+        {mainTab !== "planning" && (
         <div className="flex flex-wrap gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
           {mainTab === "abonnement" && (<>
             <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" active={activeKpi==="actifs"} onClick={() => setActiveKpi("actifs")} />
             <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" active={activeKpi==="echeance"} onClick={() => setActiveKpi("echeance")} />
             <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" active={activeKpi==="suspendus"} onClick={() => setActiveKpi("suspendus")} />
           </>)}
-          {mainTab === "planning" && (<>
-            <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" active={activeKpi==="today"} onClick={() => setActiveKpi("today")} />
-            <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" active={activeKpi==="tomorrow"} onClick={() => setActiveKpi("tomorrow")} />
-          </>)}
           {mainTab === "facturation" && (
             <KpiCard label="À générer" value={facturesAGenerer.length} icon={<FileText className="h-5 w-5" />} gradient="from-violet-500 to-purple-600" active={activeKpi==="a-generer"} onClick={() => setActiveKpi("a-generer")} />
           )}
         </div>
+        )}
+
 
         {/* Filtres nom + dates */}
+        {mainTab !== "planning" && (
         <Card className="p-3">
+
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-[220px]">
               <Label className="text-xs">Nom du client</Label>
@@ -554,6 +557,8 @@ export default function GestionAbonnement() {
             )}
           </div>
         </Card>
+        )}
+
 
         <TabsContent value="abonnement" className="m-0 space-y-4">
           {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
@@ -562,9 +567,9 @@ export default function GestionAbonnement() {
         </TabsContent>
 
         <TabsContent value="planning" className="m-0 space-y-4">
-          {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
-          {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
+          <CycleFacturationPanel />
         </TabsContent>
+
 
         <TabsContent value="facturation" className="m-0 space-y-4">
           <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />
