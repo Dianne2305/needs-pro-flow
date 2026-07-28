@@ -498,6 +498,75 @@ export default function GestionAbonnement() {
           )}
         </div>
 
+        {/* Filtres nom + dates */}
+        <Card className="p-3">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-[220px]">
+              <Label className="text-xs">Nom du client</Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={searchNom} onChange={(e) => setSearchNom(e.target.value)} placeholder="Rechercher un client…" className="pl-8" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs">Du</Label>
+              <Input type="date" value={dateDu} onChange={(e) => setDateDu(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs">Au</Label>
+              <Input type="date" value={dateAu} onChange={(e) => setDateAu(e.target.value)} />
+            </div>
+            <div className="min-w-[170px]">
+              <Label className="text-xs">Service</Label>
+              <Select value={filtreService} onValueChange={setFiltreService}>
+                <SelectTrigger><SelectValue placeholder="Tous les services" /></SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Tous les services</SelectItem>
+                  {servicesOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="min-w-[160px]">
+              <Label className="text-xs">Commercial</Label>
+              <Select value={filtreCommercial} onValueChange={setFiltreCommercial}>
+                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Tous les commerciaux</SelectItem>
+                  {commerciauxOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="min-w-[150px]">
+              <Label className="text-xs">Ville</Label>
+              <Select value={filtreVille} onValueChange={setFiltreVille}>
+                <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Toutes les villes</SelectItem>
+                  {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
+            )}
+          </div>
+        </Card>
+
+        <TabsContent value="abonnement" className="m-0 space-y-4">
+          {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+          {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF.length ? abosEcheanceF : (MOCK_ABOS_ECHEANCE(today) as any)} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+          {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF.length ? abosSuspendusF : (MOCK_ABOS_SUSPENDUS(today) as any)} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+        </TabsContent>
+
+        <TabsContent value="planning" className="m-0 space-y-4">
+          {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
+          {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
+        </TabsContent>
+
+        <TabsContent value="facturation" className="m-0 space-y-4">
+          <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />
+        </TabsContent>
+      </Tabs>
 
       <AbonnementActionsModal
         demande={actionState?.demande ?? null}
