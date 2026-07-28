@@ -121,7 +121,14 @@ export default function PlanningMoisPanel({
           {format(addMonths(monthRef, 1), "MMMM", { locale: fr })}<ChevronRight className="h-4 w-4 ml-1" />
         </Button>
         <span className="text-xs text-muted-foreground ml-2">{totalMois} intervention{totalMois > 1 ? "s" : ""} ce mois</span>
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Exemples visuels</span>
+        <Button
+          variant={showExamples ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => setShowExamples((v) => !v)}
+          className="text-[10px] h-7 px-2"
+        >
+          {showExamples ? "Masquer exemples" : "Afficher exemples"}
+        </Button>
 
         <div className="ml-auto flex items-center gap-2">
           <Select value={service} onValueChange={setService}>
