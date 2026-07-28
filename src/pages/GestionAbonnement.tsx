@@ -562,16 +562,19 @@ export default function GestionAbonnement() {
           {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
           {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF.length ? abosEcheanceF : (MOCK_ABOS_ECHEANCE(today) as any)} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
           {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF.length ? abosSuspendusF : (MOCK_ABOS_SUSPENDUS(today) as any)} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
+          {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
+          {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
         </TabsContent>
 
         <TabsContent value="planning" className="m-0 space-y-4">
-          <CycleFacturationPanel />
+          <PlanningMoisPanel getEntries={getPlanningEntries} services={servicesOptions} villes={villesOptions} />
         </TabsContent>
-
 
         <TabsContent value="facturation" className="m-0 space-y-4">
+          <CycleFacturationPanel />
           <FactureAGenererTable rows={facturesAGenererF.length ? facturesAGenererF : (MOCK_FACTURES_A_GENERER as any)} navigate={navigate} />
         </TabsContent>
+
       </Tabs>
 
       <AbonnementActionsModal
