@@ -37,17 +37,55 @@ export default function PlanningMoisPanel({
   const [service, setService] = useState("all");
   const [ville, setVille] = useState("all");
   const [commercial, setCommercial] = useState("all");
+  const [showExamples, setShowExamples] = useState(true);
 
   const monthStart = startOfMonth(monthRef);
   const monthEnd = endOfMonth(monthRef);
 
+  const exampleEntries = useMemo<PlanningEntry[]>(() => {
+    // Exemples visuels : terminé, annulé, reporté, à venir
+    const examples: PlanningEntry[] = [];
+    const servicesEx = ["Ménage", "Nettoyage vitres", "Repassage"];
+    const villesEx = ["Casablanca", "Rabat"];
+    const commerciauxEx = ["Kaoutar", "Mehdi", "Youssef"];
+    const statuts: PlanningStatut[] = ["termine", "termine", "annule", "a_recuperer", "a_venir"];
+    let idx = 0;
+    for (let d = 5; d <= 29; d += 2) {
+      const baseDate = new Date(monthRef.getFullYear(), monthRef.getMonth(), d);
+      const count = 3 + (idx % 4); // 3 à 6 interventions par jour
+      for (let k = 0; k < count; k++) {
+        examples.push({
+          date: baseDate,
+          service: servicesEx[(idx + k) % servicesEx.length],
+          ville: villesEx[(idx + k) % villesEx.length],
+          commercial: commerciauxEx[(idx + k) % commerciauxEx.length],
+          statut: statuts[(idx + k) % statuts.length],
+        });
+      }
+      idx++;
+    }
+    return examples;
+  }, [monthRef]);
+
   const cells = useMemo(() => {
-    const entries = getEntries(monthStart, monthEnd).filter(
+    let entries = getEntries(monthStart, monthEnd).filter(
       (e) =>
         (service === "all" || e.service === service) &&
         (ville === "all" || e.ville === ville) &&
         (commercial === "all" || e.commercial === commercial)
     );
+    // Fusionne des exemples visuels pour illustrer les statuts
+    if (showExamples) {
+      entries = [
+        ...entries,
+        ...exampleEntries.filter(
+          (e) =>
+            (service === "all" || e.service === service) &&
+            (ville === "all" || e.ville === ville) &&
+            (commercial === "all" || e.commercial === commercial)
+        ),
+      ];
+    }
     // grille : lundi -> dimanche
     const firstDow = (monthStart.getDay() + 6) % 7;
     const days: { date: Date | null; count: number; termine: number; annule: number; reporte: number }[] = [];
@@ -66,7 +104,7 @@ export default function PlanningMoisPanel({
     }
     while (days.length % 7 !== 0) days.push({ ...empty });
     return days;
-  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial]);
+  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial, exampleEntries, showExamples]);
 
 
   const totalMois = cells.reduce((s, c) => s + c.count, 0);
@@ -83,6 +121,14 @@ export default function PlanningMoisPanel({
           {format(addMonths(monthRef, 1), "MMMM", { locale: fr })}<ChevronRight className="h-4 w-4 ml-1" />
         </Button>
         <span className="text-xs text-muted-foreground ml-2">{totalMois} intervention{totalMois > 1 ? "s" : ""} ce mois</span>
+        <Button
+          variant={showExamples ? "secondary" : "outline"}
+          size="sm"
+          onClick={() => setShowExamples((v) => !v)}
+          className="text-[10px] h-7 px-2"
+        >
+          {showExamples ? "Masquer exemples" : "Afficher exemples"}
+        </Button>
 
         <div className="ml-auto flex items-center gap-2">
           <Select value={service} onValueChange={setService}>
