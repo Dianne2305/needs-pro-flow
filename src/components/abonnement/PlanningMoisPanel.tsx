@@ -104,7 +104,7 @@ export default function PlanningMoisPanel({
     }
     while (days.length % 7 !== 0) days.push({ ...empty });
     return days;
-  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial, exampleEntries]);
+  }, [getEntries, monthStart, monthEnd, monthRef, service, ville, commercial, exampleEntries, showExamples]);
 
 
   const totalMois = cells.reduce((s, c) => s + c.count, 0);
