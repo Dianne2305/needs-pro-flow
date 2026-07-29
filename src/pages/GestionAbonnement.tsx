@@ -593,10 +593,9 @@ export default function GestionAbonnement() {
         {mainTab === "abonnement" && (
         <div className="flex flex-wrap justify-center gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
           <KpiCard label="Actifs" value={abosActifs.length} icon={<CalendarCheck className="h-5 w-5" />} gradient="from-emerald-500 to-emerald-600" active={activeKpi==="actifs"} onClick={() => setActiveKpi("actifs")} />
-          <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" active={activeKpi==="echeance"} onClick={() => setActiveKpi("echeance")} />
-          <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" active={activeKpi==="suspendus"} onClick={() => setActiveKpi("suspendus")} />
           <KpiCard label="Aujourd'hui" value={interventionsToday.length} icon={<Sun className="h-5 w-5" />} gradient="from-cyan-500 to-cyan-600" active={activeKpi==="today"} onClick={() => setActiveKpi("today")} />
           <KpiCard label="Demain" value={interventionsTomorrow.length} icon={<Sunrise className="h-5 w-5" />} gradient="from-sky-500 to-blue-600" active={activeKpi==="tomorrow"} onClick={() => setActiveKpi("tomorrow")} />
+
         </div>
         )}
 
@@ -662,8 +661,6 @@ export default function GestionAbonnement() {
 
         <TabsContent value="abonnement" className="m-0 space-y-4">
           {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
-          {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF.length ? abosEcheanceF : (MOCK_ABOS_ECHEANCE(today) as any)} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
-          {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF.length ? abosSuspendusF : (MOCK_ABOS_SUSPENDUS(today) as any)} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
           {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
           {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
         </TabsContent>
@@ -673,7 +670,12 @@ export default function GestionAbonnement() {
         </TabsContent>
 
         <TabsContent value="facturation" className="m-0 space-y-4">
+          <div className="flex flex-wrap justify-center gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
+            <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
+            <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
+          </div>
           <CycleFacturationPanel />
+
 
         </TabsContent>
 
