@@ -971,6 +971,7 @@ function AbonnementTable({
               ) && !enRetard;
               const statutCourant = getStatutMoisEnCours(d, joursRestants, enRetard);
               const statutSuivant = getStatutMoisSuivant(d, paiementConfirme, today);
+              const statutFact = getStatutFacturation(paiementConfirme, today);
               const segment = getSegment(d);
 
               const nextDate = getNextIntervention(d, today);
