@@ -595,6 +595,7 @@ export default function GestionAbonnement() {
   const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
   const [filtreStatutMoisEnCours, setFiltreStatutMoisEnCours] = useState<StatutMoisFilter>("all");
   const [filtreStatutMoisSuivant, setFiltreStatutMoisSuivant] = useState<StatutMoisFilter>("all");
+  const [filtreStatutFacturation, setFiltreStatutFacturation] = useState<StatutFactFilter>("all");
 
   const uniq = (arr: (string | null | undefined)[]) =>
     Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
