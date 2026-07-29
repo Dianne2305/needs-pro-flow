@@ -837,7 +837,8 @@ function AbonnementTable({
               <TableHead>Fréq / Jours</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead>Statut mois en cours</TableHead>
+              <TableHead>Statut mois à venir</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
