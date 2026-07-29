@@ -84,7 +84,9 @@ export default function CycleFacturationPanel() {
   const [statut, setStatut] = useState("all");
   const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
-  const jour = today.getDate();
+  const [simuJour, setSimuJour] = useState("auto");
+  const jour = simuJour === "auto" ? today.getDate() : Number(simuJour);
+
   const [paiements, setPaiements] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
   );
