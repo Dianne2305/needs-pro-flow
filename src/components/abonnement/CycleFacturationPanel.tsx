@@ -31,6 +31,8 @@ type FactureLigne = {
   paiementConfirme?: boolean;
 };
 
+type StatutFacturationFilter = "all" | "Facture générée" | "En attente" | "Payé" | "Non payé";
+
 const LIGNES: FactureLigne[] = [
   { reference: "AM/F118/2026", client: "Sofia BENNANI", periode: "Juillet", montant: 1944, statut: "Envoyée — éch. 20/06", ton: "info", action: "Relancer", actionVariant: "outline" },
   { reference: "AM/F121/2026", client: "SMILE+ (bureaux)", periode: "Juillet", montant: 2851, statut: "Payée le 17/06", ton: "ok", action: "Reçu", actionVariant: "outline", paiementConfirme: true },
