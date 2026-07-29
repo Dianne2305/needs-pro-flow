@@ -198,17 +198,19 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une facture…" className="pl-8" />
         </div>
-        <Select value={statut} onValueChange={setStatut}>
-          <SelectTrigger className="w-[210px]"><SelectValue placeholder="Statut : Tous" /></SelectTrigger>
-          <SelectContent className="bg-popover z-50">
-            <SelectItem value="all">Statut : Tous</SelectItem>
-            <SelectItem value="Non généré">Non généré</SelectItem>
-            <SelectItem value="Facture générée">Facture générée</SelectItem>
-            <SelectItem value="En attente de règlement">En attente de règlement</SelectItem>
-            <SelectItem value="Payé">Payé</SelectItem>
-            <SelectItem value="Non payé">Non payé</SelectItem>
-          </SelectContent>
-        </Select>
+        {!statutFilter && (
+          <Select value={statut} onValueChange={setInternalStatut}>
+            <SelectTrigger className="w-[210px]"><SelectValue placeholder="Statut : Tous" /></SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              <SelectItem value="all">Statut : Tous</SelectItem>
+              <SelectItem value="Non généré">Non généré</SelectItem>
+              <SelectItem value="Facture générée">Facture générée</SelectItem>
+              <SelectItem value="En attente de règlement">En attente de règlement</SelectItem>
+              <SelectItem value="Payé">Payé</SelectItem>
+              <SelectItem value="Non payé">Non payé</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
 
         <Select value={simuJour} onValueChange={setSimuJour}>
           <SelectTrigger className="w-[240px]"><SelectValue /></SelectTrigger>
