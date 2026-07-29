@@ -664,6 +664,18 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="min-w-[160px]">
+              <Label className="text-xs">Statut</Label>
+              <Select value={filtreStatut} onValueChange={(v) => setFiltreStatut(v as StatutFilter)}>
+                <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="actif">Actif</SelectItem>
+                  <SelectItem value="echeance">À échéance</SelectItem>
+                  <SelectItem value="suspendu">Suspendu</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
             )}
