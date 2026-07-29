@@ -559,6 +559,7 @@ export default function GestionAbonnement() {
   const [filtreService, setFiltreService] = useState("all");
   const [filtreCommercial, setFiltreCommercial] = useState("all");
   const [filtreVille, setFiltreVille] = useState("all");
+  const [filtreMois, setFiltreMois] = useState("all");
   const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
   const [filtreStatutMoisEnCours, setFiltreStatutMoisEnCours] = useState<StatutMoisFilter>("all");
   const [filtreStatutMoisSuivant, setFiltreStatutMoisSuivant] = useState<StatutMoisFilter>("all");
