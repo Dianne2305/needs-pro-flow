@@ -75,11 +75,11 @@ export default function CycleFacturationPanel() {
 
 
   const etapes: Etape[] = [
-    { titre: "15 juin", l1: "Génération auto", l2: "des factures" },
-    { titre: "15 → 18", l1: "Envoi WhatsApp", l2: "+ email + planning" },
-    { titre: "20 juin", l1: "Échéance", l2: "paiement virement" },
-    { titre: "J+5 / J+10", l1: "Rappel puis mise", l2: "en demeure auto" },
-    { titre: "J+15", l1: "Suspension", l2: "de la prestation" },
+    { titre: "15 du mois — 08h00", l1: "Génération auto", l2: "des factures" },
+    { titre: "15 du mois", l1: "Envoi automatique", l2: "WhatsApp + email" },
+    { titre: "18 du mois", l1: "1er rappel", l2: "WhatsApp" },
+    { titre: "23 du mois", l1: "2ème rappel", l2: "WhatsApp" },
+    { titre: "27 du mois", l1: "Suspension auto", l2: "+ notification CC" },
   ];
 
   const rows = useMemo(() => {
