@@ -953,6 +953,7 @@ function AbonnementTable({
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut mois en cours</TableHead>
+              <TableHead>Statut facturation</TableHead>
               <TableHead>Statut mois à venir</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
