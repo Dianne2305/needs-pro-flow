@@ -88,11 +88,12 @@ export default function CycleFacturationPanel({ statutFilter, moisFilter }: { st
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [internalStatut, setInternalStatut] = useState("all");
-  const statut = statutFilter ?? internalStatut;
+  const [cardFilter, setCardFilter] = useState<string | null>(null);
+  const statut = cardFilter ?? statutFilter ?? internalStatut;
   const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
-  const [simuJour, setSimuJour] = useState("auto");
-  const jour = simuJour === "auto" ? today.getDate() : Number(simuJour);
+  const jour = today.getDate();
+
 
   const [paiements, setPaiements] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
@@ -193,27 +194,27 @@ export default function CycleFacturationPanel({ statutFilter, moisFilter }: { st
 
       {/* Voyants */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Factures générées</p>
-          <p className="text-3xl font-bold mt-1">47</p>
-          <p className="text-[11px] text-muted-foreground mt-1">62 180 DH TTC au total</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">Payées</p>
-          <p className="text-3xl font-bold mt-1 text-emerald-600">38</p>
-          <p className="text-[11px] text-muted-foreground mt-1">52 480 DH encaissés</p>
-        </Card>
-        <Card className="p-4">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">En attente (éch. 20/06)</p>
-          <p className="text-3xl font-bold mt-1 text-amber-600">6</p>
-          <p className="text-[11px] text-muted-foreground mt-1">4 850 DH</p>
-        </Card>
-        <Card className="p-4 border-rose-200 bg-rose-50/40">
-          <p className="text-[11px] uppercase tracking-wide text-rose-700 font-semibold">En retard</p>
-          <p className="text-3xl font-bold mt-1 text-rose-600">3</p>
-          <p className="text-[11px] text-muted-foreground mt-1">1 relance · 1 mise en demeure · 1 suspension</p>
-        </Card>
+        {[
+          { key: "Facture générée", label: "Factures générées", value: "47", sub: "62 180 DH TTC au total", color: "" },
+          { key: "Payé", label: "Payées", value: "38", sub: "52 480 DH encaissés", color: "text-emerald-600" },
+          { key: "En attente de règlement", label: "En attente (éch. 20/06)", value: "6", sub: "4 850 DH", color: "text-amber-600" },
+          { key: "Non payé", label: "Non payé", value: "3", sub: "1 relance · 1 mise en demeure · 1 suspension", color: "text-rose-600" },
+        ].map((c) => {
+          const actif = cardFilter === c.key;
+          return (
+            <Card
+              key={c.key}
+              onClick={() => setCardFilter(actif ? null : c.key)}
+              className={`p-4 cursor-pointer transition-shadow hover:shadow-md ${actif ? "ring-2 ring-primary" : ""} ${c.key === "Non payé" ? "border-rose-200 bg-rose-50/40" : ""}`}
+            >
+              <p className={`text-[11px] uppercase tracking-wide font-semibold ${c.key === "Non payé" ? "text-rose-700" : "text-muted-foreground"}`}>{c.label}</p>
+              <p className={`text-3xl font-bold mt-1 ${c.color}`}>{c.value}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{c.sub}</p>
+            </Card>
+          );
+        })}
       </div>
+
 
       {/* Barre de recherche */}
       <div className="flex flex-wrap items-center gap-2">
@@ -235,24 +236,10 @@ export default function CycleFacturationPanel({ statutFilter, moisFilter }: { st
           </Select>
         )}
 
-        <Select value={simuJour} onValueChange={setSimuJour}>
-          <SelectTrigger className="w-[240px]"><SelectValue /></SelectTrigger>
-          <SelectContent className="bg-popover z-50">
-            <SelectItem value="auto">Aperçu : jour réel ({today.getDate()})</SelectItem>
-            <SelectItem value="10">Le 10 — Non généré</SelectItem>
-            <SelectItem value="15">Le 15 — Facture générée</SelectItem>
-            <SelectItem value="20">Le 20 — En attente de règlement</SelectItem>
-            <SelectItem value="27">Le 27 — Payé / Non payé</SelectItem>
-          </SelectContent>
-        </Select>
         <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />Export Excel</Button>
       </div>
 
-      {simuJour !== "auto" && (
-        <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-          Mode aperçu UX : les statuts sont simulés au jour {jour} du cycle. Le système appliquera automatiquement la même logique à la date réelle.
-        </p>
-      )}
+
 
 
       {/* Table */}
