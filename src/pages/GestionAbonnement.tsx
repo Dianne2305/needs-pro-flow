@@ -850,11 +850,11 @@ function AbonnementTable({
               const enRetard = impaye > 0;
               const statut: "actif" | "echeance" | "suspendu" =
                 forceStatut ?? (d.statut === "suspendu" ? "suspendu" : enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 15 ? "echeance" : "actif"));
-              const statutMeta = {
-                actif: { dot: "bg-emerald-500", label: "Actif", cls: "bg-emerald-100 text-emerald-800" },
-                echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
-                suspendu: { dot: "bg-red-500", label: "Suspendu", cls: "bg-red-100 text-red-800" },
-              }[statut];
+              const paiementConfirme = facturations.some(
+                (f) => f.demande_id === d.id && ["paye", "agence_payee_client", "profil_paye_client"].includes(f.statut_paiement),
+              ) && !enRetard;
+              const statutCourant = getStatutMoisEnCours(d, joursRestants, enRetard);
+              const statutSuivant = getStatutMoisSuivant(d, paiementConfirme, today);
               const segment = getSegment(d);
 
               const nextDate = getNextIntervention(d, today);
