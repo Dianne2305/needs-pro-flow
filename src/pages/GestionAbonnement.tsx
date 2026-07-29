@@ -69,8 +69,25 @@ function formatJoursPassage(d: Demande): string {
   const joursStr = consecutive
     ? `${JOUR_LABELS[sorted[0]]}-${JOUR_LABELS[sorted[sorted.length - 1]]}`
     : sorted.map((j) => JOUR_LABELS[j] || j).join(", ");
-  const heures = d.duree_heures ? `${d.duree_heures}h` : "";
-  return heures ? `${joursStr} . ${heures}` : joursStr;
+
+  // Heure de début + durée → heure de fin
+  const debut = d.heure_prestation || (d as any).heure_debut;
+  let heureRange = "";
+  if (debut && d.duree_heures) {
+    const [h, m] = debut.split(":").map(Number);
+    const startMin = (h || 0) * 60 + (m || 0);
+    const endMin = startMin + Number(d.duree_heures) * 60;
+    const endH = Math.floor(endMin / 60) % 24;
+    const endM = endMin % 60;
+    const endStr = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+    heureRange = `${debut}-${endStr}`;
+  } else if (debut) {
+    heureRange = debut;
+  } else if (d.duree_heures) {
+    heureRange = `${d.duree_heures}h`;
+  }
+
+  return heureRange ? `${joursStr} . ${heureRange}` : joursStr;
 }
 
 
