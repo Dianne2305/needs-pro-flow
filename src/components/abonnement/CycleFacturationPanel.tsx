@@ -102,13 +102,13 @@ export default function CycleFacturationPanel() {
 
         <div className="relative">
           <div className="absolute left-0 right-0 top-0 h-[3px] rounded-full bg-muted" />
-          <div className="absolute left-0 top-0 h-[3px] w-[52%] rounded-full bg-primary" />
-          <div className="absolute top-[-22px] left-[52%] -translate-x-1/2">
+          <div className="absolute left-0 top-0 h-[3px] rounded-full bg-primary" style={{ width: `${Math.min(100, (today.getDate() / 31) * 100)}%` }} />
+          <div className="absolute top-[-22px] -translate-x-1/2" style={{ left: `${Math.min(100, (today.getDate() / 31) * 100)}%` }}>
             <span className="rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-[11px] font-semibold px-2 py-0.5 whitespace-nowrap">
               Aujourd'hui - {format(today, "d")}
             </span>
           </div>
-          <div className="absolute top-[-4px] left-[52%] -translate-x-1/2 h-[11px] w-[11px] rounded-full bg-amber-400 border-2 border-background" />
+          <div className="absolute top-[-4px] -translate-x-1/2 h-[11px] w-[11px] rounded-full bg-amber-400 border-2 border-background" style={{ left: `${Math.min(100, (today.getDate() / 31) * 100)}%` }} />
 
           <div className="grid grid-cols-5 pt-5 text-center">
             {etapes.map((e) => (
