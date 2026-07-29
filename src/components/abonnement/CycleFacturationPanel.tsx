@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Download, Settings2, FileText } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Download, Settings2, FileText, MoreHorizontal, CheckCircle2, Eye, Send } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 
@@ -281,20 +282,46 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant={paiements[key] ? "outline" : "default"}
-                      onClick={() => {
-                        setPaiements((p) => ({ ...p, [key]: !p[key] }));
-                        toast.success(paiements[key] ? "Paiement annulé" : "Paiement confirmé — statut : Payé");
-                      }}
-                    >
-                      {paiements[key] ? "Annuler paiement" : "Confirmer paiement"}
-                    </Button>
-                    <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" variant="outline" className="h-8 px-2">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-popover z-50 w-56">
+                      {sf.label === "Payé" ? (
+                        <>
+                          <DropdownMenuItem disabled className="opacity-100 text-emerald-700 font-medium">
+                            <CheckCircle2 className="h-4 w-4 mr-2" />Paiement effectué
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toast.info(`Dossier ${l.client}`)}>
+                            <Eye className="h-4 w-4 mr-2" />Voir le dossier
+                          </DropdownMenuItem>
+                        </>
+                      ) : (
+                        <>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setPaiements((p) => ({ ...p, [key]: true }));
+                              toast.success("Paiement confirmé — statut : Payé");
+                            }}
+                          >
+                            <CheckCircle2 className="h-4 w-4 mr-2" />Confirmer paiement
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => toast.info(`Dossier ${l.client}`)}>
+                            <Eye className="h-4 w-4 mr-2" />Voir le dossier
+                          </DropdownMenuItem>
+                          {sf.label === "En attente de règlement" && (
+                            <DropdownMenuItem onClick={() => toast.success(`Relance envoyée à ${l.client}`)}>
+                              <Send className="h-4 w-4 mr-2" />Relancer
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
+
               </TableRow>
             ))}
 
