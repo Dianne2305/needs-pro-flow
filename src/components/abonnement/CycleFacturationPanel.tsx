@@ -194,16 +194,17 @@ export default function CycleFacturationPanel() {
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une facture…" className="pl-8" />
         </div>
         <Select value={statut} onValueChange={setStatut}>
-          <SelectTrigger className="w-[170px]"><SelectValue placeholder="Statut : Tous" /></SelectTrigger>
+          <SelectTrigger className="w-[210px]"><SelectValue placeholder="Statut : Tous" /></SelectTrigger>
           <SelectContent className="bg-popover z-50">
             <SelectItem value="all">Statut : Tous</SelectItem>
-            <SelectItem value="ok">Payées</SelectItem>
-            <SelectItem value="info">Envoyées</SelectItem>
-            <SelectItem value="warn">En retard</SelectItem>
-            <SelectItem value="danger">Suspendues</SelectItem>
-            <SelectItem value="neutre">Brouillons</SelectItem>
+            <SelectItem value="Non généré">Non généré</SelectItem>
+            <SelectItem value="Facture générée">Facture générée</SelectItem>
+            <SelectItem value="En attente de règlement">En attente de règlement</SelectItem>
+            <SelectItem value="Payé">Payé</SelectItem>
+            <SelectItem value="Non payé">Non payé</SelectItem>
           </SelectContent>
         </Select>
+
         <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />Export Excel</Button>
       </div>
 
