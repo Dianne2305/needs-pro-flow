@@ -48,6 +48,31 @@ const FREQ_LABEL: Record<string, string> = {
   "bi-hebdomadaire": "Bi-hebdo", "hebdomadaire": "Hebdo", "mensuel": "Mensuel", "abonnement": "Abonnement",
 };
 
+const JOUR_LABELS: Record<string, string> = {
+  lundi: "Lun", mardi: "Mar", mercredi: "Mer", jeudi: "Jeu", vendredi: "Ven", samedi: "Sam", dimanche: "Dim",
+};
+const JOUR_ORDER = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+function formatJoursPassage(d: Demande): string {
+  const p = ((d as any).planning || {}) as any;
+  const aboJours: { jour: string }[] = Array.isArray(p?.abo_jours)
+    ? p.abo_jours
+    : Array.isArray(p?.jours)
+      ? p.jours.map((j: any) => (typeof j === "string" ? { jour: j } : j))
+      : [];
+  const selected = aboJours.map((j) => j.jour).filter(Boolean);
+  if (!selected.length) return "—";
+  const sorted = [...new Set(selected)].sort((a, b) => JOUR_ORDER.indexOf(a) - JOUR_ORDER.indexOf(b));
+  // Si les jours sont consécutifs, affiche Lun-Jeu ; sinon Lun, Mer…
+  const idxs = sorted.map((j) => JOUR_ORDER.indexOf(j));
+  const consecutive = idxs.length > 1 && idxs.every((v, i) => i === 0 || v === idxs[i - 1] + 1);
+  if (consecutive) {
+    return `${JOUR_LABELS[sorted[0]]}-${JOUR_LABELS[sorted[sorted.length - 1]]}`;
+  }
+  return sorted.map((j) => JOUR_LABELS[j] || j).join(", ");
+}
+
+
 function getInitials(name?: string | null): string {
   if (!name) return "—";
   return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
