@@ -84,7 +84,7 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
 };
 
 
-export default function CycleFacturationPanel({ statutFilter }: { statutFilter?: StatutFacturationFilter }) {
+export default function CycleFacturationPanel({ statutFilter, moisFilter }: { statutFilter?: StatutFacturationFilter; moisFilter?: string }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [internalStatut, setInternalStatut] = useState("all");
@@ -154,9 +154,10 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
       const okQ = !q || l.client.toLowerCase().includes(q) || l.reference.toLowerCase().includes(q);
       const mappedStatut = statut === "En attente" ? "En attente de règlement" : statut;
       const okS = statut === "all" || sf.label === mappedStatut;
-      return okQ && okS;
+      const okM = !moisFilter || moisFilter === "all" || l.periode === moisFilter;
+      return okQ && okS && okM;
     });
-  }, [search, statut, paiements, jour]);
+  }, [search, statut, moisFilter, paiements, jour]);
 
 
   return (

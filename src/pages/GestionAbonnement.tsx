@@ -559,6 +559,7 @@ export default function GestionAbonnement() {
   const [filtreService, setFiltreService] = useState("all");
   const [filtreCommercial, setFiltreCommercial] = useState("all");
   const [filtreVille, setFiltreVille] = useState("all");
+  const [filtreMois, setFiltreMois] = useState("all");
   const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
   const [filtreStatutMoisEnCours, setFiltreStatutMoisEnCours] = useState<StatutMoisFilter>("all");
   const [filtreStatutMoisSuivant, setFiltreStatutMoisSuivant] = useState<StatutMoisFilter>("all");
@@ -660,8 +661,8 @@ export default function GestionAbonnement() {
   const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, ...deps]);
   const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFacture(f) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, ...deps]);
 
-  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); setFiltreStatutFacturation("all"); };
-  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all" || filtreStatutFacturation !== "all";
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreMois("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); setFiltreStatutFacturation("all"); };
+  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreMois !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all" || filtreStatutFacturation !== "all";
 
 
   return (
@@ -741,16 +742,31 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="min-w-[150px]">
-              <Label className="text-xs">Ville</Label>
-              <Select value={filtreVille} onValueChange={setFiltreVille}>
-                <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Toutes les villes</SelectItem>
-                  {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {mainTab === "facturation" ? (
+              <div className="min-w-[150px]">
+                <Label className="text-xs">Mois</Label>
+                <Select value={filtreMois} onValueChange={setFiltreMois}>
+                  <SelectTrigger><SelectValue placeholder="Tous les mois" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Tous les mois</SelectItem>
+                    <SelectItem value="Juillet">Juillet</SelectItem>
+                    <SelectItem value="Juin">Juin</SelectItem>
+                    <SelectItem value="Sem. 25">Sem. 25</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="min-w-[150px]">
+                <Label className="text-xs">Ville</Label>
+                <Select value={filtreVille} onValueChange={setFiltreVille}>
+                  <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Toutes les villes</SelectItem>
+                    {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {mainTab === "facturation" && (
               <div className="min-w-[180px]">
                 <Label className="text-xs">Statut</Label>
@@ -836,7 +852,7 @@ export default function GestionAbonnement() {
             <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
             <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
           </div>
-          <CycleFacturationPanel statutFilter={filtreStatutFacturation} />
+          <CycleFacturationPanel statutFilter={filtreStatutFacturation} moisFilter={filtreMois} />
 
 
         </TabsContent>
