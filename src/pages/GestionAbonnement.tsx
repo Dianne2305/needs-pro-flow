@@ -114,6 +114,67 @@ function commercialColor(name: string): string {
 }
 
 
+/* ---------- Statuts mois en cours / mois à venir ---------- */
+type StatutMeta = { label: string; cls: string; dot: string; hint?: string };
+
+const STATUT_ABO_META: Record<string, StatutMeta> = {
+  actif: { label: "Actif", cls: "bg-emerald-100 text-emerald-800", dot: "bg-emerald-500" },
+  termine: { label: "Terminé", cls: "bg-slate-100 text-slate-700", dot: "bg-slate-400" },
+  suspendu: { label: "Suspendu", cls: "bg-red-100 text-red-800", dot: "bg-red-500" },
+  resilie: { label: "Résilié", cls: "bg-rose-100 text-rose-800", dot: "bg-rose-500" },
+  standby: { label: "Stand by", cls: "bg-violet-100 text-violet-800", dot: "bg-violet-500" },
+  facture_envoyee: { label: "Facture envoyée", cls: "bg-sky-100 text-sky-800", dot: "bg-sky-500" },
+  rappel1: { label: "1er rappel", cls: "bg-amber-100 text-amber-800", dot: "bg-amber-500" },
+  rappel2: { label: "2e rappel", cls: "bg-orange-100 text-orange-800", dot: "bg-orange-500" },
+  attente: { label: "En attente", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+};
+
+/** Statut du mois en cours : Résilié / Stand by / Suspendu / Terminé / Actif */
+function getStatutMoisEnCours(
+  d: Demande,
+  joursRestants: number | null,
+  impaye: boolean,
+): StatutMeta & { key: string } {
+  const p = ((d as any).planning || {}) as any;
+  const s = String(d.statut || "");
+  let key = "actif";
+  if (["resilie", "resiliee", "annulee", "cloturee"].includes(s)) key = "resilie";
+  else if (p.standby_reactivation) key = "standby";
+  else if (s === "suspendu") key = "suspendu";
+  else if (joursRestants !== null && joursRestants < 0) key = "termine";
+  else if (impaye && new Date().getDate() >= 27) key = "suspendu";
+  const meta = STATUT_ABO_META[key];
+  const hint =
+    key === "standby" ? `Réactivation le ${p.standby_reactivation}` :
+    key === "termine" ? "Abonnement arrivé à son terme" : undefined;
+  return { ...meta, key, hint };
+}
+
+/**
+ * Statut du mois à venir : piloté par le calendrier de relance.
+ * 15 → facture envoyée · 18 → 1er rappel · 23 → 2e rappel · 27 → Suspendu.
+ * Si le commercial confirme le paiement → Actif.
+ */
+function getStatutMoisSuivant(
+  d: Demande,
+  paiementConfirme: boolean,
+  today: Date,
+): StatutMeta & { key: string } {
+  const p = ((d as any).planning || {}) as any;
+  const s = String(d.statut || "");
+  if (["resilie", "resiliee", "annulee"].includes(s)) return { ...STATUT_ABO_META.resilie, key: "resilie" };
+  if (p.standby_reactivation) {
+    return { ...STATUT_ABO_META.standby, key: "standby", hint: `Relance prévue le ${p.standby_reactivation}` };
+  }
+  if (paiementConfirme) return { ...STATUT_ABO_META.actif, key: "actif", hint: "Paiement confirmé par le commercial" };
+  const jour = today.getDate();
+  if (jour >= 27) return { ...STATUT_ABO_META.suspendu, key: "suspendu", hint: "Facture non payée au 27 du mois" };
+  if (jour >= 23) return { ...STATUT_ABO_META.rappel2, key: "rappel2", hint: "2e rappel envoyé le 23" };
+  if (jour >= 18) return { ...STATUT_ABO_META.rappel1, key: "rappel1", hint: "1er rappel envoyé le 18" };
+  if (jour >= 15) return { ...STATUT_ABO_META.facture_envoyee, key: "facture_envoyee", hint: "Facture envoyée le 15" };
+  return { ...STATUT_ABO_META.attente, key: "attente", hint: "Facture envoyée le 15 du mois" };
+}
+
 
 function getSegment(d: Demande): "entreprise" | "particulier" {
   return d.nom_entreprise ? "entreprise" : "particulier";
@@ -776,7 +837,8 @@ function AbonnementTable({
               <TableHead>Fréq / Jours</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead>Statut mois en cours</TableHead>
+              <TableHead>Statut mois à venir</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -788,11 +850,11 @@ function AbonnementTable({
               const enRetard = impaye > 0;
               const statut: "actif" | "echeance" | "suspendu" =
                 forceStatut ?? (d.statut === "suspendu" ? "suspendu" : enRetard ? "suspendu" : (joursRestants !== null && joursRestants <= 15 ? "echeance" : "actif"));
-              const statutMeta = {
-                actif: { dot: "bg-emerald-500", label: "Actif", cls: "bg-emerald-100 text-emerald-800" },
-                echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
-                suspendu: { dot: "bg-red-500", label: "Suspendu", cls: "bg-red-100 text-red-800" },
-              }[statut];
+              const paiementConfirme = facturations.some(
+                (f) => f.demande_id === d.id && ["paye", "agence_payee_client", "profil_paye_client"].includes(f.statut_paiement),
+              ) && !enRetard;
+              const statutCourant = getStatutMoisEnCours(d, joursRestants, enRetard);
+              const statutSuivant = getStatutMoisSuivant(d, paiementConfirme, today);
               const segment = getSegment(d);
 
               const nextDate = getNextIntervention(d, today);
@@ -888,12 +950,29 @@ function AbonnementTable({
                       </div>
                     ) : <span className="text-muted-foreground">—</span>}
                   </TableCell>
-                  {/* Statut pastille */}
+                  {/* Statut mois en cours */}
                   <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`h-2.5 w-2.5 rounded-full ${statutMeta.dot}`} />
-                      <Badge className={statutMeta.cls}>{statutMeta.label}</Badge>
-                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-2.5 w-2.5 rounded-full ${statutCourant.dot}`} />
+                          <Badge className={statutCourant.cls}>{statutCourant.label}</Badge>
+                        </div>
+                      </TooltipTrigger>
+                      {statutCourant.hint && <TooltipContent>{statutCourant.hint}</TooltipContent>}
+                    </Tooltip>
+                  </TableCell>
+                  {/* Statut mois à venir */}
+                  <TableCell>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-2.5 w-2.5 rounded-full ${statutSuivant.dot}`} />
+                          <Badge className={statutSuivant.cls}>{statutSuivant.label}</Badge>
+                        </div>
+                      </TooltipTrigger>
+                      {statutSuivant.hint && <TooltipContent>{statutSuivant.hint}</TooltipContent>}
+                    </Tooltip>
                   </TableCell>
                   {/* Actions */}
                   {/* Actions */}
