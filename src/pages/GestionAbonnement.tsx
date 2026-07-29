@@ -687,7 +687,7 @@ function AbonnementTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Com.</TableHead>
+              <TableHead className="w-[70px] text-center">Com.</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Type de service</TableHead>
 
@@ -721,15 +721,17 @@ function AbonnementTable({
 
               return (
                 <TableRow key={d.id}>
-                  {/* Commercial : pastille colorée + nom */}
-                  <TableCell>
+                  {/* Commercial : pastille ronde avec initiales (tooltip = nom complet) */}
+                  <TableCell className="text-center">
                     {commercial ? (
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full text-white text-xs font-semibold shrink-0 ${commercialColor(commercial)}`}>
-                          {getInitials(commercial).charAt(0)}
-                        </span>
-                        <span className="text-sm">{commercial}</span>
-                      </div>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className={`inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold ${commercialColor(commercial)}`}>
+                            {getInitials(commercial)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{commercial}</TooltipContent>
+                      </Tooltip>
                     ) : <span className="text-muted-foreground text-xs">—</span>}
                   </TableCell>
                   {/* Client + icône segment + quartier/ville */}
