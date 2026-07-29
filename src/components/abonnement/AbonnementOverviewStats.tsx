@@ -23,22 +23,6 @@ const buildStats = (abosActifs: number): StatCard[] => [
     label: "Nouveaux ce mois",
     value: "5",
     hint: "dont 3 avec code promo",
-    badge: { text: "+2", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  },
-  {
-    label: "Impayés en cours",
-    value: "3",
-    hint: "4 850 DH — 1 suspension J+15",
-    valueClass: "text-destructive",
-    cardClass: "border-destructive/30 bg-destructive/5",
-    badge: { icon: "alert", className: "bg-destructive/10 text-destructive border-destructive/20" },
-  },
-  {
-    label: "Clients à risque",
-    value: "4",
-    hint: "≥2 reports sur 60 jours",
-    valueClass: "text-amber-600",
-    badge: { text: "churn", className: "bg-amber-50 text-amber-700 border-amber-200" },
   },
   {
     label: "Passages cette semaine",
@@ -65,7 +49,7 @@ export default function AbonnementOverviewStats({ abosActifs = 3 }: { abosActifs
       </div>
 
       {/* Cartes statistiques */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {STATS.map((s) => (
           <Card key={s.label} className={`p-3 ${s.cardClass ?? ""}`}>
             <div className="flex items-start justify-between gap-2">
