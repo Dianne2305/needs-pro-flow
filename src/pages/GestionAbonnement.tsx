@@ -88,7 +88,9 @@ function formatJoursPassage(d: Demande): string {
     heureRange = `${d.duree_heures}h`;
   }
 
-  return heureRange ? `${joursStr} . ${heureRange}` : joursStr;
+  const dureeStr = `${d.duree_heures || 6}h`;
+  const base = `${dureeStr} ${joursStr}`;
+  return heureRange ? `${base} . ${heureRange}` : base;
 }
 
 
@@ -97,12 +99,20 @@ function getInitials(name?: string | null): string {
   return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
 }
 
+const COMMERCIAUX_DEFAUT = ["Kaoutar Bennani", "Mehdi Alaoui", "Youssef Idrissi", "Salma Tazi"];
+function defaultCommercial(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
+  return COMMERCIAUX_DEFAUT[h % COMMERCIAUX_DEFAUT.length];
+}
+
 const COMMERCIAL_COLORS = ["bg-purple-600", "bg-blue-600", "bg-amber-600", "bg-emerald-600", "bg-rose-600", "bg-cyan-600"];
 function commercialColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997;
   return COMMERCIAL_COLORS[h % COMMERCIAL_COLORS.length];
 }
+
 
 
 function getSegment(d: Demande): "entreprise" | "particulier" {
@@ -761,7 +771,7 @@ function AbonnementTable({
 
               const nextDate = getNextIntervention(d, today);
               const progressPct = stats.total > 0 ? Math.round((stats.effectuees / stats.total) * 100) : 0;
-              const commercial = d.commercial || d.commercial_createur || "";
+              const commercial = d.commercial || d.commercial_createur || defaultCommercial(String(d.id));
               const freqLabel = d.frequence ? (FREQ_LABEL[d.frequence] || d.frequence) : "—";
 
               return (
