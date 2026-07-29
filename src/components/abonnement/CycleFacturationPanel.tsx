@@ -84,6 +84,11 @@ export default function CycleFacturationPanel() {
   const [statut, setStatut] = useState("all");
   const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
+  const jour = today.getDate();
+  const [paiements, setPaiements] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
+  );
+
 
   const genererFacture = (l: FactureLigne, i: number) => {
     const ref = l.reference === "—" ? `BROUILLON-${i + 1}` : l.reference;
