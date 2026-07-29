@@ -716,7 +716,7 @@ function AbonnementTable({
               <TableHead>Client</TableHead>
               <TableHead>Type de service</TableHead>
 
-              <TableHead>Fréq / Dates</TableHead>
+              <TableHead>Fréq / Jours</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut</TableHead>
