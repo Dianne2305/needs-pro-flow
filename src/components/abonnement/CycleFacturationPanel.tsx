@@ -223,10 +223,11 @@ export default function CycleFacturationPanel() {
       <Card className="p-4 bg-sidebar text-sidebar-foreground border-sidebar-border">
         <p className="text-xs font-bold flex items-center gap-1.5 mb-2"><Settings2 className="h-3.5 w-3.5" />Automatismes de cette vue</p>
         <ul className="space-y-1 text-[11px] leading-relaxed opacity-90">
-          <li>· Génération des factures le <code className="px-1 rounded bg-white/10">15</code> à 08h00 — calcul auto du nombre de passages du mois suivant (4 ou 5 par jour choisi)</li>
-          <li>· Envoi groupé WhatsApp + email avec PDF facture + calendrier des passages entre le <code className="px-1 rounded bg-white/10">15</code> et le <code className="px-1 rounded bg-white/10">18</code></li>
-          <li>· Relances automatiques : <code className="px-1 rounded bg-white/10">J+5</code> rappel WhatsApp → <code className="px-1 rounded bg-white/10">J+10</code> mise en demeure email → <code className="px-1 rounded bg-white/10">J+15</code> suspension + notification CC</li>
-          <li>· L'auxiliaire de vie suit un cycle <strong>hebdomadaire</strong> (échéance mercredi) — même moteur, périodicité différente</li>
+          <li>· <code className="px-1 rounded bg-white/10">15 du mois — 08h00</code> : génération automatique des factures (calcul des passages 4 ou 5, PDF, calendrier des interventions)</li>
+          <li>· <code className="px-1 rounded bg-white/10">15 du mois</code> : envoi automatique WhatsApp, e-mail, facture PDF et calendrier des passages</li>
+          <li>· <code className="px-1 rounded bg-white/10">18 du mois</code> : 1er rappel WhatsApp</li>
+          <li>· <code className="px-1 rounded bg-white/10">23 du mois</code> : 2ème rappel WhatsApp</li>
+          <li>· <code className="px-1 rounded bg-white/10">27 du mois</code> : suspension automatique de la prestation + notification automatique au Chargé de Clientèle</li>
           <li>· Prorata automatique pour tout abonnement démarrant en cours de mois</li>
         </ul>
       </Card>
