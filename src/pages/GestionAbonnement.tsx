@@ -658,6 +658,17 @@ export default function GestionAbonnement() {
     return meta.key === filtreStatutMoisSuivant;
   };
 
+  const matchesStatutFacturation = (d: Demande) => {
+    if (filtreStatutFacturation === "all") return true;
+    const impaye = facturations
+      .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+      .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
+    const paiementConfirme = facturations.some(
+      (f) => f.demande_id === d.id && ["paye", "agence_payee_client", "profil_paye_client"].includes(f.statut_paiement),
+    ) && impaye === 0;
+    return getStatutFacturation(paiementConfirme, today).key === filtreStatutFacturation;
+  };
+
 
   const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
     if (!dateDu && !dateAu) return true;
