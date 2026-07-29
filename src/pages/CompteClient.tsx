@@ -343,6 +343,9 @@ export default function CompteClient() {
     if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
     const validStatut = ["actif", "suspendu", "pause"].includes(p.abo_statut) ? p.abo_statut : "actif";
     setAboStatut(validStatut as "actif" | "suspendu" | "pause");
+    if (p.abo_statut_mois_en_cours) setAboStatutMoisEnCours(p.abo_statut_mois_en_cours);
+    if (p.abo_statut_mois_prochain) setAboStatutMoisProchain(p.abo_statut_mois_prochain);
+    if (p.abo_statut_facturation) setAboStatutFacturation(p.abo_statut_facturation);
     setAboFormInitialized(true);
 
   }
