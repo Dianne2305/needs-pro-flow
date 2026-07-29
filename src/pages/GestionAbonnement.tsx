@@ -550,6 +550,7 @@ export default function GestionAbonnement() {
   type MainTab = "abonnement" | "planning" | "facturation";
   type StatutFilter = "all" | "actif" | "echeance" | "suspendu";
   type StatutMoisFilter = "all" | "actif" | "termine" | "suspendu" | "resilie" | "standby" | "facture_envoyee" | "rappel1" | "rappel2" | "attente";
+  type StatutFacturationFilter = "all" | "Facture générée" | "En attente" | "Payé" | "Non payé";
   const [mainTab, setMainTab] = useState<MainTab>("abonnement");
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
@@ -561,6 +562,7 @@ export default function GestionAbonnement() {
   const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
   const [filtreStatutMoisEnCours, setFiltreStatutMoisEnCours] = useState<StatutMoisFilter>("all");
   const [filtreStatutMoisSuivant, setFiltreStatutMoisSuivant] = useState<StatutMoisFilter>("all");
+  const [filtreStatutFacturation, setFiltreStatutFacturation] = useState<StatutFacturationFilter>("all");
 
   const uniq = (arr: (string | null | undefined)[]) =>
     Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
