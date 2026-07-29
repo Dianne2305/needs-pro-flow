@@ -751,49 +751,69 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="min-w-[160px]">
-              <Label className="text-xs">Statut</Label>
-              <Select value={filtreStatut} onValueChange={(v) => setFiltreStatut(v as StatutFilter)}>
-                <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="actif">Actif</SelectItem>
-                  <SelectItem value="echeance">À échéance</SelectItem>
-                  <SelectItem value="suspendu">Suspendu</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="min-w-[170px]">
-              <Label className="text-xs">Statut mois en cours</Label>
-              <Select value={filtreStatutMoisEnCours} onValueChange={(v) => setFiltreStatutMoisEnCours(v as StatutMoisFilter)}>
-                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="actif">Actif</SelectItem>
-                  <SelectItem value="termine">Terminé</SelectItem>
-                  <SelectItem value="suspendu">Suspendu</SelectItem>
-                  <SelectItem value="resilie">Résilié</SelectItem>
-                  <SelectItem value="standby">Stand by</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="min-w-[170px]">
-              <Label className="text-xs">Statut mois à venir</Label>
-              <Select value={filtreStatutMoisSuivant} onValueChange={(v) => setFiltreStatutMoisSuivant(v as StatutMoisFilter)}>
-                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="actif">Actif</SelectItem>
-                  <SelectItem value="facture_envoyee">Facture envoyée</SelectItem>
-                  <SelectItem value="rappel1">1er rappel</SelectItem>
-                  <SelectItem value="rappel2">2e rappel</SelectItem>
-                  <SelectItem value="suspendu">Suspendu</SelectItem>
-                  <SelectItem value="standby">Stand by</SelectItem>
-                  <SelectItem value="resilie">Résilié</SelectItem>
-                  <SelectItem value="attente">En attente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {mainTab === "facturation" ? (
+              <div className="min-w-[180px]">
+                <Label className="text-xs">Statut</Label>
+                <Select value={filtreStatutFacturation} onValueChange={(v) => setFiltreStatutFacturation(v as StatutFacturationFilter)}>
+                  <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="Facture générée">Facture générée</SelectItem>
+                    <SelectItem value="En attente">En attente</SelectItem>
+                    <SelectItem value="Payé">Payé</SelectItem>
+                    <SelectItem value="Non payé">Non payé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="min-w-[160px]">
+                <Label className="text-xs">Statut</Label>
+                <Select value={filtreStatut} onValueChange={(v) => setFiltreStatut(v as StatutFilter)}>
+                  <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="actif">Actif</SelectItem>
+                    <SelectItem value="echeance">À échéance</SelectItem>
+                    <SelectItem value="suspendu">Suspendu</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {mainTab !== "facturation" && (
+              <>
+                <div className="min-w-[170px]">
+                  <Label className="text-xs">Statut mois en cours</Label>
+                  <Select value={filtreStatutMoisEnCours} onValueChange={(v) => setFiltreStatutMoisEnCours(v as StatutMoisFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="actif">Actif</SelectItem>
+                      <SelectItem value="termine">Terminé</SelectItem>
+                      <SelectItem value="suspendu">Suspendu</SelectItem>
+                      <SelectItem value="resilie">Résilié</SelectItem>
+                      <SelectItem value="standby">Stand by</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[170px]">
+                  <Label className="text-xs">Statut mois à venir</Label>
+                  <Select value={filtreStatutMoisSuivant} onValueChange={(v) => setFiltreStatutMoisSuivant(v as StatutMoisFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="actif">Actif</SelectItem>
+                      <SelectItem value="facture_envoyee">Facture envoyée</SelectItem>
+                      <SelectItem value="rappel1">1er rappel</SelectItem>
+                      <SelectItem value="rappel2">2e rappel</SelectItem>
+                      <SelectItem value="suspendu">Suspendu</SelectItem>
+                      <SelectItem value="standby">Stand by</SelectItem>
+                      <SelectItem value="resilie">Résilié</SelectItem>
+                      <SelectItem value="attente">En attente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
             )}
