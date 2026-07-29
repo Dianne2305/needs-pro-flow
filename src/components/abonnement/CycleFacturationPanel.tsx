@@ -131,7 +131,8 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
       return { l, i, key, sf: computeStatutFacturation(jour, !!paiements[key]) };
     }).filter(({ l, sf }) => {
       const okQ = !q || l.client.toLowerCase().includes(q) || l.reference.toLowerCase().includes(q);
-      const okS = statut === "all" || sf.label === statut;
+      const mappedStatut = statut === "En attente" ? "En attente de règlement" : statut;
+      const okS = statut === "all" || sf.label === mappedStatut;
       return okQ && okS;
     });
   }, [search, statut, paiements, jour]);
