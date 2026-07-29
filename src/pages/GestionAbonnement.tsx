@@ -487,6 +487,7 @@ export default function GestionAbonnement() {
   // Filtres
   type KpiKey = "actifs" | "echeance" | "suspendus" | "today" | "tomorrow" | "a-generer";
   type MainTab = "abonnement" | "planning" | "facturation";
+  type StatutFilter = "all" | "actif" | "echeance" | "suspendu";
   const [mainTab, setMainTab] = useState<MainTab>("abonnement");
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
@@ -495,6 +496,7 @@ export default function GestionAbonnement() {
   const [filtreService, setFiltreService] = useState("all");
   const [filtreCommercial, setFiltreCommercial] = useState("all");
   const [filtreVille, setFiltreVille] = useState("all");
+  const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
 
   const uniq = (arr: (string | null | undefined)[]) =>
     Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
@@ -524,6 +526,18 @@ export default function GestionAbonnement() {
     (filtreCommercial === "all" || f.commercial === filtreCommercial) &&
     (filtreVille === "all" || f.ville === filtreVille);
 
+  const getComputedStatut = (d: Demande, stats: ReturnType<typeof getStats>, joursRestants: number | null): StatutFilter => {
+    const impaye = facturations
+      .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+      .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
+    if (d.statut === "suspendu" || impaye > 0) return "suspendu";
+    if (joursRestants !== null && joursRestants <= 15) return "echeance";
+    return "actif";
+  };
+
+  const matchesStatut = (d: Demande, stats: ReturnType<typeof getStats>, joursRestants: number | null) =>
+    filtreStatut === "all" || getComputedStatut(d, stats, joursRestants) === filtreStatut;
+
 
   const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
     if (!dateDu && !dateAu) return true;
@@ -550,17 +564,17 @@ export default function GestionAbonnement() {
     return true;
   };
 
-  const deps = [searchNom, dateDu, dateAu, filtreService, filtreCommercial, filtreVille];
-  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats)), [abosActifs, ...deps]);
-  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats)), [abosEcheance, ...deps]);
-  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats)), [abosSuspendus, ...deps]);
+  const deps = [searchNom, dateDu, dateAu, filtreService, filtreCommercial, filtreVille, filtreStatut];
+  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants)), [abosActifs, ...deps]);
+  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants)), [abosEcheance, ...deps]);
+  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants)), [abosSuspendus, ...deps]);
   const interventionsTodayF = useMemo(() => interventionsToday.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesInterventionDate(date)), [interventionsToday, ...deps]);
   const interventionsTomorrowF = useMemo(() => interventionsTomorrow.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesInterventionDate(date)), [interventionsTomorrow, ...deps]);
   const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, ...deps]);
   const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFacture(f) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, ...deps]);
 
-  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); };
-  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all";
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); };
+  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all";
 
 
   return (
