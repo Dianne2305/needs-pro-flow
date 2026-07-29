@@ -646,6 +646,8 @@ export default function GestionAbonnement() {
         </Card>
         )}
 
+        {mainTab === "abonnement" && <AbonnementOverviewStats />}
+
         {/* KPI Cards cliquables = filtres */}
         {mainTab === "abonnement" && (
         <div className="flex flex-wrap justify-center gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
