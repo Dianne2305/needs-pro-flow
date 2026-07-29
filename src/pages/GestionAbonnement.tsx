@@ -950,12 +950,29 @@ function AbonnementTable({
                       </div>
                     ) : <span className="text-muted-foreground">—</span>}
                   </TableCell>
-                  {/* Statut pastille */}
+                  {/* Statut mois en cours */}
                   <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`h-2.5 w-2.5 rounded-full ${statutMeta.dot}`} />
-                      <Badge className={statutMeta.cls}>{statutMeta.label}</Badge>
-                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-2.5 w-2.5 rounded-full ${statutCourant.dot}`} />
+                          <Badge className={statutCourant.cls}>{statutCourant.label}</Badge>
+                        </div>
+                      </TooltipTrigger>
+                      {statutCourant.hint && <TooltipContent>{statutCourant.hint}</TooltipContent>}
+                    </Tooltip>
+                  </TableCell>
+                  {/* Statut mois à venir */}
+                  <TableCell>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-2.5 w-2.5 rounded-full ${statutSuivant.dot}`} />
+                          <Badge className={statutSuivant.cls}>{statutSuivant.label}</Badge>
+                        </div>
+                      </TooltipTrigger>
+                      {statutSuivant.hint && <TooltipContent>{statutSuivant.hint}</TooltipContent>}
+                    </Tooltip>
                   </TableCell>
                   {/* Actions */}
                   {/* Actions */}
