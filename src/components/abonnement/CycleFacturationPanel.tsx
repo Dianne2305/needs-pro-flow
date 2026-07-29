@@ -28,16 +28,47 @@ type FactureLigne = {
   ton: "info" | "ok" | "warn" | "danger" | "neutre";
   action: string;
   actionVariant?: "outline" | "default";
+  paiementConfirme?: boolean;
 };
 
 const LIGNES: FactureLigne[] = [
   { reference: "AM/F118/2026", client: "Sofia BENNANI", periode: "Juillet", montant: 1944, statut: "Envoyée — éch. 20/06", ton: "info", action: "Relancer", actionVariant: "outline" },
-  { reference: "AM/F121/2026", client: "SMILE+ (bureaux)", periode: "Juillet", montant: 2851, statut: "Payée le 17/06", ton: "ok", action: "Reçu", actionVariant: "outline" },
+  { reference: "AM/F121/2026", client: "SMILE+ (bureaux)", periode: "Juillet", montant: 2851, statut: "Payée le 17/06", ton: "ok", action: "Reçu", actionVariant: "outline", paiementConfirme: true },
   { reference: "AM/F103/2026", client: "Rachid EL AMRANI", periode: "Juin", montant: 1512, statut: "Retard J+11 — mise en demeure", ton: "warn", action: "Voir dossier", actionVariant: "default" },
   { reference: "AM/F097/2026", client: "Youssef KABBAJ", periode: "Juin", montant: 1296, statut: "Suspendu J+16", ton: "danger", action: "Voir dossier", actionVariant: "default" },
-  { reference: "AM/F124/2026", client: "Famille TAZI (aux. vie)", periode: "Sem. 25", montant: 775, statut: "Hebdo — éch. mer 17/06", ton: "info", action: "Relancer", actionVariant: "outline" },
+  { reference: "AM/F124/2026", client: "Famille TAZI (aux. vie)", periode: "Sem. 25", montant: 775, statut: "Hebdo — éch. mer 17/06", ton: "info", action: "Relancer", actionVariant: "outline", paiementConfirme: true },
   { reference: "—", client: "RIAD DAR ZITOUNE", periode: "Juillet", montant: 2566, statut: "Brouillon — prorata démarrage 01/07", ton: "neutre", action: "Valider", actionVariant: "outline" },
 ];
+
+/**
+ * Statut de facturation calculé automatiquement :
+ * - avant le 15 : Non généré
+ * - le 15 : Facture générée
+ * - du 16 au 26 : Payé si confirmé, sinon En attente de règlement (intermédiaire)
+ * - à partir du 27 : statut final Payé ou Non payé
+ */
+type StatutFacturation = {
+  label: string;
+  ton: FactureLigne["ton"];
+  final: boolean;
+  impactMoisSuivant: "Actif" | "Suspendu" | null;
+};
+
+export function computeStatutFacturation(jour: number, paiementConfirme: boolean): StatutFacturation {
+  if (paiementConfirme && jour >= 15) {
+    return { label: "Payé", ton: "ok", final: true, impactMoisSuivant: "Actif" };
+  }
+  if (jour < 15) {
+    return { label: "Non généré", ton: "neutre", final: false, impactMoisSuivant: null };
+  }
+  if (jour === 15) {
+    return { label: "Facture générée", ton: "info", final: false, impactMoisSuivant: null };
+  }
+  if (jour <= 26) {
+    return { label: "En attente de règlement", ton: "warn", final: false, impactMoisSuivant: null };
+  }
+  return { label: "Non payé", ton: "danger", final: true, impactMoisSuivant: "Suspendu" };
+}
 
 const TON_CLASS: Record<FactureLigne["ton"], string> = {
   info: "bg-sky-50 text-sky-700 border-sky-200",
@@ -47,11 +78,17 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
   neutre: "bg-muted text-muted-foreground border-border",
 };
 
+
 export default function CycleFacturationPanel() {
   const [search, setSearch] = useState("");
   const [statut, setStatut] = useState("all");
   const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
+  const jour = today.getDate();
+  const [paiements, setPaiements] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
+  );
+
 
   const genererFacture = (l: FactureLigne, i: number) => {
     const ref = l.reference === "—" ? `BROUILLON-${i + 1}` : l.reference;
@@ -84,12 +121,16 @@ export default function CycleFacturationPanel() {
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return LIGNES.filter((l) => {
+    return LIGNES.map((l, i) => {
+      const key = l.reference + i;
+      return { l, i, key, sf: computeStatutFacturation(jour, !!paiements[key]) };
+    }).filter(({ l, sf }) => {
       const okQ = !q || l.client.toLowerCase().includes(q) || l.reference.toLowerCase().includes(q);
-      const okS = statut === "all" || l.ton === statut;
+      const okS = statut === "all" || sf.label === statut;
       return okQ && okS;
     });
-  }, [search, statut]);
+  }, [search, statut, paiements, jour]);
+
 
   return (
     <div className="space-y-4">
@@ -153,16 +194,17 @@ export default function CycleFacturationPanel() {
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une facture…" className="pl-8" />
         </div>
         <Select value={statut} onValueChange={setStatut}>
-          <SelectTrigger className="w-[170px]"><SelectValue placeholder="Statut : Tous" /></SelectTrigger>
+          <SelectTrigger className="w-[210px]"><SelectValue placeholder="Statut : Tous" /></SelectTrigger>
           <SelectContent className="bg-popover z-50">
             <SelectItem value="all">Statut : Tous</SelectItem>
-            <SelectItem value="ok">Payées</SelectItem>
-            <SelectItem value="info">Envoyées</SelectItem>
-            <SelectItem value="warn">En retard</SelectItem>
-            <SelectItem value="danger">Suspendues</SelectItem>
-            <SelectItem value="neutre">Brouillons</SelectItem>
+            <SelectItem value="Non généré">Non généré</SelectItem>
+            <SelectItem value="Facture générée">Facture générée</SelectItem>
+            <SelectItem value="En attente de règlement">En attente de règlement</SelectItem>
+            <SelectItem value="Payé">Payé</SelectItem>
+            <SelectItem value="Non payé">Non payé</SelectItem>
           </SelectContent>
         </Select>
+
         <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />Export Excel</Button>
       </div>
 
@@ -182,20 +224,27 @@ export default function CycleFacturationPanel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((l, i) => (
-              <TableRow key={`${l.reference}-${i}`}>
+            {rows.map(({ l, i, key, sf }) => (
+              <TableRow key={key}>
                 <TableCell className="text-sm">{l.reference}</TableCell>
                 <TableCell className="text-sm font-semibold">{l.client}</TableCell>
                 <TableCell className="text-sm">{l.periode}</TableCell>
                 <TableCell className="text-sm font-bold">{l.montant.toLocaleString("fr-FR")} DH</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={`text-[11px] font-medium ${TON_CLASS[l.ton]}`}>{l.statut}</Badge>
+                  <div className="flex flex-col gap-1 items-start">
+                    <Badge variant="outline" className={`text-[11px] font-medium ${TON_CLASS[sf.ton]}`}>{sf.label}</Badge>
+                    <span className="text-[10px] text-muted-foreground">
+                      {sf.final
+                        ? `Statut final · mois suivant : ${sf.impactMoisSuivant}`
+                        : "Statut intermédiaire · sans impact mois suivant"}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {fichiers[l.reference + i] ? (
+                  {fichiers[key] ? (
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-emerald-600" />
-                      <span className="text-xs">{fichiers[l.reference + i]}</span>
+                      <span className="text-xs">{fichiers[key]}</span>
                       <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => genererFacture(l, i)}>
                         <Download className="h-3.5 w-3.5" />
                       </Button>
@@ -207,10 +256,23 @@ export default function CycleFacturationPanel() {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant={paiements[key] ? "outline" : "default"}
+                      onClick={() => {
+                        setPaiements((p) => ({ ...p, [key]: !p[key] }));
+                        toast.success(paiements[key] ? "Paiement annulé" : "Paiement confirmé — statut : Payé");
+                      }}
+                    >
+                      {paiements[key] ? "Annuler paiement" : "Confirmer paiement"}
+                    </Button>
+                    <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+
             {rows.length === 0 && (
               <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
             )}
