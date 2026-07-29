@@ -13,7 +13,7 @@ type StatCard = {
 
 const buildStats = (abosActifs: number): StatCard[] => [
   {
-    label: "MRR — Revenu récurrent",
+    label: "CA-Abonnement",
     value: "61 240",
     unit: "DH/mois",
     hint: `${abosActifs} abonnement${abosActifs > 1 ? "s" : ""} actif${abosActifs > 1 ? "s" : ""}`,
@@ -25,7 +25,7 @@ const buildStats = (abosActifs: number): StatCard[] => [
     hint: "dont 3 avec code promo",
   },
   {
-    label: "Passages cette semaine",
+    label: "Interventions cette semaine",
     value: "38",
     hint: "dont 6 en 5ème semaine",
     badge: { icon: "check", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
