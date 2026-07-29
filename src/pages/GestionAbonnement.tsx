@@ -53,6 +53,14 @@ function getInitials(name?: string | null): string {
   return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
 }
 
+const COMMERCIAL_COLORS = ["bg-purple-600", "bg-blue-600", "bg-amber-600", "bg-emerald-600", "bg-rose-600", "bg-cyan-600"];
+function commercialColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997;
+  return COMMERCIAL_COLORS[h % COMMERCIAL_COLORS.length];
+}
+
+
 function getSegment(d: Demande): "entreprise" | "particulier" {
   return d.nom_entreprise ? "entreprise" : "particulier";
 }
@@ -679,11 +687,10 @@ function AbonnementTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Abo</TableHead>
               <TableHead>Com.</TableHead>
               <TableHead>Client</TableHead>
-              <TableHead>Quartier / Ville</TableHead>
               <TableHead>Type de service</TableHead>
+
               <TableHead>Fréq / Dates</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
@@ -714,29 +721,18 @@ function AbonnementTable({
 
               return (
                 <TableRow key={d.id}>
-                  {/* N° Abo */}
-                  <TableCell>
-                    <button
-                      onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement`)}
-                      className="font-mono text-xs text-primary hover:underline"
-                    >
-                      #{d.num_demande}
-                    </button>
-                  </TableCell>
-                  {/* Commercial abréviation + tooltip */}
+                  {/* Commercial : pastille colorée + nom */}
                   <TableCell>
                     {commercial ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-indigo-100 text-indigo-800 text-xs font-semibold cursor-default">
-                            {getInitials(commercial)}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>{commercial}</TooltipContent>
-                      </Tooltip>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center justify-center h-8 w-8 rounded-full text-white text-xs font-semibold shrink-0 ${commercialColor(commercial)}`}>
+                          {getInitials(commercial).charAt(0)}
+                        </span>
+                        <span className="text-sm">{commercial}</span>
+                      </div>
                     ) : <span className="text-muted-foreground text-xs">—</span>}
                   </TableCell>
-                  {/* Client + icône segment */}
+                  {/* Client + icône segment + quartier/ville */}
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Tooltip>
@@ -749,14 +745,20 @@ function AbonnementTable({
                         </TooltipTrigger>
                         <TooltipContent>{segment === "entreprise" ? "Entreprise" : "Particulier"}</TooltipContent>
                       </Tooltip>
-                      <span className="font-medium">{d.nom_entreprise || d.nom}</span>
+                      <div className="leading-tight">
+                        <button
+                          onClick={() => navigate(`/compte-client?id=${d.id}&from=/gestion-abonnement`)}
+                          className="font-medium hover:underline text-left"
+                        >
+                          {d.nom_entreprise || d.nom}
+                        </button>
+                        <div className="text-xs text-muted-foreground">
+                          {[d.quartier, d.ville].filter(Boolean).join(" / ") || "—"}
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
-                  {/* Quartier / Ville */}
-                  <TableCell className="text-sm">
-                    {d.quartier ? <div>{d.quartier}</div> : null}
-                    <div className="text-xs text-muted-foreground">{d.ville || "—"}</div>
-                  </TableCell>
+
                   {/* Type service */}
                   <TableCell className="text-sm">{d.type_prestation || d.type_service || "—"}</TableCell>
                   {/* Fréquence + Début/Fin */}
