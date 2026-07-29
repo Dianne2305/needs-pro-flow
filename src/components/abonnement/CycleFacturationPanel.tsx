@@ -75,11 +75,11 @@ export default function CycleFacturationPanel() {
 
 
   const etapes: Etape[] = [
-    { titre: "15 juin", l1: "Génération auto", l2: "des factures" },
-    { titre: "15 → 18", l1: "Envoi WhatsApp", l2: "+ email + planning" },
-    { titre: "20 juin", l1: "Échéance", l2: "paiement virement" },
-    { titre: "J+5 / J+10", l1: "Rappel puis mise", l2: "en demeure auto" },
-    { titre: "J+15", l1: "Suspension", l2: "de la prestation" },
+    { titre: "15 du mois — 08h00", l1: "Génération auto", l2: "des factures" },
+    { titre: "15 du mois", l1: "Envoi automatique", l2: "WhatsApp + email" },
+    { titre: "18 du mois", l1: "1er rappel", l2: "WhatsApp" },
+    { titre: "23 du mois", l1: "2ème rappel", l2: "WhatsApp" },
+    { titre: "27 du mois", l1: "Suspension auto", l2: "+ notification CC" },
   ];
 
   const rows = useMemo(() => {
@@ -102,13 +102,13 @@ export default function CycleFacturationPanel() {
 
         <div className="relative">
           <div className="absolute left-0 right-0 top-0 h-[3px] rounded-full bg-muted" />
-          <div className="absolute left-0 top-0 h-[3px] w-[52%] rounded-full bg-primary" />
-          <div className="absolute top-[-22px] left-[52%] -translate-x-1/2">
+          <div className="absolute left-0 top-0 h-[3px] rounded-full bg-primary" style={{ width: `${Math.min(100, (today.getDate() / 31) * 100)}%` }} />
+          <div className="absolute top-[-22px] -translate-x-1/2" style={{ left: `${Math.min(100, (today.getDate() / 31) * 100)}%` }}>
             <span className="rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-[11px] font-semibold px-2 py-0.5 whitespace-nowrap">
               Aujourd'hui - {format(today, "d")}
             </span>
           </div>
-          <div className="absolute top-[-4px] left-[52%] -translate-x-1/2 h-[11px] w-[11px] rounded-full bg-amber-400 border-2 border-background" />
+          <div className="absolute top-[-4px] -translate-x-1/2 h-[11px] w-[11px] rounded-full bg-amber-400 border-2 border-background" style={{ left: `${Math.min(100, (today.getDate() / 31) * 100)}%` }} />
 
           <div className="grid grid-cols-5 pt-5 text-center">
             {etapes.map((e) => (
@@ -223,10 +223,11 @@ export default function CycleFacturationPanel() {
       <Card className="p-4 bg-sidebar text-sidebar-foreground border-sidebar-border">
         <p className="text-xs font-bold flex items-center gap-1.5 mb-2"><Settings2 className="h-3.5 w-3.5" />Automatismes de cette vue</p>
         <ul className="space-y-1 text-[11px] leading-relaxed opacity-90">
-          <li>· Génération des factures le <code className="px-1 rounded bg-white/10">15</code> à 08h00 — calcul auto du nombre de passages du mois suivant (4 ou 5 par jour choisi)</li>
-          <li>· Envoi groupé WhatsApp + email avec PDF facture + calendrier des passages entre le <code className="px-1 rounded bg-white/10">15</code> et le <code className="px-1 rounded bg-white/10">18</code></li>
-          <li>· Relances automatiques : <code className="px-1 rounded bg-white/10">J+5</code> rappel WhatsApp → <code className="px-1 rounded bg-white/10">J+10</code> mise en demeure email → <code className="px-1 rounded bg-white/10">J+15</code> suspension + notification CC</li>
-          <li>· L'auxiliaire de vie suit un cycle <strong>hebdomadaire</strong> (échéance mercredi) — même moteur, périodicité différente</li>
+          <li>· <code className="px-1 rounded bg-white/10">15 du mois — 08h00</code> : génération automatique des factures (calcul des passages 4 ou 5, PDF, calendrier des interventions)</li>
+          <li>· <code className="px-1 rounded bg-white/10">15 du mois</code> : envoi automatique WhatsApp, e-mail, facture PDF et calendrier des passages</li>
+          <li>· <code className="px-1 rounded bg-white/10">18 du mois</code> : 1er rappel WhatsApp</li>
+          <li>· <code className="px-1 rounded bg-white/10">23 du mois</code> : 2ème rappel WhatsApp</li>
+          <li>· <code className="px-1 rounded bg-white/10">27 du mois</code> : suspension automatique de la prestation + notification automatique au Chargé de Clientèle</li>
           <li>· Prorata automatique pour tout abonnement démarrant en cours de mois</li>
         </ul>
       </Card>
