@@ -224,20 +224,27 @@ export default function CycleFacturationPanel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((l, i) => (
-              <TableRow key={`${l.reference}-${i}`}>
+            {rows.map(({ l, i, key, sf }) => (
+              <TableRow key={key}>
                 <TableCell className="text-sm">{l.reference}</TableCell>
                 <TableCell className="text-sm font-semibold">{l.client}</TableCell>
                 <TableCell className="text-sm">{l.periode}</TableCell>
                 <TableCell className="text-sm font-bold">{l.montant.toLocaleString("fr-FR")} DH</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={`text-[11px] font-medium ${TON_CLASS[l.ton]}`}>{l.statut}</Badge>
+                  <div className="flex flex-col gap-1 items-start">
+                    <Badge variant="outline" className={`text-[11px] font-medium ${TON_CLASS[sf.ton]}`}>{sf.label}</Badge>
+                    <span className="text-[10px] text-muted-foreground">
+                      {sf.final
+                        ? `Statut final · mois suivant : ${sf.impactMoisSuivant}`
+                        : "Statut intermédiaire · sans impact mois suivant"}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {fichiers[l.reference + i] ? (
+                  {fichiers[key] ? (
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4 text-emerald-600" />
-                      <span className="text-xs">{fichiers[l.reference + i]}</span>
+                      <span className="text-xs">{fichiers[key]}</span>
                       <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => genererFacture(l, i)}>
                         <Download className="h-3.5 w-3.5" />
                       </Button>
@@ -249,10 +256,23 @@ export default function CycleFacturationPanel() {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant={paiements[key] ? "outline" : "default"}
+                      onClick={() => {
+                        setPaiements((p) => ({ ...p, [key]: !p[key] }));
+                        toast.success(paiements[key] ? "Paiement annulé" : "Paiement confirmé — statut : Payé");
+                      }}
+                    >
+                      {paiements[key] ? "Annuler paiement" : "Confirmer paiement"}
+                    </Button>
+                    <Button size="sm" variant={l.actionVariant ?? "outline"}>{l.action}</Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
+
             {rows.length === 0 && (
               <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Aucune facture</TableCell></TableRow>
             )}
