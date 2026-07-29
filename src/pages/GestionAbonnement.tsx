@@ -550,6 +550,7 @@ export default function GestionAbonnement() {
   type MainTab = "abonnement" | "planning" | "facturation";
   type StatutFilter = "all" | "actif" | "echeance" | "suspendu";
   type StatutMoisFilter = "all" | "actif" | "termine" | "suspendu" | "resilie" | "standby" | "facture_envoyee" | "rappel1" | "rappel2" | "attente";
+  type StatutFacturationFilter = "all" | "Facture générée" | "En attente" | "Payé" | "Non payé";
   const [mainTab, setMainTab] = useState<MainTab>("abonnement");
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
@@ -561,6 +562,7 @@ export default function GestionAbonnement() {
   const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
   const [filtreStatutMoisEnCours, setFiltreStatutMoisEnCours] = useState<StatutMoisFilter>("all");
   const [filtreStatutMoisSuivant, setFiltreStatutMoisSuivant] = useState<StatutMoisFilter>("all");
+  const [filtreStatutFacturation, setFiltreStatutFacturation] = useState<StatutFacturationFilter>("all");
 
   const uniq = (arr: (string | null | undefined)[]) =>
     Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
@@ -658,8 +660,8 @@ export default function GestionAbonnement() {
   const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, ...deps]);
   const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFacture(f) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, ...deps]);
 
-  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); };
-  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all";
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); setFiltreStatutFacturation("all"); };
+  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all" || filtreStatutFacturation !== "all";
 
 
   return (
@@ -749,49 +751,69 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="min-w-[160px]">
-              <Label className="text-xs">Statut</Label>
-              <Select value={filtreStatut} onValueChange={(v) => setFiltreStatut(v as StatutFilter)}>
-                <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Tous les statuts</SelectItem>
-                  <SelectItem value="actif">Actif</SelectItem>
-                  <SelectItem value="echeance">À échéance</SelectItem>
-                  <SelectItem value="suspendu">Suspendu</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="min-w-[170px]">
-              <Label className="text-xs">Statut mois en cours</Label>
-              <Select value={filtreStatutMoisEnCours} onValueChange={(v) => setFiltreStatutMoisEnCours(v as StatutMoisFilter)}>
-                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="actif">Actif</SelectItem>
-                  <SelectItem value="termine">Terminé</SelectItem>
-                  <SelectItem value="suspendu">Suspendu</SelectItem>
-                  <SelectItem value="resilie">Résilié</SelectItem>
-                  <SelectItem value="standby">Stand by</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="min-w-[170px]">
-              <Label className="text-xs">Statut mois à venir</Label>
-              <Select value={filtreStatutMoisSuivant} onValueChange={(v) => setFiltreStatutMoisSuivant(v as StatutMoisFilter)}>
-                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="actif">Actif</SelectItem>
-                  <SelectItem value="facture_envoyee">Facture envoyée</SelectItem>
-                  <SelectItem value="rappel1">1er rappel</SelectItem>
-                  <SelectItem value="rappel2">2e rappel</SelectItem>
-                  <SelectItem value="suspendu">Suspendu</SelectItem>
-                  <SelectItem value="standby">Stand by</SelectItem>
-                  <SelectItem value="resilie">Résilié</SelectItem>
-                  <SelectItem value="attente">En attente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {mainTab === "facturation" ? (
+              <div className="min-w-[180px]">
+                <Label className="text-xs">Statut</Label>
+                <Select value={filtreStatutFacturation} onValueChange={(v) => setFiltreStatutFacturation(v as StatutFacturationFilter)}>
+                  <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="Facture générée">Facture générée</SelectItem>
+                    <SelectItem value="En attente">En attente</SelectItem>
+                    <SelectItem value="Payé">Payé</SelectItem>
+                    <SelectItem value="Non payé">Non payé</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="min-w-[160px]">
+                <Label className="text-xs">Statut</Label>
+                <Select value={filtreStatut} onValueChange={(v) => setFiltreStatut(v as StatutFilter)}>
+                  <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="actif">Actif</SelectItem>
+                    <SelectItem value="echeance">À échéance</SelectItem>
+                    <SelectItem value="suspendu">Suspendu</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {mainTab !== "facturation" && (
+              <>
+                <div className="min-w-[170px]">
+                  <Label className="text-xs">Statut mois en cours</Label>
+                  <Select value={filtreStatutMoisEnCours} onValueChange={(v) => setFiltreStatutMoisEnCours(v as StatutMoisFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="actif">Actif</SelectItem>
+                      <SelectItem value="termine">Terminé</SelectItem>
+                      <SelectItem value="suspendu">Suspendu</SelectItem>
+                      <SelectItem value="resilie">Résilié</SelectItem>
+                      <SelectItem value="standby">Stand by</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="min-w-[170px]">
+                  <Label className="text-xs">Statut mois à venir</Label>
+                  <Select value={filtreStatutMoisSuivant} onValueChange={(v) => setFiltreStatutMoisSuivant(v as StatutMoisFilter)}>
+                    <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="actif">Actif</SelectItem>
+                      <SelectItem value="facture_envoyee">Facture envoyée</SelectItem>
+                      <SelectItem value="rappel1">1er rappel</SelectItem>
+                      <SelectItem value="rappel2">2e rappel</SelectItem>
+                      <SelectItem value="suspendu">Suspendu</SelectItem>
+                      <SelectItem value="standby">Stand by</SelectItem>
+                      <SelectItem value="resilie">Résilié</SelectItem>
+                      <SelectItem value="attente">En attente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
             )}
@@ -827,7 +849,7 @@ export default function GestionAbonnement() {
             <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
             <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
           </div>
-          <CycleFacturationPanel />
+          <CycleFacturationPanel statutFilter={filtreStatutFacturation} />
 
 
         </TabsContent>
