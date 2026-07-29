@@ -207,8 +207,25 @@ export default function CycleFacturationPanel() {
           </SelectContent>
         </Select>
 
+        <Select value={simuJour} onValueChange={setSimuJour}>
+          <SelectTrigger className="w-[240px]"><SelectValue /></SelectTrigger>
+          <SelectContent className="bg-popover z-50">
+            <SelectItem value="auto">Aperçu : jour réel ({today.getDate()})</SelectItem>
+            <SelectItem value="10">Le 10 — Non généré</SelectItem>
+            <SelectItem value="15">Le 15 — Facture générée</SelectItem>
+            <SelectItem value="20">Le 20 — En attente de règlement</SelectItem>
+            <SelectItem value="27">Le 27 — Payé / Non payé</SelectItem>
+          </SelectContent>
+        </Select>
         <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" />Export Excel</Button>
       </div>
+
+      {simuJour !== "auto" && (
+        <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+          Mode aperçu UX : les statuts sont simulés au jour {jour} du cycle. Le système appliquera automatiquement la même logique à la date réelle.
+        </p>
+      )}
+
 
       {/* Table */}
       <Card className="overflow-hidden">
