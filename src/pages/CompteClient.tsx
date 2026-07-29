@@ -260,6 +260,9 @@ export default function CompteClient() {
   const [factureFormData, setFactureFormData] = useState<FactureFormData | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
+  const [aboStatutMoisEnCours, setAboStatutMoisEnCours] = useState<"actif" | "termine">("actif");
+  const [aboStatutMoisProchain, setAboStatutMoisProchain] = useState<"actif" | "standby" | "suspendu" | "resilie" | "facture_envoyee">("actif");
+  const [aboStatutFacturation, setAboStatutFacturation] = useState<"facture_generee" | "en_attente" | "paye" | "non_paye">("facture_generee");
   // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
   const [aboProrata, setAboProrata] = useState<Record<string, { debut: string; fin: string }>>({});
 
@@ -340,6 +343,9 @@ export default function CompteClient() {
     if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
     const validStatut = ["actif", "suspendu", "pause"].includes(p.abo_statut) ? p.abo_statut : "actif";
     setAboStatut(validStatut as "actif" | "suspendu" | "pause");
+    if (p.abo_statut_mois_en_cours) setAboStatutMoisEnCours(p.abo_statut_mois_en_cours);
+    if (p.abo_statut_mois_prochain) setAboStatutMoisProchain(p.abo_statut_mois_prochain);
+    if (p.abo_statut_facturation) setAboStatutFacturation(p.abo_statut_facturation);
     setAboFormInitialized(true);
 
   }
@@ -988,6 +994,9 @@ export default function CompteClient() {
                 abo_frequence: aboFrequence,
                 abo_jours: aboJours,
                 abo_statut: aboStatut,
+                abo_statut_mois_en_cours: aboStatutMoisEnCours,
+                abo_statut_mois_prochain: aboStatutMoisProchain,
+                abo_statut_facturation: aboStatutFacturation,
                 date_debut: aboDateDebut,
                 date_fin: dateFinAuto,
                 duree_mois: aboDureeMois,
@@ -1176,6 +1185,37 @@ export default function CompteClient() {
                         <SelectItem value="actif" className="text-xs">Actif</SelectItem>
                         <SelectItem value="suspendu" className="text-xs">Suspendus</SelectItem>
                         <SelectItem value="pause" className="text-xs">En pause</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ml-2">Mois en cours</span>
+                    <Select value={aboStatutMoisEnCours} onValueChange={(v) => setAboStatutMoisEnCours(v as any)}>
+                      <SelectTrigger className="h-8 w-32 text-xs bg-background"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
+                        <SelectItem value="termine" className="text-xs">Terminée</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ml-2">Mois prochain</span>
+                    <Select value={aboStatutMoisProchain} onValueChange={(v) => setAboStatutMoisProchain(v as any)}>
+                      <SelectTrigger className="h-8 w-40 text-xs bg-background"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
+                        <SelectItem value="standby" className="text-xs">Stand-by</SelectItem>
+                        <SelectItem value="suspendu" className="text-xs">Suspendu</SelectItem>
+                        <SelectItem value="resilie" className="text-xs">Résilié</SelectItem>
+                        <SelectItem value="facture_envoyee" className="text-xs">Facture envoyée</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ml-2">Facturation</span>
+                    <Select value={aboStatutFacturation} onValueChange={(v) => setAboStatutFacturation(v as any)}>
+                      <SelectTrigger className="h-8 w-40 text-xs bg-background"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="facture_generee" className="text-xs">Facture générée</SelectItem>
+                        <SelectItem value="en_attente" className="text-xs">En attente</SelectItem>
+                        <SelectItem value="paye" className="text-xs">Payé</SelectItem>
+                        <SelectItem value="non_paye" className="text-xs">Non payé</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
