@@ -79,9 +79,10 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
 };
 
 
-export default function CycleFacturationPanel() {
+export default function CycleFacturationPanel({ statutFilter }: { statutFilter?: StatutFacturationFilter }) {
   const [search, setSearch] = useState("");
-  const [statut, setStatut] = useState("all");
+  const [internalStatut, setInternalStatut] = useState("all");
+  const statut = statutFilter ?? internalStatut;
   const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
   const [simuJour, setSimuJour] = useState("auto");
