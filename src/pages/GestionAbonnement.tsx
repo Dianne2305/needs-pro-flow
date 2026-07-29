@@ -742,16 +742,31 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="min-w-[150px]">
-              <Label className="text-xs">Ville</Label>
-              <Select value={filtreVille} onValueChange={setFiltreVille}>
-                <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
-                <SelectContent className="bg-popover z-50">
-                  <SelectItem value="all">Toutes les villes</SelectItem>
-                  {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {mainTab === "facturation" ? (
+              <div className="min-w-[150px]">
+                <Label className="text-xs">Mois</Label>
+                <Select value={filtreMois} onValueChange={setFiltreMois}>
+                  <SelectTrigger><SelectValue placeholder="Tous les mois" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Tous les mois</SelectItem>
+                    <SelectItem value="Juillet">Juillet</SelectItem>
+                    <SelectItem value="Juin">Juin</SelectItem>
+                    <SelectItem value="Sem. 25">Sem. 25</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="min-w-[150px]">
+                <Label className="text-xs">Ville</Label>
+                <Select value={filtreVille} onValueChange={setFiltreVille}>
+                  <SelectTrigger><SelectValue placeholder="Toutes" /></SelectTrigger>
+                  <SelectContent className="bg-popover z-50">
+                    <SelectItem value="all">Toutes les villes</SelectItem>
+                    {villesOptions.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             {mainTab === "facturation" && (
               <div className="min-w-[180px]">
                 <Label className="text-xs">Statut</Label>
