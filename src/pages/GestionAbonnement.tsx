@@ -751,7 +751,7 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
-            {mainTab === "facturation" ? (
+            {mainTab === "facturation" && (
               <div className="min-w-[180px]">
                 <Label className="text-xs">Statut</Label>
                 <Select value={filtreStatutFacturation} onValueChange={(v) => setFiltreStatutFacturation(v as StatutFacturationFilter)}>
@@ -762,19 +762,6 @@ export default function GestionAbonnement() {
                     <SelectItem value="En attente">En attente</SelectItem>
                     <SelectItem value="Payé">Payé</SelectItem>
                     <SelectItem value="Non payé">Non payé</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
-              <div className="min-w-[160px]">
-                <Label className="text-xs">Statut</Label>
-                <Select value={filtreStatut} onValueChange={(v) => setFiltreStatut(v as StatutFilter)}>
-                  <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
-                  <SelectContent className="bg-popover z-50">
-                    <SelectItem value="all">Tous les statuts</SelectItem>
-                    <SelectItem value="actif">Actif</SelectItem>
-                    <SelectItem value="echeance">À échéance</SelectItem>
-                    <SelectItem value="suspendu">Suspendu</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
