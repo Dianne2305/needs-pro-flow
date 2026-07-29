@@ -679,11 +679,10 @@ function AbonnementTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° Abo</TableHead>
               <TableHead>Com.</TableHead>
               <TableHead>Client</TableHead>
-              <TableHead>Quartier / Ville</TableHead>
               <TableHead>Type de service</TableHead>
+
               <TableHead>Fréq / Dates</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
