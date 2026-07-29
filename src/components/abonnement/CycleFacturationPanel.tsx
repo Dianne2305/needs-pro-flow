@@ -88,11 +88,12 @@ export default function CycleFacturationPanel({ statutFilter, moisFilter }: { st
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [internalStatut, setInternalStatut] = useState("all");
-  const statut = statutFilter ?? internalStatut;
+  const [cardFilter, setCardFilter] = useState<string | null>(null);
+  const statut = cardFilter ?? statutFilter ?? internalStatut;
   const [fichiers, setFichiers] = useState<Record<string, string>>({});
   const today = new Date();
-  const [simuJour, setSimuJour] = useState("auto");
-  const jour = simuJour === "auto" ? today.getDate() : Number(simuJour);
+  const jour = today.getDate();
+
 
   const [paiements, setPaiements] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
