@@ -99,7 +99,7 @@ function getInitials(name?: string | null): string {
   return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
 }
 
-const COMMERCIAUX_DEFAUT = ["Kaoutar Bennani", "Mehdi Alaoui", "Youssef Idrissi", "Salma Tazi"];
+const COMMERCIAUX_DEFAUT = ["Kawtar", "Moussa", "Salma"];
 function defaultCommercial(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 997;
@@ -743,7 +743,7 @@ function AbonnementTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[70px] text-center">Com.</TableHead>
+              <TableHead className="w-[120px]">Com.</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Type de service</TableHead>
 
