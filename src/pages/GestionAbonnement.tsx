@@ -48,6 +48,31 @@ const FREQ_LABEL: Record<string, string> = {
   "bi-hebdomadaire": "Bi-hebdo", "hebdomadaire": "Hebdo", "mensuel": "Mensuel", "abonnement": "Abonnement",
 };
 
+const JOUR_LABELS: Record<string, string> = {
+  lundi: "Lun", mardi: "Mar", mercredi: "Mer", jeudi: "Jeu", vendredi: "Ven", samedi: "Sam", dimanche: "Dim",
+};
+const JOUR_ORDER = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+
+function formatJoursPassage(d: Demande): string {
+  const p = ((d as any).planning || {}) as any;
+  const aboJours: { jour: string }[] = Array.isArray(p?.abo_jours)
+    ? p.abo_jours
+    : Array.isArray(p?.jours)
+      ? p.jours.map((j: any) => (typeof j === "string" ? { jour: j } : j))
+      : [];
+  const selected = aboJours.map((j) => j.jour).filter(Boolean);
+  if (!selected.length) return "—";
+  const sorted = [...new Set(selected)].sort((a, b) => JOUR_ORDER.indexOf(a) - JOUR_ORDER.indexOf(b));
+  // Si les jours sont consécutifs, affiche Lun-Jeu ; sinon Lun, Mer…
+  const idxs = sorted.map((j) => JOUR_ORDER.indexOf(j));
+  const consecutive = idxs.length > 1 && idxs.every((v, i) => i === 0 || v === idxs[i - 1] + 1);
+  if (consecutive) {
+    return `${JOUR_LABELS[sorted[0]]}-${JOUR_LABELS[sorted[sorted.length - 1]]}`;
+  }
+  return sorted.map((j) => JOUR_LABELS[j] || j).join(", ");
+}
+
+
 function getInitials(name?: string | null): string {
   if (!name) return "—";
   return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
@@ -691,7 +716,7 @@ function AbonnementTable({
               <TableHead>Client</TableHead>
               <TableHead>Type de service</TableHead>
 
-              <TableHead>Fréq / Dates</TableHead>
+              <TableHead>Fréq / Jours</TableHead>
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut</TableHead>
@@ -711,9 +736,8 @@ function AbonnementTable({
                 echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
                 suspendu: { dot: "bg-red-500", label: "Suspendu", cls: "bg-red-100 text-red-800" },
               }[statut];
-              const dateDebut = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : (d.confirmed_at ? new Date(d.confirmed_at) : null);
-              const finProche = stats.dateFin && joursRestants !== null && joursRestants >= 0 && joursRestants < 30;
               const segment = getSegment(d);
+
               const nextDate = getNextIntervention(d, today);
               const progressPct = stats.total > 0 ? Math.round((stats.effectuees / stats.total) * 100) : 0;
               const commercial = d.commercial || d.commercial_createur || "";
@@ -763,16 +787,14 @@ function AbonnementTable({
 
                   {/* Type service */}
                   <TableCell className="text-sm">{d.type_prestation || d.type_service || "—"}</TableCell>
-                  {/* Fréquence + Début/Fin */}
+                  {/* Fréquence + Jours de passage */}
                   <TableCell>
                     <div className="space-y-1 text-xs">
                       <Badge variant="outline" className="text-xs">{freqLabel}</Badge>
-                      <div className="text-muted-foreground">
-                        {dateDebut ? format(dateDebut, "dd/MM/yy", { locale: fr }) : "—"} → {stats.dateFin ? format(stats.dateFin, "dd/MM/yy", { locale: fr }) : "—"}
-                        {finProche && <Badge className="ml-1 bg-red-100 text-red-800 text-[10px] px-1.5 py-0">Fin {joursRestants}j</Badge>}
-                      </div>
+                      <div className="text-muted-foreground font-medium">{formatJoursPassage(d)}</div>
                     </div>
                   </TableCell>
+
                   {/* Interventions : faites / prévues + annulées */}
                   <TableCell>
                     <div className="space-y-1 min-w-[150px]">
