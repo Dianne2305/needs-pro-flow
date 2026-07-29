@@ -14,6 +14,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Search, Download, Settings2, FileText, MoreHorizontal, CheckCircle2, Eye, Send } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -83,6 +85,7 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
 
 
 export default function CycleFacturationPanel({ statutFilter }: { statutFilter?: StatutFacturationFilter }) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [internalStatut, setInternalStatut] = useState("all");
   const statut = statutFilter ?? internalStatut;
@@ -94,6 +97,23 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
   const [paiements, setPaiements] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
   );
+
+  /** Redirige vers le compte du client (section Gestion de l'abonnement). */
+  const voirDossier = async (nomClient: string) => {
+    const { data } = await supabase
+      .from("demandes")
+      .select("id")
+      .or(`nom.ilike.%${nomClient}%,nom_entreprise.ilike.%${nomClient}%`)
+      .limit(1)
+      .maybeSingle();
+    if (data?.id) {
+      navigate(`/compte-client?id=${data.id}&from=/gestion-abonnement&section=gestion-abonnement`);
+    } else {
+      toast.error(`Aucun dossier trouvé pour ${nomClient}`);
+    }
+  };
+
+
 
 
   const genererFacture = (l: FactureLigne, i: number) => {
@@ -294,7 +314,7 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
                           <DropdownMenuItem disabled className="opacity-100 text-emerald-700 font-medium">
                             <CheckCircle2 className="h-4 w-4 mr-2" />Paiement effectué
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.info(`Dossier ${l.client}`)}>
+                          <DropdownMenuItem onClick={() => voirDossier(l.client)}>
                             <Eye className="h-4 w-4 mr-2" />Voir le dossier
                           </DropdownMenuItem>
                         </>
@@ -308,7 +328,7 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
                           >
                             <CheckCircle2 className="h-4 w-4 mr-2" />Confirmer paiement
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.info(`Dossier ${l.client}`)}>
+                          <DropdownMenuItem onClick={() => voirDossier(l.client)}>
                             <Eye className="h-4 w-4 mr-2" />Voir le dossier
                           </DropdownMenuItem>
                           {sf.label === "En attente de règlement" && (
