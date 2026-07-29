@@ -14,6 +14,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Search, Download, Settings2, FileText, MoreHorizontal, CheckCircle2, Eye, Send } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -83,6 +85,7 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
 
 
 export default function CycleFacturationPanel({ statutFilter }: { statutFilter?: StatutFacturationFilter }) {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [internalStatut, setInternalStatut] = useState("all");
   const statut = statutFilter ?? internalStatut;
@@ -311,7 +314,7 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
                           <DropdownMenuItem disabled className="opacity-100 text-emerald-700 font-medium">
                             <CheckCircle2 className="h-4 w-4 mr-2" />Paiement effectué
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.info(`Dossier ${l.client}`)}>
+                          <DropdownMenuItem onClick={() => voirDossier(l.client)}>
                             <Eye className="h-4 w-4 mr-2" />Voir le dossier
                           </DropdownMenuItem>
                         </>
@@ -325,7 +328,7 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
                           >
                             <CheckCircle2 className="h-4 w-4 mr-2" />Confirmer paiement
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.info(`Dossier ${l.client}`)}>
+                          <DropdownMenuItem onClick={() => voirDossier(l.client)}>
                             <Eye className="h-4 w-4 mr-2" />Voir le dossier
                           </DropdownMenuItem>
                           {sf.label === "En attente de règlement" && (
