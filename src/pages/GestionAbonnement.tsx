@@ -788,16 +788,14 @@ function AbonnementTable({
 
                   {/* Type service */}
                   <TableCell className="text-sm">{d.type_prestation || d.type_service || "—"}</TableCell>
-                  {/* Fréquence + Début/Fin */}
+                  {/* Fréquence + Jours de passage */}
                   <TableCell>
                     <div className="space-y-1 text-xs">
                       <Badge variant="outline" className="text-xs">{freqLabel}</Badge>
-                      <div className="text-muted-foreground">
-                        {dateDebut ? format(dateDebut, "dd/MM/yy", { locale: fr }) : "—"} → {stats.dateFin ? format(stats.dateFin, "dd/MM/yy", { locale: fr }) : "—"}
-                        {finProche && <Badge className="ml-1 bg-red-100 text-red-800 text-[10px] px-1.5 py-0">Fin {joursRestants}j</Badge>}
-                      </div>
+                      <div className="text-muted-foreground font-medium">{formatJoursPassage(d)}</div>
                     </div>
                   </TableCell>
+
                   {/* Interventions : faites / prévues + annulées */}
                   <TableCell>
                     <div className="space-y-1 min-w-[150px]">
