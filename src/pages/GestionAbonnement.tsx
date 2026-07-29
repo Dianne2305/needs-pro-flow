@@ -184,9 +184,9 @@ function getStatutMoisEnCours(
 }
 
 /**
- * Statut du mois à venir : piloté par le calendrier de relance.
- * 15 → facture envoyée · 18 → 1er rappel · 23 → 2e rappel · 27 → Suspendu.
- * Si le commercial confirme le paiement → Actif.
+ * Statut du mois à venir : déterminé UNIQUEMENT par le statut FINAL de la facturation.
+ * Payé → Actif · Non payé (27 du mois) → Suspendu.
+ * Les statuts intermédiaires (Facture générée, En attente de règlement) n'ont aucun impact.
  */
 function getStatutMoisSuivant(
   d: Demande,
@@ -199,13 +199,13 @@ function getStatutMoisSuivant(
   if (p.standby_reactivation) {
     return { ...STATUT_ABO_META.standby, key: "standby", hint: `Relance prévue le ${p.standby_reactivation}` };
   }
-  if (paiementConfirme) return { ...STATUT_ABO_META.actif, key: "actif", hint: "Paiement confirmé par le commercial" };
-  const jour = today.getDate();
-  if (jour >= 27) return { ...STATUT_ABO_META.suspendu, key: "suspendu", hint: "Facture non payée au 27 du mois" };
-  if (jour >= 23) return { ...STATUT_ABO_META.rappel2, key: "rappel2", hint: "2e rappel envoyé le 23" };
-  if (jour >= 18) return { ...STATUT_ABO_META.rappel1, key: "rappel1", hint: "1er rappel envoyé le 18" };
-  if (jour >= 15) return { ...STATUT_ABO_META.facture_envoyee, key: "facture_envoyee", hint: "Facture envoyée le 15" };
-  return { ...STATUT_ABO_META.attente, key: "attente", hint: "Facture envoyée le 15 du mois" };
+  const fact = getStatutFacturation(paiementConfirme, today);
+  if (!fact.final) {
+    return { ...STATUT_ABO_META.attente, key: "attente", hint: `Statut facturation intermédiaire (${fact.label}) — sans impact` };
+  }
+  if (fact.key === "paye") return { ...STATUT_ABO_META.actif, key: "actif", hint: "Facture payée — abonnement reconduit" };
+  return { ...STATUT_ABO_META.suspendu, key: "suspendu", hint: "Facture non payée au 27 du mois" };
+
 }
 
 
