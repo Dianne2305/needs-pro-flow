@@ -660,8 +660,8 @@ export default function GestionAbonnement() {
   const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, ...deps]);
   const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFacture(f) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, ...deps]);
 
-  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); };
-  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all";
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); setFiltreStatutFacturation("all"); };
+  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all" || filtreStatutFacturation !== "all";
 
 
   return (
