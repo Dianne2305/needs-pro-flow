@@ -849,7 +849,7 @@ export default function GestionAbonnement() {
             <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
             <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
           </div>
-          <CycleFacturationPanel />
+          <CycleFacturationPanel statutFilter={filtreStatutFacturation} />
 
 
         </TabsContent>
