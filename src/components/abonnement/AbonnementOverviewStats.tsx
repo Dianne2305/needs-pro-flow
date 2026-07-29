@@ -11,12 +11,12 @@ type StatCard = {
   cardClass?: string;
 };
 
-const STATS: StatCard[] = [
+const buildStats = (abosActifs: number): StatCard[] => [
   {
     label: "MRR — Revenu récurrent",
     value: "61 240",
     unit: "DH/mois",
-    hint: "47 abonnements actifs",
+    hint: `${abosActifs} abonnement${abosActifs > 1 ? "s" : ""} actif${abosActifs > 1 ? "s" : ""}`,
     badge: { text: "+8,2%", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   },
   {
@@ -48,7 +48,8 @@ const STATS: StatCard[] = [
   },
 ];
 
-export default function AbonnementOverviewStats() {
+export default function AbonnementOverviewStats({ abosActifs = 3 }: { abosActifs?: number }) {
+  const STATS = buildStats(abosActifs);
   return (
     <div className="space-y-3">
       {/* Bandeau jour férié */}
