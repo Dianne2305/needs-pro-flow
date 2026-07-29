@@ -771,7 +771,7 @@ function AbonnementTable({
 
               const nextDate = getNextIntervention(d, today);
               const progressPct = stats.total > 0 ? Math.round((stats.effectuees / stats.total) * 100) : 0;
-              const commercial = d.commercial || d.commercial_createur || "";
+              const commercial = d.commercial || d.commercial_createur || defaultCommercial(String(d.id));
               const freqLabel = d.frequence ? (FREQ_LABEL[d.frequence] || d.frequence) : "—";
 
               return (
