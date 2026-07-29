@@ -776,18 +776,17 @@ function AbonnementTable({
 
               return (
                 <TableRow key={d.id}>
-                  {/* Commercial : pastille ronde avec initiales (tooltip = nom complet) */}
-                  <TableCell className="text-center">
+                  {/* Commercial : pastille ronde + prénom */}
+                  <TableCell>
                     {commercial ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className={`inline-flex items-center justify-center h-9 w-9 rounded-full text-white text-xs font-bold ${commercialColor(commercial)}`}>
-                            {getInitials(commercial)}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>{commercial}</TooltipContent>
-                      </Tooltip>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center justify-center h-8 w-8 shrink-0 rounded-full text-white text-sm font-bold ${commercialColor(commercial)}`}>
+                          {commercial.trim()[0]?.toUpperCase()}
+                        </span>
+                        <span className="text-sm font-medium">{commercial.split(/\s+/)[0]}</span>
+                      </div>
                     ) : <span className="text-muted-foreground text-xs">—</span>}
+
                   </TableCell>
                   {/* Client + icône segment + quartier/ville */}
                   <TableCell>
