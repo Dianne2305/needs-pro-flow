@@ -121,12 +121,16 @@ export default function CycleFacturationPanel() {
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return LIGNES.filter((l) => {
+    return LIGNES.map((l, i) => {
+      const key = l.reference + i;
+      return { l, i, key, sf: computeStatutFacturation(jour, !!paiements[key]) };
+    }).filter(({ l, sf }) => {
       const okQ = !q || l.client.toLowerCase().includes(q) || l.reference.toLowerCase().includes(q);
-      const okS = statut === "all" || l.ton === statut;
+      const okS = statut === "all" || sf.label === statut;
       return okQ && okS;
     });
-  }, [search, statut]);
+  }, [search, statut, paiements, jour]);
+
 
   return (
     <div className="space-y-4">
