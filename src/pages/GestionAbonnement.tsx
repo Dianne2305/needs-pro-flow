@@ -45,7 +45,7 @@ const FREQ_LABEL: Record<string, string> = {
   "4_fois_semaine": "4×/semaine", "5_fois_semaine": "5×/semaine", "6_fois_semaine": "6×/semaine",
   "quotidien": "Quotidien",
   "1_fois_mois": "1×/mois", "2_fois_mois": "2×/mois", "3_fois_mois": "3×/mois", "4_fois_mois": "4×/mois",
-  "bi-hebdomadaire": "Bi-hebdo", "hebdomadaire": "Hebdo", "abonnement": "Abonnement",
+  "bi-hebdomadaire": "Bi-hebdo", "hebdomadaire": "Hebdo", "mensuel": "1×/mois", "abonnement": "Abonnement",
 };
 
 const JOUR_LABELS: Record<string, string> = {
