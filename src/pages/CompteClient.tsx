@@ -260,6 +260,9 @@ export default function CompteClient() {
   const [factureFormData, setFactureFormData] = useState<FactureFormData | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
   const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
+  const [aboStatutMoisEnCours, setAboStatutMoisEnCours] = useState<"actif" | "termine">("actif");
+  const [aboStatutMoisProchain, setAboStatutMoisProchain] = useState<"actif" | "standby" | "suspendu" | "resilie" | "facture_envoyee">("actif");
+  const [aboStatutFacturation, setAboStatutFacturation] = useState<"facture_generee" | "en_attente" | "paye" | "non_paye">("facture_generee");
   // Facturation au prorata : clé "yyyy-MM" -> { debut, fin } (dates ISO)
   const [aboProrata, setAboProrata] = useState<Record<string, { debut: string; fin: string }>>({});
 
