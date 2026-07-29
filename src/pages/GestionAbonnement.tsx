@@ -736,9 +736,8 @@ function AbonnementTable({
                 echeance: { dot: "bg-amber-500", label: "À échéance", cls: "bg-amber-100 text-amber-800" },
                 suspendu: { dot: "bg-red-500", label: "Suspendu", cls: "bg-red-100 text-red-800" },
               }[statut];
-              const dateDebut = d.date_prestation ? parseISO(d.date_prestation as unknown as string) : (d.confirmed_at ? new Date(d.confirmed_at) : null);
-              const finProche = stats.dateFin && joursRestants !== null && joursRestants >= 0 && joursRestants < 30;
               const segment = getSegment(d);
+
               const nextDate = getNextIntervention(d, today);
               const progressPct = stats.total > 0 ? Math.round((stats.effectuees / stats.total) * 100) : 0;
               const commercial = d.commercial || d.commercial_createur || "";
