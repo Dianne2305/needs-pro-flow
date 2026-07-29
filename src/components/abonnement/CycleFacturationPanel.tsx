@@ -84,7 +84,7 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
 };
 
 
-export default function CycleFacturationPanel({ statutFilter }: { statutFilter?: StatutFacturationFilter }) {
+export default function CycleFacturationPanel({ statutFilter, moisFilter }: { statutFilter?: StatutFacturationFilter; moisFilter?: string }) {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [internalStatut, setInternalStatut] = useState("all");
