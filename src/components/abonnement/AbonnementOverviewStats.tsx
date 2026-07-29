@@ -49,7 +49,7 @@ export default function AbonnementOverviewStats({ abosActifs = 3 }: { abosActifs
       </div>
 
       {/* Cartes statistiques */}
-      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {STATS.map((s) => (
           <Card key={s.label} className={`p-3 ${s.cardClass ?? ""}`}>
             <div className="flex items-start justify-between gap-2">
