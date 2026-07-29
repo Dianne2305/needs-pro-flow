@@ -127,7 +127,40 @@ const STATUT_ABO_META: Record<string, StatutMeta> = {
   rappel1: { label: "1er rappel", cls: "bg-amber-100 text-amber-800", dot: "bg-amber-500" },
   rappel2: { label: "2e rappel", cls: "bg-orange-100 text-orange-800", dot: "bg-orange-500" },
   attente: { label: "En attente", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  facture_generee: { label: "Facture générée", cls: "bg-sky-100 text-sky-800", dot: "bg-sky-500" },
+  attente_reglement: { label: "En attente de règlement", cls: "bg-amber-100 text-amber-800", dot: "bg-amber-500" },
+  paye: { label: "Payé", cls: "bg-emerald-100 text-emerald-800", dot: "bg-emerald-500" },
+  non_paye: { label: "Non payé", cls: "bg-red-100 text-red-800", dot: "bg-red-500" },
+  a_generer: { label: "À générer", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
 };
+
+/**
+ * Statut de la facturation (cycle mensuel) :
+ * · avant le 15 → À générer
+ * · le 15 → Facture générée
+ * · du 16 au 26 → En attente de règlement (ou Payé dès confirmation du commercial)
+ * · à partir du 27 → Payé si confirmé, sinon Non payé (statut FINAL)
+ */
+function getStatutFacturation(
+  paiementConfirme: boolean,
+  today: Date,
+): StatutMeta & { key: string; final: boolean } {
+  const jour = today.getDate();
+  if (paiementConfirme && jour >= 15) {
+    return { ...STATUT_ABO_META.paye, key: "paye", hint: "Paiement confirmé par le commercial", final: true };
+  }
+  if (jour >= 27) {
+    return { ...STATUT_ABO_META.non_paye, key: "non_paye", hint: "Aucun paiement confirmé au 27 du mois", final: true };
+  }
+  if (jour >= 16) {
+    return { ...STATUT_ABO_META.attente_reglement, key: "attente_reglement", hint: "Statut intermédiaire — sans impact sur le mois suivant", final: false };
+  }
+  if (jour === 15) {
+    return { ...STATUT_ABO_META.facture_generee, key: "facture_generee", hint: "Facture générée le 15 — statut intermédiaire", final: false };
+  }
+  return { ...STATUT_ABO_META.a_generer, key: "a_generer", hint: "Facture générée le 15 du mois", final: false };
+}
+
 
 /** Statut du mois en cours : Résilié / Stand by / Suspendu / Terminé / Actif */
 function getStatutMoisEnCours(
@@ -151,9 +184,9 @@ function getStatutMoisEnCours(
 }
 
 /**
- * Statut du mois à venir : piloté par le calendrier de relance.
- * 15 → facture envoyée · 18 → 1er rappel · 23 → 2e rappel · 27 → Suspendu.
- * Si le commercial confirme le paiement → Actif.
+ * Statut du mois à venir : déterminé UNIQUEMENT par le statut FINAL de la facturation.
+ * Payé → Actif · Non payé (27 du mois) → Suspendu.
+ * Les statuts intermédiaires (Facture générée, En attente de règlement) n'ont aucun impact.
  */
 function getStatutMoisSuivant(
   d: Demande,
@@ -166,13 +199,13 @@ function getStatutMoisSuivant(
   if (p.standby_reactivation) {
     return { ...STATUT_ABO_META.standby, key: "standby", hint: `Relance prévue le ${p.standby_reactivation}` };
   }
-  if (paiementConfirme) return { ...STATUT_ABO_META.actif, key: "actif", hint: "Paiement confirmé par le commercial" };
-  const jour = today.getDate();
-  if (jour >= 27) return { ...STATUT_ABO_META.suspendu, key: "suspendu", hint: "Facture non payée au 27 du mois" };
-  if (jour >= 23) return { ...STATUT_ABO_META.rappel2, key: "rappel2", hint: "2e rappel envoyé le 23" };
-  if (jour >= 18) return { ...STATUT_ABO_META.rappel1, key: "rappel1", hint: "1er rappel envoyé le 18" };
-  if (jour >= 15) return { ...STATUT_ABO_META.facture_envoyee, key: "facture_envoyee", hint: "Facture envoyée le 15" };
-  return { ...STATUT_ABO_META.attente, key: "attente", hint: "Facture envoyée le 15 du mois" };
+  const fact = getStatutFacturation(paiementConfirme, today);
+  if (!fact.final) {
+    return { ...STATUT_ABO_META.attente, key: "attente", hint: `Statut facturation intermédiaire (${fact.label}) — sans impact` };
+  }
+  if (fact.key === "paye") return { ...STATUT_ABO_META.actif, key: "actif", hint: "Facture payée — abonnement reconduit" };
+  return { ...STATUT_ABO_META.suspendu, key: "suspendu", hint: "Facture non payée au 27 du mois" };
+
 }
 
 
@@ -550,6 +583,7 @@ export default function GestionAbonnement() {
   type MainTab = "abonnement" | "planning" | "facturation";
   type StatutFilter = "all" | "actif" | "echeance" | "suspendu";
   type StatutMoisFilter = "all" | "actif" | "termine" | "suspendu" | "resilie" | "standby" | "facture_envoyee" | "rappel1" | "rappel2" | "attente";
+  type StatutFactFilter = "all" | "a_generer" | "facture_generee" | "attente_reglement" | "paye" | "non_paye";
   const [mainTab, setMainTab] = useState<MainTab>("abonnement");
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
@@ -561,6 +595,7 @@ export default function GestionAbonnement() {
   const [filtreStatut, setFiltreStatut] = useState<StatutFilter>("all");
   const [filtreStatutMoisEnCours, setFiltreStatutMoisEnCours] = useState<StatutMoisFilter>("all");
   const [filtreStatutMoisSuivant, setFiltreStatutMoisSuivant] = useState<StatutMoisFilter>("all");
+  const [filtreStatutFacturation, setFiltreStatutFacturation] = useState<StatutFactFilter>("all");
 
   const uniq = (arr: (string | null | undefined)[]) =>
     Array.from(new Set(arr.filter((v): v is string => !!v && !!v.trim()))).sort((a, b) => a.localeCompare(b));
@@ -623,6 +658,17 @@ export default function GestionAbonnement() {
     return meta.key === filtreStatutMoisSuivant;
   };
 
+  const matchesStatutFacturation = (d: Demande) => {
+    if (filtreStatutFacturation === "all") return true;
+    const impaye = facturations
+      .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+      .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
+    const paiementConfirme = facturations.some(
+      (f) => f.demande_id === d.id && ["paye", "agence_payee_client", "profil_paye_client"].includes(f.statut_paiement),
+    ) && impaye === 0;
+    return getStatutFacturation(paiementConfirme, today).key === filtreStatutFacturation;
+  };
+
 
   const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
     if (!dateDu && !dateAu) return true;
@@ -649,17 +695,17 @@ export default function GestionAbonnement() {
     return true;
   };
 
-  const deps = [searchNom, dateDu, dateAu, filtreService, filtreCommercial, filtreVille, filtreStatut, filtreStatutMoisEnCours, filtreStatutMoisSuivant];
-  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants) && matchesStatutMoisEnCours(d, joursRestants) && matchesStatutMoisSuivant(d)), [abosActifs, ...deps]);
-  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants) && matchesStatutMoisEnCours(d, joursRestants) && matchesStatutMoisSuivant(d)), [abosEcheance, ...deps]);
-  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants) && matchesStatutMoisEnCours(d, joursRestants) && matchesStatutMoisSuivant(d)), [abosSuspendus, ...deps]);
+  const deps = [searchNom, dateDu, dateAu, filtreService, filtreCommercial, filtreVille, filtreStatut, filtreStatutMoisEnCours, filtreStatutMoisSuivant, filtreStatutFacturation];
+  const abosActifsF = useMemo(() => abosActifs.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants) && matchesStatutMoisEnCours(d, joursRestants) && matchesStatutMoisSuivant(d) && matchesStatutFacturation(d)), [abosActifs, ...deps]);
+  const abosEcheanceF = useMemo(() => abosEcheance.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants) && matchesStatutMoisEnCours(d, joursRestants) && matchesStatutMoisSuivant(d) && matchesStatutFacturation(d)), [abosEcheance, ...deps]);
+  const abosSuspendusF = useMemo(() => abosSuspendus.filter(({ d, stats, joursRestants }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesAbonnementDate(d, stats) && matchesStatut(d, stats, joursRestants) && matchesStatutMoisEnCours(d, joursRestants) && matchesStatutMoisSuivant(d) && matchesStatutFacturation(d)), [abosSuspendus, ...deps]);
   const interventionsTodayF = useMemo(() => interventionsToday.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesInterventionDate(date)), [interventionsToday, ...deps]);
   const interventionsTomorrowF = useMemo(() => interventionsTomorrow.filter(({ d, date }) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesInterventionDate(date)), [interventionsTomorrow, ...deps]);
   const facturesAGenererF = useMemo(() => facturesAGenerer.filter((d) => matchesNom(d.nom_entreprise || d.nom) && matchesDemande(d) && matchesFactureDate(d.date_prestation as unknown as string)), [facturesAGenerer, ...deps]);
   const facturesImpayeesF = useMemo(() => facturesImpayees.filter((f) => matchesNom(f.nom_client) && matchesFacture(f) && matchesFactureDate(f.date_intervention as unknown as string)), [facturesImpayees, ...deps]);
 
-  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); };
-  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all";
+  const resetFilters = () => { setSearchNom(""); setDateDu(""); setDateAu(""); setFiltreService("all"); setFiltreCommercial("all"); setFiltreVille("all"); setFiltreStatut("all"); setFiltreStatutMoisEnCours("all"); setFiltreStatutMoisSuivant("all"); setFiltreStatutFacturation("all"); };
+  const hasFilters = !!(searchNom || dateDu || dateAu) || filtreService !== "all" || filtreCommercial !== "all" || filtreVille !== "all" || filtreStatut !== "all" || filtreStatutMoisEnCours !== "all" || filtreStatutMoisSuivant !== "all" || filtreStatutFacturation !== "all";
 
 
   return (
@@ -792,6 +838,20 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="min-w-[190px]">
+              <Label className="text-xs">Statut de la facturation</Label>
+              <Select value={filtreStatutFacturation} onValueChange={(v) => setFiltreStatutFacturation(v as StatutFactFilter)}>
+                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="a_generer">À générer</SelectItem>
+                  <SelectItem value="facture_generee">Facture générée</SelectItem>
+                  <SelectItem value="attente_reglement">En attente de règlement</SelectItem>
+                  <SelectItem value="paye">Payé</SelectItem>
+                  <SelectItem value="non_paye">Non payé</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
             )}
@@ -893,6 +953,7 @@ function AbonnementTable({
               <TableHead className="min-w-[160px]">Interventions</TableHead>
               <TableHead>Prochaine intervention</TableHead>
               <TableHead>Statut mois en cours</TableHead>
+              <TableHead>Statut facturation</TableHead>
               <TableHead>Statut mois à venir</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -910,6 +971,7 @@ function AbonnementTable({
               ) && !enRetard;
               const statutCourant = getStatutMoisEnCours(d, joursRestants, enRetard);
               const statutSuivant = getStatutMoisSuivant(d, paiementConfirme, today);
+              const statutFact = getStatutFacturation(paiementConfirme, today);
               const segment = getSegment(d);
 
               const nextDate = getNextIntervention(d, today);
@@ -1015,6 +1077,18 @@ function AbonnementTable({
                         </div>
                       </TooltipTrigger>
                       {statutCourant.hint && <TooltipContent>{statutCourant.hint}</TooltipContent>}
+                    </Tooltip>
+                  </TableCell>
+                  {/* Statut de la facturation */}
+                  <TableCell>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-2.5 w-2.5 rounded-full ${statutFact.dot}`} />
+                          <Badge className={statutFact.cls}>{statutFact.label}</Badge>
+                        </div>
+                      </TooltipTrigger>
+                      {statutFact.hint && <TooltipContent>{statutFact.hint}</TooltipContent>}
                     </Tooltip>
                   </TableCell>
                   {/* Statut mois à venir */}
