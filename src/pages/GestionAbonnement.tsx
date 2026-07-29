@@ -661,18 +661,21 @@ export default function GestionAbonnement() {
 
         <TabsContent value="abonnement" className="m-0 space-y-4">
           {activeKpi === "actifs" && <AbonnementTable rows={abosActifsF} navigate={navigate} facturations={facturations} today={today} openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
-          {activeKpi === "echeance" && <AbonnementTable rows={abosEcheanceF.length ? abosEcheanceF : (MOCK_ABOS_ECHEANCE(today) as any)} navigate={navigate} facturations={facturations} today={today} highlightEcheance openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
-          {activeKpi === "suspendus" && <AbonnementTable rows={abosSuspendusF.length ? abosSuspendusF : (MOCK_ABOS_SUSPENDUS(today) as any)} navigate={navigate} facturations={facturations} today={today} forceStatut="suspendu" openAction={openAction} openCalendar={setCalendarDemande} onSuspend={suspendreDemande} />}
           {activeKpi === "today" && <InterventionTable rows={interventionsTodayF.length ? interventionsTodayF : (MOCK_INTERVENTIONS(today) as any)} navigate={navigate} />}
           {activeKpi === "tomorrow" && <InterventionTable rows={interventionsTomorrowF.length ? interventionsTomorrowF : (MOCK_INTERVENTIONS(tomorrow) as any)} navigate={navigate} />}
         </TabsContent>
 
         <TabsContent value="planning" className="m-0 space-y-4">
-          <PlanningMoisPanel getEntries={getPlanningEntries} services={servicesOptions} villes={villesOptions} commerciaux={commerciauxOptions} />
+          <PlanningMoisPanel getEntries={getPlanningEntries} services={servicesOptions} villes={villesOptions} commerciaux={commerciaux Options} />
         </TabsContent>
 
         <TabsContent value="facturation" className="m-0 space-y-4">
+          <div className="flex flex-wrap justify-center gap-3 [&>*]:flex-1 [&>*]:min-w-[200px] [&>*]:max-w-[280px]">
+            <KpiCard label="À échéance ≤ 15j" value={abosEcheance.length} icon={<CalendarClock className="h-5 w-5" />} gradient="from-amber-400 to-orange-500" />
+            <KpiCard label="Suspendus" value={abosSuspendus.length} icon={<PauseCircle className="h-5 w-5" />} gradient="from-red-500 to-rose-600" />
+          </div>
           <CycleFacturationPanel />
+
 
         </TabsContent>
 
