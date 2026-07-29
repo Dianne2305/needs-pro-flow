@@ -66,10 +66,11 @@ function formatJoursPassage(d: Demande): string {
   // Si les jours sont consécutifs, affiche Lun-Jeu ; sinon Lun, Mer…
   const idxs = sorted.map((j) => JOUR_ORDER.indexOf(j));
   const consecutive = idxs.length > 1 && idxs.every((v, i) => i === 0 || v === idxs[i - 1] + 1);
-  if (consecutive) {
-    return `${JOUR_LABELS[sorted[0]]}-${JOUR_LABELS[sorted[sorted.length - 1]]}`;
-  }
-  return sorted.map((j) => JOUR_LABELS[j] || j).join(", ");
+  const joursStr = consecutive
+    ? `${JOUR_LABELS[sorted[0]]}-${JOUR_LABELS[sorted[sorted.length - 1]]}`
+    : sorted.map((j) => JOUR_LABELS[j] || j).join(", ");
+  const heures = d.duree_heures ? `${d.duree_heures}h` : "";
+  return heures ? `${joursStr} . ${heures}` : joursStr;
 }
 
 
