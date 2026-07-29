@@ -53,6 +53,14 @@ function getInitials(name?: string | null): string {
   return name.trim().split(/\s+/).slice(0, 2).map((s) => s[0]?.toUpperCase() || "").join("") || "—";
 }
 
+const COMMERCIAL_COLORS = ["bg-purple-600", "bg-blue-600", "bg-amber-600", "bg-emerald-600", "bg-rose-600", "bg-cyan-600"];
+function commercialColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 997;
+  return COMMERCIAL_COLORS[h % COMMERCIAL_COLORS.length];
+}
+
+
 function getSegment(d: Demande): "entreprise" | "particulier" {
   return d.nom_entreprise ? "entreprise" : "particulier";
 }
