@@ -95,6 +95,23 @@ export default function CycleFacturationPanel({ statutFilter }: { statutFilter?:
     Object.fromEntries(LIGNES.map((l, i) => [l.reference + i, !!l.paiementConfirme])),
   );
 
+  /** Redirige vers le compte du client (section Gestion de l'abonnement). */
+  const voirDossier = async (nomClient: string) => {
+    const { data } = await supabase
+      .from("demandes")
+      .select("id")
+      .or(`nom.ilike.%${nomClient}%,nom_entreprise.ilike.%${nomClient}%`)
+      .limit(1)
+      .maybeSingle();
+    if (data?.id) {
+      navigate(`/compte-client?id=${data.id}&from=/gestion-abonnement&section=gestion-abonnement`);
+    } else {
+      toast.error(`Aucun dossier trouvé pour ${nomClient}`);
+    }
+  };
+
+
+
 
   const genererFacture = (l: FactureLigne, i: number) => {
     const ref = l.reference === "—" ? `BROUILLON-${i + 1}` : l.reference;
