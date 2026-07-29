@@ -28,16 +28,47 @@ type FactureLigne = {
   ton: "info" | "ok" | "warn" | "danger" | "neutre";
   action: string;
   actionVariant?: "outline" | "default";
+  paiementConfirme?: boolean;
 };
 
 const LIGNES: FactureLigne[] = [
   { reference: "AM/F118/2026", client: "Sofia BENNANI", periode: "Juillet", montant: 1944, statut: "Envoyée — éch. 20/06", ton: "info", action: "Relancer", actionVariant: "outline" },
-  { reference: "AM/F121/2026", client: "SMILE+ (bureaux)", periode: "Juillet", montant: 2851, statut: "Payée le 17/06", ton: "ok", action: "Reçu", actionVariant: "outline" },
+  { reference: "AM/F121/2026", client: "SMILE+ (bureaux)", periode: "Juillet", montant: 2851, statut: "Payée le 17/06", ton: "ok", action: "Reçu", actionVariant: "outline", paiementConfirme: true },
   { reference: "AM/F103/2026", client: "Rachid EL AMRANI", periode: "Juin", montant: 1512, statut: "Retard J+11 — mise en demeure", ton: "warn", action: "Voir dossier", actionVariant: "default" },
   { reference: "AM/F097/2026", client: "Youssef KABBAJ", periode: "Juin", montant: 1296, statut: "Suspendu J+16", ton: "danger", action: "Voir dossier", actionVariant: "default" },
-  { reference: "AM/F124/2026", client: "Famille TAZI (aux. vie)", periode: "Sem. 25", montant: 775, statut: "Hebdo — éch. mer 17/06", ton: "info", action: "Relancer", actionVariant: "outline" },
+  { reference: "AM/F124/2026", client: "Famille TAZI (aux. vie)", periode: "Sem. 25", montant: 775, statut: "Hebdo — éch. mer 17/06", ton: "info", action: "Relancer", actionVariant: "outline", paiementConfirme: true },
   { reference: "—", client: "RIAD DAR ZITOUNE", periode: "Juillet", montant: 2566, statut: "Brouillon — prorata démarrage 01/07", ton: "neutre", action: "Valider", actionVariant: "outline" },
 ];
+
+/**
+ * Statut de facturation calculé automatiquement :
+ * - avant le 15 : Non généré
+ * - le 15 : Facture générée
+ * - du 16 au 26 : Payé si confirmé, sinon En attente de règlement (intermédiaire)
+ * - à partir du 27 : statut final Payé ou Non payé
+ */
+type StatutFacturation = {
+  label: string;
+  ton: FactureLigne["ton"];
+  final: boolean;
+  impactMoisSuivant: "Actif" | "Suspendu" | null;
+};
+
+export function computeStatutFacturation(jour: number, paiementConfirme: boolean): StatutFacturation {
+  if (paiementConfirme && jour >= 15) {
+    return { label: "Payé", ton: "ok", final: true, impactMoisSuivant: "Actif" };
+  }
+  if (jour < 15) {
+    return { label: "Non généré", ton: "neutre", final: false, impactMoisSuivant: null };
+  }
+  if (jour === 15) {
+    return { label: "Facture générée", ton: "info", final: false, impactMoisSuivant: null };
+  }
+  if (jour <= 26) {
+    return { label: "En attente de règlement", ton: "warn", final: false, impactMoisSuivant: null };
+  }
+  return { label: "Non payé", ton: "danger", final: true, impactMoisSuivant: "Suspendu" };
+}
 
 const TON_CLASS: Record<FactureLigne["ton"], string> = {
   info: "bg-sky-50 text-sky-700 border-sky-200",
@@ -46,6 +77,7 @@ const TON_CLASS: Record<FactureLigne["ton"], string> = {
   danger: "bg-rose-50 text-rose-700 border-rose-200",
   neutre: "bg-muted text-muted-foreground border-border",
 };
+
 
 export default function CycleFacturationPanel() {
   const [search, setSearch] = useState("");
