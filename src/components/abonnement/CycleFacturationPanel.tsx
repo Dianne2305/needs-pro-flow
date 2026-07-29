@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Download, Settings2, FileText } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Download, Settings2, FileText, MoreHorizontal, CheckCircle2, Eye, Send } from "lucide-react";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
 
