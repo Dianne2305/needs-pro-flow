@@ -838,6 +838,20 @@ export default function GestionAbonnement() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="min-w-[190px]">
+              <Label className="text-xs">Statut de la facturation</Label>
+              <Select value={filtreStatutFacturation} onValueChange={(v) => setFiltreStatutFacturation(v as StatutFactFilter)}>
+                <SelectTrigger><SelectValue placeholder="Tous" /></SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="a_generer">À générer</SelectItem>
+                  <SelectItem value="facture_generee">Facture générée</SelectItem>
+                  <SelectItem value="attente_reglement">En attente de règlement</SelectItem>
+                  <SelectItem value="paye">Payé</SelectItem>
+                  <SelectItem value="non_paye">Non payé</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={resetFilters}><X className="h-4 w-4 mr-1" />Réinitialiser</Button>
             )}
