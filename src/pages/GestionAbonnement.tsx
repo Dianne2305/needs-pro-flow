@@ -602,6 +602,27 @@ export default function GestionAbonnement() {
   const matchesStatut = (d: Demande, stats: ReturnType<typeof getStats>, joursRestants: number | null) =>
     filtreStatut === "all" || getComputedStatut(d, stats, joursRestants) === filtreStatut;
 
+  const matchesStatutMoisEnCours = (d: Demande, joursRestants: number | null) => {
+    if (filtreStatutMoisEnCours === "all") return true;
+    const impaye = facturations
+      .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+      .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
+    const meta = getStatutMoisEnCours(d, joursRestants, impaye > 0);
+    return meta.key === filtreStatutMoisEnCours;
+  };
+
+  const matchesStatutMoisSuivant = (d: Demande) => {
+    if (filtreStatutMoisSuivant === "all") return true;
+    const impaye = facturations
+      .filter((f) => f.demande_id === d.id && ["non_paye", "paiement_partiel"].includes(f.statut_paiement))
+      .reduce((s, f) => s + (Number(f.montant_total) - Number(f.montant_paye_client || 0)), 0);
+    const paiementConfirme = facturations.some(
+      (f) => f.demande_id === d.id && ["paye", "agence_payee_client", "profil_paye_client"].includes(f.statut_paiement),
+    ) && impaye === 0;
+    const meta = getStatutMoisSuivant(d, paiementConfirme, today);
+    return meta.key === filtreStatutMoisSuivant;
+  };
+
 
   const matchesAbonnementDate = (d: Demande, stats: ReturnType<typeof getStats>) => {
     if (!dateDu && !dateAu) return true;
