@@ -583,6 +583,7 @@ export default function GestionAbonnement() {
   type MainTab = "abonnement" | "planning" | "facturation";
   type StatutFilter = "all" | "actif" | "echeance" | "suspendu";
   type StatutMoisFilter = "all" | "actif" | "termine" | "suspendu" | "resilie" | "standby" | "facture_envoyee" | "rappel1" | "rappel2" | "attente";
+  type StatutFactFilter = "all" | "a_generer" | "facture_generee" | "attente_reglement" | "paye" | "non_paye";
   const [mainTab, setMainTab] = useState<MainTab>("abonnement");
   const [activeKpi, setActiveKpi] = useState<KpiKey>("actifs");
   const [searchNom, setSearchNom] = useState("");
