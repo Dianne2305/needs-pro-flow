@@ -2354,7 +2354,7 @@ export default function CompteClient() {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Type de fréquence</Label>
-              <Input value={ABO_FREQ_OPTIONS.find((f) => f.value === aboFrequence)?.label || aboFrequence || ""} disabled className="h-9 text-xs" />
+              <Input value={FREQUENCES.find((f) => f.value === aboFrequence)?.label || aboFrequence || ""} disabled className="h-9 text-xs" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Date de démarrage</Label>
