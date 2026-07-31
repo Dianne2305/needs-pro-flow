@@ -2487,39 +2487,9 @@ export default function CompteClient() {
             </div>
 
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                setAboDateDebut(aboParamsForm.date_debut);
-                setAboFrequence(aboParamsForm.frequence);
-                setAboPromo({
-                  taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
-                });
-                setAboParamsExtra({
-                  nombre_passages: aboParamsForm.nombre_passages !== "" ? Number(aboParamsForm.nombre_passages) : null,
-                  tarif_horaire: aboParamsForm.tarif_horaire !== "" ? Number(aboParamsForm.tarif_horaire) : null,
-                  mensuel_base: aboParamsForm.mensuel_base !== "" ? Number(aboParamsForm.mensuel_base) : null,
-                });
-                updateMutation.mutate({
-                  type_prestation: aboParamsForm.type_prestation || null,
-                  nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
-                  duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
-                  montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
-                  mode_paiement: aboParamsForm.mode_paiement || null,
-                  commercial: aboParamsForm.commercial || null,
-                  avec_produit: aboParamsForm.avec_produit,
-                });
-                setAboParamsEdit(false);
-              }}
-            >
+        }
+      />
 
-              Enregistrer
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={renewOpen} onOpenChange={setRenewOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
