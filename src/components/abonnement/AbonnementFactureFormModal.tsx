@@ -114,6 +114,16 @@ export default function AbonnementFactureFormModal({ open, onOpenChange, data, p
           </div>
         </section>
 
+        {/* Paramètres de l'abonnement (éditables) */}
+        {paramsSection && (
+          <section className="rounded-lg border bg-background p-3 space-y-2">
+            <h3 className="text-sm font-semibold text-primary">Paramètres de l'abonnement</h3>
+            {paramsSection}
+          </section>
+        )}
+
+
+
         {/* Calcul des interventions */}
         <section className="rounded-lg border bg-background p-3 space-y-2">
           <h3 className="text-sm font-semibold text-primary">Calcul des interventions</h3>
