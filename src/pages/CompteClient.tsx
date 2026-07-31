@@ -242,12 +242,12 @@ export default function CompteClient() {
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
   const [aboParamsEdit, setAboParamsEdit] = useState(false);
-  const [aboPromo, setAboPromo] = useState<{ applique: boolean; code: string }>({ applique: false, code: "" });
+  const [aboPromo, setAboPromo] = useState<{ taux: number }>({ taux: 10 });
   const [aboParamsForm, setAboParamsForm] = useState<{
     date_debut: string; nombre_intervenants: string; duree_heures: string;
     montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
-    promo_applique: boolean; code_promo: string;
-  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, promo_applique: false, code_promo: "" });
+    taux_reduction: string;
+  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10" });
 
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
