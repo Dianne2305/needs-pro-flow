@@ -1354,9 +1354,6 @@ export default function CompteClient() {
                               onChange={(e) => setAboDateDebut(e.target.value)}
                               className="h-8 w-40 text-xs bg-background"
                             />
-                            <span className="text-xs font-normal text-muted-foreground">
-                              Fin (auto — 1 mois) : {dateFinAuto ? format(new Date(dateFinAuto), "dd/MM/yyyy") : "—"}
-                            </span>
                           </div>
                         </Line>
                         <Line label="Jours de passage">{joursLabel}</Line>
