@@ -1383,6 +1383,15 @@ export default function CompteClient() {
                         <Line label="Nbre de personnes">
                           {demande.nombre_intervenants ? `${demande.nombre_intervenants} personne(s)` : "—"}
                         </Line>
+                        <Line label="Nombre total de passages">
+                          {monthlyInterventions > 0 ? `${monthlyInterventions} passage(s) / mois` : "—"}
+                          {cancelledInterventions > 0 && (
+                            <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                              ({cancelledInterventions} annulée(s))
+                            </span>
+                          )}
+                        </Line>
+
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
                           {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
