@@ -1166,39 +1166,45 @@ export default function CompteClient() {
 
 
                 {/* Ligne d'actions : statut + facture + enregistrer */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-3 rounded-xl border bg-background">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Mois en cours</span>
-                    <Select value={aboStatutMoisEnCours} onValueChange={(v) => setAboStatutMoisEnCours(v as any)}>
-                      <SelectTrigger className="h-8 w-32 text-xs bg-background"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
-                        <SelectItem value="termine" className="text-xs">Terminée</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 p-3 rounded-xl border bg-background">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Mois en cours</span>
+                      <Select value={aboStatutMoisEnCours} onValueChange={(v) => setAboStatutMoisEnCours(v as any)}>
+                        <SelectTrigger className="h-8 w-full text-xs bg-background"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="actif" className="text-xs">Actif</SelectItem>
+                          <SelectItem value="termine" className="text-xs">Terminée</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ml-2">Mois prochain</span>
-                    <Select value={aboStatutMoisProchain} onValueChange={(v) => setAboStatutMoisProchain(v as any)}>
-                      <SelectTrigger className="h-8 w-40 text-xs bg-background"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
-                        <SelectItem value="standby" className="text-xs">Stand-by</SelectItem>
-                        <SelectItem value="suspendu" className="text-xs">Suspendu</SelectItem>
-                        <SelectItem value="resilie" className="text-xs">Résilié</SelectItem>
-                        <SelectItem value="facture_envoyee" className="text-xs">Facture envoyée</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Mois prochain</span>
+                      <Select value={aboStatutMoisProchain} onValueChange={(v) => setAboStatutMoisProchain(v as any)}>
+                        <SelectTrigger className="h-8 w-full text-xs bg-background"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="actif" className="text-xs">Actif</SelectItem>
+                          <SelectItem value="standby" className="text-xs">Stand-by</SelectItem>
+                          <SelectItem value="suspendu" className="text-xs">Suspendu</SelectItem>
+                          <SelectItem value="resilie" className="text-xs">Résilié</SelectItem>
+                          <SelectItem value="facture_envoyee" className="text-xs">Facture envoyée</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ml-2">Facturation</span>
-                    <Select value={aboStatutFacturation} onValueChange={(v) => setAboStatutFacturation(v as any)}>
-                      <SelectTrigger className="h-8 w-40 text-xs bg-background"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="facture_generee" className="text-xs">Facture générée</SelectItem>
-                        <SelectItem value="en_attente" className="text-xs">En attente</SelectItem>
-                        <SelectItem value="paye" className="text-xs">Payé</SelectItem>
-                        <SelectItem value="non_paye" className="text-xs">Non payé</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Statut facturation</span>
+                      <Select value={aboStatutFacturation} onValueChange={(v) => setAboStatutFacturation(v as any)}>
+                        <SelectTrigger className="h-8 w-full text-xs bg-background"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="facture_generee" className="text-xs">Facture générée</SelectItem>
+                          <SelectItem value="en_attente" className="text-xs">En attente</SelectItem>
+                          <SelectItem value="paye" className="text-xs">Payé</SelectItem>
+                          <SelectItem value="non_paye" className="text-xs">Non payé</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button size="sm" variant={aboFactureGeneree ? "default" : "outline"} onClick={() => {
