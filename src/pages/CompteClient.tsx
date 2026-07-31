@@ -2437,10 +2437,12 @@ export default function CompteClient() {
               size="sm"
               onClick={() => {
                 setAboDateDebut(aboParamsForm.date_debut);
+                setAboFrequence(aboParamsForm.frequence);
                 setAboPromo({
                   taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
                 });
                 updateMutation.mutate({
+                  type_prestation: aboParamsForm.type_prestation || null,
                   nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
                   duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
                   montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
