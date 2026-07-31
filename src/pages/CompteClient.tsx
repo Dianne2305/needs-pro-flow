@@ -241,6 +241,7 @@ export default function CompteClient() {
   // Gestion de l'abonnement (nouveau formulaire simplifié)
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
+  const [aboParamsEdit, setAboParamsEdit] = useState(false);
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
@@ -1342,18 +1343,30 @@ export default function CompteClient() {
                           <Settings className="h-4 w-4 text-primary" />
                           <span className="text-sm font-semibold">Paramètres de l'abonnement</span>
                         </div>
+                        <Button
+                          size="sm"
+                          variant={aboParamsEdit ? "default" : "outline"}
+                          className="h-7 text-xs"
+                          onClick={() => setAboParamsEdit((v) => !v)}
+                        >
+                          {aboParamsEdit ? "Terminer" : "Modifier"}
+                        </Button>
                       </div>
                       <div className="px-4 py-2 divide-y divide-border/60">
                         <Line label="Service">{service || "—"}</Line>
                         <Line label="Type de fréquence">{currentFreq?.label || aboFrequence || "—"}</Line>
                         <Line label="Date de démarrage">
                           <div className="flex flex-wrap items-center gap-2" id="abo-params-edit">
-                            <Input
-                              type="date"
-                              value={aboDateDebut}
-                              onChange={(e) => setAboDateDebut(e.target.value)}
-                              className="h-8 w-40 text-xs bg-background"
-                            />
+                            {aboParamsEdit ? (
+                              <Input
+                                type="date"
+                                value={aboDateDebut}
+                                onChange={(e) => setAboDateDebut(e.target.value)}
+                                className="h-8 w-40 text-xs bg-background"
+                              />
+                            ) : (
+                              <span>{aboDateDebut ? format(new Date(aboDateDebut), "dd/MM/yyyy") : "—"}</span>
+                            )}
                           </div>
                         </Line>
                         <Line label="Jours de passage">{joursLabel}</Line>
