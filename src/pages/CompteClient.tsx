@@ -1363,6 +1363,9 @@ export default function CompteClient() {
                               mode_paiement: (demande as any).mode_paiement || "",
                               commercial: (demande as any).commercial || "",
                               avec_produit: !!(demande as any).avec_produit,
+                              promo_applique: aboPromo.applique,
+                              code_promo: aboPromo.code,
+
                             });
                             setAboParamsEdit(true);
                           }}
