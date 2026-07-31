@@ -242,6 +242,10 @@ export default function CompteClient() {
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
   const [aboParamsEdit, setAboParamsEdit] = useState(false);
+  const [aboParamsForm, setAboParamsForm] = useState<{
+    date_debut: string; nombre_intervenants: string; duree_heures: string;
+    montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
+  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false });
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
@@ -1345,31 +1349,34 @@ export default function CompteClient() {
                         </div>
                         <Button
                           size="sm"
-                          variant={aboParamsEdit ? "default" : "outline"}
+                          variant="outline"
                           className="h-7 text-xs"
-                          onClick={() => setAboParamsEdit((v) => !v)}
+                          onClick={() => {
+                            setAboParamsForm({
+                              date_debut: aboDateDebut || "",
+                              nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                              duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                              montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                              mode_paiement: (demande as any).mode_paiement || "",
+                              commercial: (demande as any).commercial || "",
+                              avec_produit: !!(demande as any).avec_produit,
+                            });
+                            setAboParamsEdit(true);
+                          }}
                         >
-                          {aboParamsEdit ? "Terminer" : "Modifier"}
+                          Modifier
                         </Button>
                       </div>
                       <div className="px-4 py-2 divide-y divide-border/60">
                         <Line label="Service">{service || "—"}</Line>
                         <Line label="Type de fréquence">{currentFreq?.label || aboFrequence || "—"}</Line>
                         <Line label="Date de démarrage">
-                          <div className="flex flex-wrap items-center gap-2" id="abo-params-edit">
-                            {aboParamsEdit ? (
-                              <Input
-                                type="date"
-                                value={aboDateDebut}
-                                onChange={(e) => setAboDateDebut(e.target.value)}
-                                className="h-8 w-40 text-xs bg-background"
-                              />
-                            ) : (
-                              <span>{aboDateDebut ? format(new Date(aboDateDebut), "dd/MM/yyyy") : "—"}</span>
-                            )}
-                          </div>
+                          {aboDateDebut ? format(new Date(aboDateDebut), "dd/MM/yyyy") : "—"}
                         </Line>
                         <Line label="Jours de passage">{joursLabel}</Line>
+                        <Line label="Nbre de personnes">
+                          {demande.nombre_intervenants ? `${demande.nombre_intervenants} personne(s)` : "—"}
+                        </Line>
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
                           {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
@@ -1391,7 +1398,8 @@ export default function CompteClient() {
                           ) : "—"}
                         </Line>
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
-                        <Line label="Chargée de clientèle">{(demande as any).commercial || "—"}</Line>
+                        <Line label="Com">{(demande as any).commercial || "—"}</Line>
+
                       </div>
                     </div>
                   );
@@ -2331,6 +2339,82 @@ export default function CompteClient() {
       </div>
 
       {/* Renouveler Modal */}
+      {/* Modifier les paramètres de l'abonnement */}
+      <Dialog open={aboParamsEdit} onOpenChange={setAboParamsEdit}>
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-4 w-4 text-primary" /> Paramètres de l'abonnement
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Service</Label>
+              <Input value={demande?.type_prestation || ""} disabled className="h-9 text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Type de fréquence</Label>
+              <Input value={FREQUENCES.find((f) => f.value === aboFrequence)?.label || aboFrequence || ""} disabled className="h-9 text-xs" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Date de démarrage</Label>
+              <Input type="date" value={aboParamsForm.date_debut} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, date_debut: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Nbre de personnes</Label>
+              <Input type="number" min={1} value={aboParamsForm.nombre_intervenants} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, nombre_intervenants: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Durée / passage (h)</Label>
+              <Input type="number" step="0.5" min={0} value={aboParamsForm.duree_heures} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, duree_heures: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Montant total (DH)</Label>
+              <Input type="number" min={0} value={aboParamsForm.montant_total} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, montant_total: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Mode de paiement</Label>
+              <Input value={aboParamsForm.mode_paiement} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, mode_paiement: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Com</Label>
+              <Input value={aboParamsForm.commercial} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, commercial: e.target.value })} />
+            </div>
+            <label className="flex items-center gap-2 text-xs sm:col-span-2 pt-1">
+              <input type="checkbox" checked={aboParamsForm.avec_produit}
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, avec_produit: e.target.checked })} />
+              Produits ménagers inclus
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                setAboDateDebut(aboParamsForm.date_debut);
+                updateMutation.mutate({
+                  nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
+                  duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
+                  montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
+                  mode_paiement: aboParamsForm.mode_paiement || null,
+                  commercial: aboParamsForm.commercial || null,
+                  avec_produit: aboParamsForm.avec_produit,
+                });
+                setAboParamsEdit(false);
+              }}
+            >
+              Enregistrer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={renewOpen} onOpenChange={setRenewOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
