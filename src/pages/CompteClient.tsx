@@ -646,6 +646,27 @@ export default function CompteClient() {
     ...(demande.statut === "annulee" ? [{ user: "Commercial", date: demande.created_at, action: "Demande annulée", note: demande.motif_annulation || "" }] : []),
   ];
 
+  /** Applique les paramètres saisis dans le formulaire facture. */
+  const saveAboParams = () => {
+    setAboDateDebut(aboParamsForm.date_debut);
+    setAboFrequence(aboParamsForm.frequence);
+    setAboPromo({ taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10 });
+    setAboParamsExtra({
+      nombre_passages: aboParamsForm.nombre_passages !== "" ? Number(aboParamsForm.nombre_passages) : null,
+      tarif_horaire: aboParamsForm.tarif_horaire !== "" ? Number(aboParamsForm.tarif_horaire) : null,
+      mensuel_base: aboParamsForm.mensuel_base !== "" ? Number(aboParamsForm.mensuel_base) : null,
+    });
+    updateMutation.mutate({
+      type_prestation: aboParamsForm.type_prestation || null,
+      nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
+      duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
+      montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
+      mode_paiement: aboParamsForm.mode_paiement || null,
+      commercial: aboParamsForm.commercial || null,
+      avec_produit: aboParamsForm.avec_produit,
+    } as any);
+  };
+
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Header */}
@@ -1104,6 +1125,41 @@ export default function CompteClient() {
               });
             };
 
+            /** Ouvre le formulaire de facturation (ancienne version) enrichi des paramètres éditables. */
+            const openAboFormulaire = () => {
+              const totalEst = totalInterventions || monthlyInterventions || 0;
+              const montantTotal = Number((demande as any).montant_total) || 0;
+              const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+              const dureeH = Number(demande.duree_heures) || 0;
+              setAboParamsForm({
+                type_prestation: (demande as any).type_prestation || "",
+                frequence: aboFrequence || "",
+                date_debut: aboDateDebut || "",
+                nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                mode_paiement: (demande as any).mode_paiement || "",
+                commercial: (demande as any).commercial || "",
+                avec_produit: !!(demande as any).avec_produit,
+                taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
+                nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
+                tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (dureeH > 0 ? Math.round(unit / dureeH) : "")),
+                mensuel_base: String(aboParamsExtra.mensuel_base ?? Math.round(unit * monthlyInterventions)),
+              });
+              setFactureFormData({
+                clientNom: demande.nom || "—",
+                numAbonnement: (demande as any).num_demande ?? "—",
+                monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                typePrestation: (demande as any).type_prestation || "",
+                frequenceLabel: currentFreq?.label || aboFrequence || "",
+                interventionsPrevues: monthlyInterventions,
+                reportesPayees: reportesMois,
+                creditsRestants: aRecupMois,
+                prixUnitaire: unit,
+              });
+              setFactureFormOpen(true);
+            };
+
             return (
               <>
               <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
@@ -1236,31 +1292,10 @@ export default function CompteClient() {
                       <FileText className="h-3.5 w-3.5" />
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const totalEst = totalInterventions || monthlyInterventions || 0;
-                      const montantTotal = Number((demande as any).montant_total) || 0;
-                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
-                      const dureeH = Number(demande.duree_heures) || 0;
-                      setAboParamsForm({
-                        type_prestation: (demande as any).type_prestation || "",
-                        frequence: aboFrequence || "",
-                        date_debut: aboDateDebut || "",
-                        nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
-                        duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
-                        montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
-                        mode_paiement: (demande as any).mode_paiement || "",
-                        commercial: (demande as any).commercial || "",
-                        avec_produit: !!(demande as any).avec_produit,
-                        taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
-                        nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
-                        tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (dureeH > 0 ? Math.round(unit / dureeH) : "")),
-                        mensuel_base: String(aboParamsExtra.mensuel_base ?? Math.round(unit * monthlyInterventions)),
-                      });
-                      setAboParamsEdit(true);
-                    }} className="h-8 text-xs gap-1.5">
-
+                    <Button size="sm" variant="outline" onClick={openAboFormulaire} className="h-8 text-xs gap-1.5">
                       <Receipt className="h-3.5 w-3.5" /> Formulaire facture
                     </Button>
+
                     <Button size="sm" variant={aboFactureEnvoyee ? "default" : "outline"} onClick={envoyerFacture} disabled={!aboFactureGeneree} className="h-8 text-xs gap-1.5">
                       <Send className="h-3.5 w-3.5" />
                       {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
@@ -1363,27 +1398,11 @@ export default function CompteClient() {
                           size="sm"
                           variant="outline"
                           className="h-7 text-xs"
-                          onClick={() => {
-                            setAboParamsForm({
-                              type_prestation: (demande as any).type_prestation || "",
-                              frequence: aboFrequence || "",
-                              date_debut: aboDateDebut || "",
-                              nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
-                              duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
-                              montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
-                              mode_paiement: (demande as any).mode_paiement || "",
-                              commercial: (demande as any).commercial || "",
-                              avec_produit: !!(demande as any).avec_produit,
-                              taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
-                              nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
-                              tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (tarifHoraire > 0 ? Math.round(tarifHoraire) : "")),
-                              mensuel_base: String(aboParamsExtra.mensuel_base ?? mensuel),
-                            });
-                            setAboParamsEdit(true);
-                          }}
+                          onClick={openAboFormulaire}
                         >
                           Modifier
                         </Button>
+
                       </div>
                       <div className="px-4 py-2 divide-y divide-border/60">
                         <Line label="Service">{service || "—"}</Line>
@@ -2390,16 +2409,15 @@ export default function CompteClient() {
         </Section>
       </div>
 
-      {/* Renouveler Modal */}
-      {/* Modifier les paramètres de l'abonnement */}
-      <Dialog open={aboParamsEdit} onOpenChange={setAboParamsEdit}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-4 w-4 text-primary" /> Paramètres de l'abonnement
-            </DialogTitle>
-          </DialogHeader>
+      {/* Formulaire facture (ancienne version) + paramètres de l'abonnement éditables */}
+      <AbonnementFactureFormModal
+        open={factureFormOpen}
+        onOpenChange={(o) => { setFactureFormOpen(o); if (!o) setFactureFormData(null); }}
+        data={factureFormData}
+        onValidate={() => { setAboFactureGeneree(true); saveAboParams(); }}
+        paramsSection={
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
             <div className="space-y-1">
               <Label className="text-xs">Service</Label>
               <Input value={aboParamsForm.type_prestation} className="h-9 text-xs"
@@ -2489,39 +2507,9 @@ export default function CompteClient() {
             </div>
 
           </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                setAboDateDebut(aboParamsForm.date_debut);
-                setAboFrequence(aboParamsForm.frequence);
-                setAboPromo({
-                  taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
-                });
-                setAboParamsExtra({
-                  nombre_passages: aboParamsForm.nombre_passages !== "" ? Number(aboParamsForm.nombre_passages) : null,
-                  tarif_horaire: aboParamsForm.tarif_horaire !== "" ? Number(aboParamsForm.tarif_horaire) : null,
-                  mensuel_base: aboParamsForm.mensuel_base !== "" ? Number(aboParamsForm.mensuel_base) : null,
-                });
-                updateMutation.mutate({
-                  type_prestation: aboParamsForm.type_prestation || null,
-                  nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
-                  duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
-                  montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
-                  mode_paiement: aboParamsForm.mode_paiement || null,
-                  commercial: aboParamsForm.commercial || null,
-                  avec_produit: aboParamsForm.avec_produit,
-                });
-                setAboParamsEdit(false);
-              }}
-            >
+        }
+      />
 
-              Enregistrer
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={renewOpen} onOpenChange={setRenewOpen}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
@@ -2643,12 +2631,6 @@ export default function CompteClient() {
         onOpenChange={(o) => { setDevisModalOpen(o); if (!o) setDevisBillingContext(null); }}
         onDocumentGenerated={() => setAboFactureGeneree(true)}
         billingContext={devisBillingContext}
-      />
-      <AbonnementFactureFormModal
-        open={factureFormOpen}
-        onOpenChange={(o) => { setFactureFormOpen(o); if (!o) setFactureFormData(null); }}
-        data={factureFormData}
-        onValidate={() => setAboFactureGeneree(true)}
       />
     </div>
   );

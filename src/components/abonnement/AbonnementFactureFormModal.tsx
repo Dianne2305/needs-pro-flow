@@ -33,6 +33,8 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   data: FactureFormData | null;
+  /** Champs éditables des paramètres de l'abonnement (optionnel). */
+  paramsSection?: React.ReactNode;
   onValidate?: (result: {
     nouvellesInterventions: number;
     prixUnitaire: number;
@@ -43,7 +45,7 @@ interface Props {
   }) => void;
 }
 
-export default function AbonnementFactureFormModal({ open, onOpenChange, data, onValidate }: Props) {
+export default function AbonnementFactureFormModal({ open, onOpenChange, data, paramsSection, onValidate }: Props) {
   const [prix, setPrix] = useState<string>("");
   const [remise, setRemise] = useState<string>("0");
   const [tva, setTva] = useState<string>("20");
@@ -111,6 +113,16 @@ export default function AbonnementFactureFormModal({ open, onOpenChange, data, o
             <div><span className="text-muted-foreground">Interventions prévues : </span><span className="font-medium">{data.interventionsPrevues}</span></div>
           </div>
         </section>
+
+        {/* Paramètres de l'abonnement (éditables) */}
+        {paramsSection && (
+          <section className="rounded-lg border bg-background p-3 space-y-2">
+            <h3 className="text-sm font-semibold text-primary">Paramètres de l'abonnement</h3>
+            {paramsSection}
+          </section>
+        )}
+
+
 
         {/* Calcul des interventions */}
         <section className="rounded-lg border bg-background p-3 space-y-2">
