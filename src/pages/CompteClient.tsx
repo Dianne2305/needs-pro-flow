@@ -2446,16 +2446,48 @@ export default function CompteClient() {
               <Input value={aboParamsForm.commercial} className="h-9 text-xs"
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, commercial: e.target.value })} />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Nombre total de passages / mois</Label>
+              <Input type="number" min={0} value={aboParamsForm.nombre_passages} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, nombre_passages: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Tarif horaire (DH / heure)</Label>
+              <Input type="number" min={0} value={aboParamsForm.tarif_horaire} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, tarif_horaire: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Mensuel de base (DH)</Label>
+              <Input type="number" min={0} value={aboParamsForm.mensuel_base} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, mensuel_base: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Jours de passage</Label>
+              <Input
+                readOnly
+                className="h-9 text-xs bg-muted/40"
+                value={aboJours.length ? aboJours.map((j) => JOURS_SEMAINE.find((x) => x.value === j.jour)?.label).filter(Boolean).join(" + ") : "—"}
+              />
+            </div>
             <label className="flex items-center gap-2 text-xs sm:col-span-2 pt-1">
               <input type="checkbox" checked={aboParamsForm.avec_produit}
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, avec_produit: e.target.checked })} />
               Produits ménagers inclus
             </label>
-            <div className="space-y-1 sm:col-span-2">
+            <div className="space-y-1">
               <Label className="text-xs">Taux de réduction (%)</Label>
               <Input type="number" min={0} max={100} step={0.5} value={aboParamsForm.taux_reduction} className="h-9 text-xs"
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, taux_reduction: e.target.value })} />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Interventions récupérées</Label>
+              <Input
+                readOnly
+                className="h-9 text-xs bg-muted/40"
+                value={`${Object.values(aboDateOverrides).filter((v: any) => v?.statut === "a_recuperer" && v?.reprogrammed_to).length} récupérée(s)`}
+              />
+            </div>
+
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
