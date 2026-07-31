@@ -1234,19 +1234,21 @@ export default function CompteClient() {
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => {
-                      setAboParamsForm({
-                        type_prestation: (demande as any).type_prestation || "",
-                        frequence: aboFrequence || "",
-                        date_debut: aboDateDebut || "",
-                        nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
-                        duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
-                        montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
-                        mode_paiement: (demande as any).mode_paiement || "",
-                        commercial: (demande as any).commercial || "",
-                        avec_produit: !!(demande as any).avec_produit,
-                        taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
+                      const totalEst = totalInterventions || monthlyInterventions || 0;
+                      const montantTotal = Number((demande as any).montant_total) || 0;
+                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+                      setFactureFormData({
+                        clientNom: (demande as any).nom_entreprise || demande.nom || "Client",
+                        numAbonnement: (demande as any).num_demande ?? "—",
+                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                        typePrestation: [demande.type_prestation, demande.type_service === "SPP" ? "particulier" : "entreprise"].filter(Boolean).join(" — ") || (demande as any).type_prestation || "",
+                        frequenceLabel: currentFreq?.label || aboFrequence || "",
+                        interventionsPrevues: monthlyInterventions,
+                        reportesPayees: reportesMois,
+                        creditsRestants: Object.values(aboDateOverrides).filter((v: any) => v?.statut === "a_recuperer" && !v?.reprogrammed_to).length,
+                        prixUnitaire: unit,
                       });
-                      setAboParamsEdit(true);
+                      setFactureFormOpen(true);
                     }} className="h-8 text-xs gap-1.5">
                       <Receipt className="h-3.5 w-3.5" /> Formulaire facture
                     </Button>
@@ -1353,21 +1355,19 @@ export default function CompteClient() {
                           variant="outline"
                           className="h-7 text-xs"
                           onClick={() => {
-                            const totalEst = totalInterventions || monthlyInterventions || 0;
-                            const montantTotal = Number((demande as any).montant_total) || 0;
-                            const unit = totalEst > 0 ? montantTotal / totalEst : 0;
-                            setFactureFormData({
-                              clientNom: (demande as any).nom_entreprise || demande.nom || "Client",
-                              numAbonnement: (demande as any).num_demande ?? "—",
-                              monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
-                              typePrestation: service || (demande as any).type_prestation || "",
-                              frequenceLabel: currentFreq?.label || aboFrequence || "",
-                              interventionsPrevues: monthlyInterventions,
-                              reportesPayees: reportesMois,
-                              creditsRestants: Object.values(aboDateOverrides).filter((v: any) => v?.statut === "a_recuperer" && !v?.reprogrammed_to).length,
-                              prixUnitaire: unit,
+                            setAboParamsForm({
+                              type_prestation: (demande as any).type_prestation || "",
+                              frequence: aboFrequence || "",
+                              date_debut: aboDateDebut || "",
+                              nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                              duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                              montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                              mode_paiement: (demande as any).mode_paiement || "",
+                              commercial: (demande as any).commercial || "",
+                              avec_produit: !!(demande as any).avec_produit,
+                              taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
                             });
-                            setFactureFormOpen(true);
+                            setAboParamsEdit(true);
                           }}
                         >
                           Modifier
