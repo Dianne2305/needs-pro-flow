@@ -1375,6 +1375,9 @@ export default function CompteClient() {
                               commercial: (demande as any).commercial || "",
                               avec_produit: !!(demande as any).avec_produit,
                               taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
+                              nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
+                              tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (tarifHoraire > 0 ? Math.round(tarifHoraire) : "")),
+                              mensuel_base: String(aboParamsExtra.mensuel_base ?? mensuel),
                             });
                             setAboParamsEdit(true);
                           }}
