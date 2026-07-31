@@ -1354,6 +1354,8 @@ export default function CompteClient() {
                           className="h-7 text-xs"
                           onClick={() => {
                             setAboParamsForm({
+                              type_prestation: (demande as any).type_prestation || "",
+                              frequence: aboFrequence || "",
                               date_debut: aboDateDebut || "",
                               nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
                               duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
