@@ -1271,31 +1271,10 @@ export default function CompteClient() {
                       <FileText className="h-3.5 w-3.5" />
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => {
-                      const totalEst = totalInterventions || monthlyInterventions || 0;
-                      const montantTotal = Number((demande as any).montant_total) || 0;
-                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
-                      const dureeH = Number(demande.duree_heures) || 0;
-                      setAboParamsForm({
-                        type_prestation: (demande as any).type_prestation || "",
-                        frequence: aboFrequence || "",
-                        date_debut: aboDateDebut || "",
-                        nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
-                        duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
-                        montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
-                        mode_paiement: (demande as any).mode_paiement || "",
-                        commercial: (demande as any).commercial || "",
-                        avec_produit: !!(demande as any).avec_produit,
-                        taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
-                        nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
-                        tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (dureeH > 0 ? Math.round(unit / dureeH) : "")),
-                        mensuel_base: String(aboParamsExtra.mensuel_base ?? Math.round(unit * monthlyInterventions)),
-                      });
-                      setAboParamsEdit(true);
-                    }} className="h-8 text-xs gap-1.5">
-
+                    <Button size="sm" variant="outline" onClick={openAboFormulaire} className="h-8 text-xs gap-1.5">
                       <Receipt className="h-3.5 w-3.5" /> Formulaire facture
                     </Button>
+
                     <Button size="sm" variant={aboFactureEnvoyee ? "default" : "outline"} onClick={envoyerFacture} disabled={!aboFactureGeneree} className="h-8 text-xs gap-1.5">
                       <Send className="h-3.5 w-3.5" />
                       {aboFactureEnvoyee ? "Facture envoyée" : "Envoyer facture"}
