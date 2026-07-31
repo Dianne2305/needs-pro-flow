@@ -2388,16 +2388,15 @@ export default function CompteClient() {
         </Section>
       </div>
 
-      {/* Renouveler Modal */}
-      {/* Modifier les paramètres de l'abonnement */}
-      <Dialog open={aboParamsEdit} onOpenChange={setAboParamsEdit}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-4 w-4 text-primary" /> Paramètres de l'abonnement
-            </DialogTitle>
-          </DialogHeader>
+      {/* Formulaire facture (ancienne version) + paramètres de l'abonnement éditables */}
+      <AbonnementFactureFormModal
+        open={factureFormOpen}
+        onOpenChange={(o) => { setFactureFormOpen(o); if (!o) setFactureFormData(null); }}
+        data={factureFormData}
+        onValidate={() => { setAboFactureGeneree(true); saveAboParams(); }}
+        paramsSection={
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
             <div className="space-y-1">
               <Label className="text-xs">Service</Label>
               <Input value={aboParamsForm.type_prestation} className="h-9 text-xs"
