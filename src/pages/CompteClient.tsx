@@ -1377,27 +1377,11 @@ export default function CompteClient() {
                           size="sm"
                           variant="outline"
                           className="h-7 text-xs"
-                          onClick={() => {
-                            setAboParamsForm({
-                              type_prestation: (demande as any).type_prestation || "",
-                              frequence: aboFrequence || "",
-                              date_debut: aboDateDebut || "",
-                              nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
-                              duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
-                              montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
-                              mode_paiement: (demande as any).mode_paiement || "",
-                              commercial: (demande as any).commercial || "",
-                              avec_produit: !!(demande as any).avec_produit,
-                              taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
-                              nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
-                              tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (tarifHoraire > 0 ? Math.round(tarifHoraire) : "")),
-                              mensuel_base: String(aboParamsExtra.mensuel_base ?? mensuel),
-                            });
-                            setAboParamsEdit(true);
-                          }}
+                          onClick={openAboFormulaire}
                         >
                           Modifier
                         </Button>
+
                       </div>
                       <div className="px-4 py-2 divide-y divide-border/60">
                         <Line label="Service">{service || "—"}</Line>
