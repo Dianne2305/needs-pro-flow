@@ -259,7 +259,6 @@ export default function CompteClient() {
   const [factureFormOpen, setFactureFormOpen] = useState(false);
   const [factureFormData, setFactureFormData] = useState<FactureFormData | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
-  const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
   const [aboStatutMoisEnCours, setAboStatutMoisEnCours] = useState<"actif" | "termine">("actif");
   const [aboStatutMoisProchain, setAboStatutMoisProchain] = useState<"actif" | "standby" | "suspendu" | "resilie" | "facture_envoyee">("actif");
   const [aboStatutFacturation, setAboStatutFacturation] = useState<"facture_generee" | "en_attente" | "paye" | "non_paye">("facture_generee");
