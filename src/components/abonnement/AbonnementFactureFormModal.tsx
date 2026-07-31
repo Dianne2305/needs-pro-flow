@@ -45,7 +45,7 @@ interface Props {
   }) => void;
 }
 
-export default function AbonnementFactureFormModal({ open, onOpenChange, data, onValidate }: Props) {
+export default function AbonnementFactureFormModal({ open, onOpenChange, data, paramsSection, onValidate }: Props) {
   const [prix, setPrix] = useState<string>("");
   const [remise, setRemise] = useState<string>("0");
   const [tva, setTva] = useState<string>("20");
