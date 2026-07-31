@@ -1104,6 +1104,41 @@ export default function CompteClient() {
               });
             };
 
+            /** Ouvre le formulaire de facturation (ancienne version) enrichi des paramètres éditables. */
+            const openAboFormulaire = () => {
+              const totalEst = totalInterventions || monthlyInterventions || 0;
+              const montantTotal = Number((demande as any).montant_total) || 0;
+              const unit = totalEst > 0 ? montantTotal / totalEst : 0;
+              const dureeH = Number(demande.duree_heures) || 0;
+              setAboParamsForm({
+                type_prestation: (demande as any).type_prestation || "",
+                frequence: aboFrequence || "",
+                date_debut: aboDateDebut || "",
+                nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                mode_paiement: (demande as any).mode_paiement || "",
+                commercial: (demande as any).commercial || "",
+                avec_produit: !!(demande as any).avec_produit,
+                taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
+                nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
+                tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (dureeH > 0 ? Math.round(unit / dureeH) : "")),
+                mensuel_base: String(aboParamsExtra.mensuel_base ?? Math.round(unit * monthlyInterventions)),
+              });
+              setFactureFormData({
+                clientNom: demande.nom || "—",
+                numAbonnement: (demande as any).num_demande ?? "—",
+                monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
+                typePrestation: (demande as any).type_prestation || "",
+                frequenceLabel: currentFreq?.label || aboFrequence || "",
+                interventionsPrevues: monthlyInterventions,
+                reportesPayees: reportesMois,
+                creditsRestants: aRecupMois,
+                prixUnitaire: unit,
+              });
+              setFactureFormOpen(true);
+            };
+
             return (
               <>
               <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 items-start">
