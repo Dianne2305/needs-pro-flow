@@ -1349,31 +1349,34 @@ export default function CompteClient() {
                         </div>
                         <Button
                           size="sm"
-                          variant={aboParamsEdit ? "default" : "outline"}
+                          variant="outline"
                           className="h-7 text-xs"
-                          onClick={() => setAboParamsEdit((v) => !v)}
+                          onClick={() => {
+                            setAboParamsForm({
+                              date_debut: aboDateDebut || "",
+                              nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                              duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                              montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                              mode_paiement: (demande as any).mode_paiement || "",
+                              commercial: (demande as any).commercial || "",
+                              avec_produit: !!(demande as any).avec_produit,
+                            });
+                            setAboParamsEdit(true);
+                          }}
                         >
-                          {aboParamsEdit ? "Terminer" : "Modifier"}
+                          Modifier
                         </Button>
                       </div>
                       <div className="px-4 py-2 divide-y divide-border/60">
                         <Line label="Service">{service || "—"}</Line>
                         <Line label="Type de fréquence">{currentFreq?.label || aboFrequence || "—"}</Line>
                         <Line label="Date de démarrage">
-                          <div className="flex flex-wrap items-center gap-2" id="abo-params-edit">
-                            {aboParamsEdit ? (
-                              <Input
-                                type="date"
-                                value={aboDateDebut}
-                                onChange={(e) => setAboDateDebut(e.target.value)}
-                                className="h-8 w-40 text-xs bg-background"
-                              />
-                            ) : (
-                              <span>{aboDateDebut ? format(new Date(aboDateDebut), "dd/MM/yyyy") : "—"}</span>
-                            )}
-                          </div>
+                          {aboDateDebut ? format(new Date(aboDateDebut), "dd/MM/yyyy") : "—"}
                         </Line>
                         <Line label="Jours de passage">{joursLabel}</Line>
+                        <Line label="Nbre de personnes">
+                          {demande.nombre_intervenants ? `${demande.nombre_intervenants} personne(s)` : "—"}
+                        </Line>
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
                           {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
@@ -1395,7 +1398,8 @@ export default function CompteClient() {
                           ) : "—"}
                         </Line>
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
-                        <Line label="Chargée de clientèle">{(demande as any).commercial || "—"}</Line>
+                        <Line label="Com">{(demande as any).commercial || "—"}</Line>
+
                       </div>
                     </div>
                   );
