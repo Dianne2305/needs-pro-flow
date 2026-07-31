@@ -247,8 +247,11 @@ export default function CompteClient() {
     type_prestation: string; frequence: string;
     date_debut: string; nombre_intervenants: string; duree_heures: string;
     montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
-    taux_reduction: string;
-  }>({ type_prestation: "", frequence: "", date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10" });
+    taux_reduction: string; nombre_passages: string; tarif_horaire: string; mensuel_base: string;
+  }>({ type_prestation: "", frequence: "", date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10", nombre_passages: "", tarif_horaire: "", mensuel_base: "" });
+  /** Valeurs saisies manuellement qui remplacent les valeurs calculées dans la carte Paramètres. */
+  const [aboParamsExtra, setAboParamsExtra] = useState<{ nombre_passages: number | null; tarif_horaire: number | null; mensuel_base: number | null }>({ nombre_passages: null, tarif_horaire: null, mensuel_base: null });
+
 
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
