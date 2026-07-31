@@ -242,10 +242,13 @@ export default function CompteClient() {
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
   const [aboParamsEdit, setAboParamsEdit] = useState(false);
+  const [aboPromo, setAboPromo] = useState<{ applique: boolean; code: string }>({ applique: false, code: "" });
   const [aboParamsForm, setAboParamsForm] = useState<{
     date_debut: string; nombre_intervenants: string; duree_heures: string;
     montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
-  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false });
+    promo_applique: boolean; code_promo: string;
+  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, promo_applique: false, code_promo: "" });
+
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
@@ -1360,6 +1363,9 @@ export default function CompteClient() {
                               mode_paiement: (demande as any).mode_paiement || "",
                               commercial: (demande as any).commercial || "",
                               avec_produit: !!(demande as any).avec_produit,
+                              promo_applique: aboPromo.applique,
+                              code_promo: aboPromo.code,
+
                             });
                             setAboParamsEdit(true);
                           }}
@@ -1377,6 +1383,15 @@ export default function CompteClient() {
                         <Line label="Nbre de personnes">
                           {demande.nombre_intervenants ? `${demande.nombre_intervenants} personne(s)` : "—"}
                         </Line>
+                        <Line label="Nombre total de passages">
+                          {monthlyInterventions > 0 ? `${monthlyInterventions} passage(s) / mois` : "—"}
+                          {cancelledInterventions > 0 && (
+                            <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                              ({cancelledInterventions} annulée(s))
+                            </span>
+                          )}
+                        </Line>
+
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
                           {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
@@ -1399,6 +1414,20 @@ export default function CompteClient() {
                         </Line>
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
                         <Line label="Com">{(demande as any).commercial || "—"}</Line>
+                        <Line label="Promo appliquée">{aboPromo.applique ? "Oui" : "Non"}</Line>
+                        <Line label="Code promo">{aboPromo.code || "—"}</Line>
+                        <Line label="Interventions récupérées">
+                          {(() => {
+                            const recup = Object.values(aboDateOverrides).filter(
+                              (v) => v?.statut === "a_recuperer" && v?.reprogrammed_to,
+                            ).length;
+                            const enAttente = Object.values(aboDateOverrides).filter(
+                              (v) => v?.statut === "a_recuperer" && !v?.reprogrammed_to,
+                            ).length;
+                            return `${recup} récupérée(s)${enAttente > 0 ? ` · ${enAttente} crédit(s) en attente` : ""}`;
+                          })()}
+                        </Line>
+
 
                       </div>
                     </div>
@@ -2391,6 +2420,17 @@ export default function CompteClient() {
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, avec_produit: e.target.checked })} />
               Produits ménagers inclus
             </label>
+            <label className="flex items-center gap-2 text-xs sm:col-span-2">
+              <input type="checkbox" checked={aboParamsForm.promo_applique}
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, promo_applique: e.target.checked })} />
+              Promo appliquée
+            </label>
+            <div className="space-y-1 sm:col-span-2">
+              <Label className="text-xs">Code promo</Label>
+              <Input value={aboParamsForm.code_promo} className="h-9 text-xs" placeholder="Ex : PROMO10"
+                disabled={!aboParamsForm.promo_applique}
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, code_promo: e.target.value.toUpperCase() })} />
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
@@ -2398,6 +2438,10 @@ export default function CompteClient() {
               size="sm"
               onClick={() => {
                 setAboDateDebut(aboParamsForm.date_debut);
+                setAboPromo({
+                  applique: aboParamsForm.promo_applique,
+                  code: aboParamsForm.promo_applique ? aboParamsForm.code_promo : "",
+                });
                 updateMutation.mutate({
                   nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
                   duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
@@ -2409,6 +2453,7 @@ export default function CompteClient() {
                 setAboParamsEdit(false);
               }}
             >
+
               Enregistrer
             </Button>
           </div>
