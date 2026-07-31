@@ -1364,7 +1364,7 @@ export default function CompteClient() {
                               frequenceLabel: currentFreq?.label || aboFrequence || "",
                               interventionsPrevues: monthlyInterventions,
                               reportesPayees: reportesMois,
-                              creditsRestants: creditsRestants ?? 0,
+                              creditsRestants: Object.values(aboDateOverrides).filter((v: any) => v?.statut === "a_recuperer" && !v?.reprogrammed_to).length,
                               prixUnitaire: unit,
                             });
                             setFactureFormOpen(true);
