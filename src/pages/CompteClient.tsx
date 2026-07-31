@@ -247,8 +247,11 @@ export default function CompteClient() {
     type_prestation: string; frequence: string;
     date_debut: string; nombre_intervenants: string; duree_heures: string;
     montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
-    taux_reduction: string;
-  }>({ type_prestation: "", frequence: "", date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10" });
+    taux_reduction: string; nombre_passages: string; tarif_horaire: string; mensuel_base: string;
+  }>({ type_prestation: "", frequence: "", date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10", nombre_passages: "", tarif_horaire: "", mensuel_base: "" });
+  /** Valeurs saisies manuellement qui remplacent les valeurs calculées dans la carte Paramètres. */
+  const [aboParamsExtra, setAboParamsExtra] = useState<{ nombre_passages: number | null; tarif_horaire: number | null; mensuel_base: number | null }>({ nombre_passages: null, tarif_horaire: null, mensuel_base: null });
+
 
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
@@ -1237,19 +1240,25 @@ export default function CompteClient() {
                       const totalEst = totalInterventions || monthlyInterventions || 0;
                       const montantTotal = Number((demande as any).montant_total) || 0;
                       const unit = totalEst > 0 ? montantTotal / totalEst : 0;
-                      setFactureFormData({
-                        clientNom: (demande as any).nom_entreprise || demande.nom || "Client",
-                        numAbonnement: (demande as any).num_demande ?? "—",
-                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
-                        typePrestation: [demande.type_prestation, demande.type_service === "SPP" ? "particulier" : "entreprise"].filter(Boolean).join(" — ") || (demande as any).type_prestation || "",
-                        frequenceLabel: currentFreq?.label || aboFrequence || "",
-                        interventionsPrevues: monthlyInterventions,
-                        reportesPayees: reportesMois,
-                        creditsRestants: Object.values(aboDateOverrides).filter((v: any) => v?.statut === "a_recuperer" && !v?.reprogrammed_to).length,
-                        prixUnitaire: unit,
+                      const dureeH = Number(demande.duree_heures) || 0;
+                      setAboParamsForm({
+                        type_prestation: (demande as any).type_prestation || "",
+                        frequence: aboFrequence || "",
+                        date_debut: aboDateDebut || "",
+                        nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                        duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                        montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                        mode_paiement: (demande as any).mode_paiement || "",
+                        commercial: (demande as any).commercial || "",
+                        avec_produit: !!(demande as any).avec_produit,
+                        taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
+                        nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
+                        tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (dureeH > 0 ? Math.round(unit / dureeH) : "")),
+                        mensuel_base: String(aboParamsExtra.mensuel_base ?? Math.round(unit * monthlyInterventions)),
                       });
-                      setFactureFormOpen(true);
+                      setAboParamsEdit(true);
                     }} className="h-8 text-xs gap-1.5">
+
                       <Receipt className="h-3.5 w-3.5" /> Formulaire facture
                     </Button>
                     <Button size="sm" variant={aboFactureEnvoyee ? "default" : "outline"} onClick={envoyerFacture} disabled={!aboFactureGeneree} className="h-8 text-xs gap-1.5">
@@ -1366,6 +1375,9 @@ export default function CompteClient() {
                               commercial: (demande as any).commercial || "",
                               avec_produit: !!(demande as any).avec_produit,
                               taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
+                              nombre_passages: String(aboParamsExtra.nombre_passages ?? monthlyInterventions ?? ""),
+                              tarif_horaire: String(aboParamsExtra.tarif_horaire ?? (tarifHoraire > 0 ? Math.round(tarifHoraire) : "")),
+                              mensuel_base: String(aboParamsExtra.mensuel_base ?? mensuel),
                             });
                             setAboParamsEdit(true);
                           }}
@@ -1384,7 +1396,10 @@ export default function CompteClient() {
                           {demande.nombre_intervenants ? `${demande.nombre_intervenants} personne(s)` : "—"}
                         </Line>
                         <Line label="Nombre total de passages">
-                          {monthlyInterventions > 0 ? `${monthlyInterventions} passage(s) / mois` : "—"}
+                          {(() => {
+                            const nb = aboParamsExtra.nombre_passages ?? monthlyInterventions;
+                            return nb > 0 ? `${nb} passage(s) / mois` : "—";
+                          })()}
                           {cancelledInterventions > 0 && (
                             <span className="ml-1 text-[11px] font-normal text-muted-foreground">
                               ({cancelledInterventions} annulée(s))
@@ -1394,24 +1409,33 @@ export default function CompteClient() {
 
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
-                          {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
+                          {(() => {
+                            const th = aboParamsExtra.tarif_horaire ?? tarifHoraire;
+                            return th > 0 ? `${Math.round(th)} DH / heure` : "—";
+                          })()}
                         </Line>
                         <Line label="Options">
                           {(demande as any).avec_produit ? "Produits ménagers inclus" : "Aucune option"}
                         </Line>
                         <Line label="Mensuel de base">
-                          {monthlyInterventions > 0 && unit > 0 ? (
-                            <>
-                              {monthlyInterventions} passages × {Math.round(unit)} DH ={" "}
-                              {mensuel.toLocaleString("fr-FR")} DH
-                              {cancelledInterventions > 0 && (
-                                <span className="ml-1 text-[11px] font-normal text-muted-foreground">
-                                  ({cancelledInterventions} annulée(s))
-                                </span>
-                              )}
-                            </>
-                          ) : "—"}
+                          {(() => {
+                            const m = aboParamsExtra.mensuel_base ?? mensuel;
+                            const nb = aboParamsExtra.nombre_passages ?? monthlyInterventions;
+                            if (!(m > 0)) return "—";
+                            return (
+                              <>
+                                {nb > 0 && unit > 0 ? `${nb} passages × ${Math.round(unit)} DH = ` : ""}
+                                {m.toLocaleString("fr-FR")} DH
+                                {cancelledInterventions > 0 && (
+                                  <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                                    ({cancelledInterventions} annulée(s))
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </Line>
+
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
                         <Line label="Com">{(demande as any).commercial || "—"}</Line>
                         <Line label="Taux de réduction">{aboPromo.taux != null ? `${aboPromo.taux}%` : "10%"}</Line>
@@ -2422,16 +2446,48 @@ export default function CompteClient() {
               <Input value={aboParamsForm.commercial} className="h-9 text-xs"
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, commercial: e.target.value })} />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Nombre total de passages / mois</Label>
+              <Input type="number" min={0} value={aboParamsForm.nombre_passages} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, nombre_passages: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Tarif horaire (DH / heure)</Label>
+              <Input type="number" min={0} value={aboParamsForm.tarif_horaire} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, tarif_horaire: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Mensuel de base (DH)</Label>
+              <Input type="number" min={0} value={aboParamsForm.mensuel_base} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, mensuel_base: e.target.value })} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Jours de passage</Label>
+              <Input
+                readOnly
+                className="h-9 text-xs bg-muted/40"
+                value={aboJours.length ? aboJours.map((j) => JOURS_SEMAINE.find((x) => x.value === j.jour)?.label).filter(Boolean).join(" + ") : "—"}
+              />
+            </div>
             <label className="flex items-center gap-2 text-xs sm:col-span-2 pt-1">
               <input type="checkbox" checked={aboParamsForm.avec_produit}
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, avec_produit: e.target.checked })} />
               Produits ménagers inclus
             </label>
-            <div className="space-y-1 sm:col-span-2">
+            <div className="space-y-1">
               <Label className="text-xs">Taux de réduction (%)</Label>
               <Input type="number" min={0} max={100} step={0.5} value={aboParamsForm.taux_reduction} className="h-9 text-xs"
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, taux_reduction: e.target.value })} />
             </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Interventions récupérées</Label>
+              <Input
+                readOnly
+                className="h-9 text-xs bg-muted/40"
+                value={`${Object.values(aboDateOverrides).filter((v: any) => v?.statut === "a_recuperer" && v?.reprogrammed_to).length} récupérée(s)`}
+              />
+            </div>
+
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
@@ -2442,6 +2498,11 @@ export default function CompteClient() {
                 setAboFrequence(aboParamsForm.frequence);
                 setAboPromo({
                   taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
+                });
+                setAboParamsExtra({
+                  nombre_passages: aboParamsForm.nombre_passages !== "" ? Number(aboParamsForm.nombre_passages) : null,
+                  tarif_horaire: aboParamsForm.tarif_horaire !== "" ? Number(aboParamsForm.tarif_horaire) : null,
+                  mensuel_base: aboParamsForm.mensuel_base !== "" ? Number(aboParamsForm.mensuel_base) : null,
                 });
                 updateMutation.mutate({
                   type_prestation: aboParamsForm.type_prestation || null,
