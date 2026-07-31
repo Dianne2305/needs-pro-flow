@@ -1414,6 +1414,20 @@ export default function CompteClient() {
                         </Line>
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
                         <Line label="Com">{(demande as any).commercial || "—"}</Line>
+                        <Line label="Promo appliquée">{aboPromo.applique ? "Oui" : "Non"}</Line>
+                        <Line label="Code promo">{aboPromo.code || "—"}</Line>
+                        <Line label="Interventions récupérées">
+                          {(() => {
+                            const recup = Object.values(aboDateOverrides).filter(
+                              (v) => v?.statut === "a_recuperer" && v?.reprogrammed_to,
+                            ).length;
+                            const enAttente = Object.values(aboDateOverrides).filter(
+                              (v) => v?.statut === "a_recuperer" && !v?.reprogrammed_to,
+                            ).length;
+                            return `${recup} récupérée(s)${enAttente > 0 ? ` · ${enAttente} crédit(s) en attente` : ""}`;
+                          })()}
+                        </Line>
+
 
                       </div>
                     </div>
