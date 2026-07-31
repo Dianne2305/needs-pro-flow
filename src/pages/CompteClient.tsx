@@ -1363,9 +1363,7 @@ export default function CompteClient() {
                               mode_paiement: (demande as any).mode_paiement || "",
                               commercial: (demande as any).commercial || "",
                               avec_produit: !!(demande as any).avec_produit,
-                              promo_applique: aboPromo.applique,
-                              code_promo: aboPromo.code,
-
+                              taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
                             });
                             setAboParamsEdit(true);
                           }}
@@ -1414,8 +1412,7 @@ export default function CompteClient() {
                         </Line>
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
                         <Line label="Com">{(demande as any).commercial || "—"}</Line>
-                        <Line label="Promo appliquée">{aboPromo.applique ? "Oui" : "Non"}</Line>
-                        <Line label="Code promo">{aboPromo.code || "—"}</Line>
+                        <Line label="Taux de réduction">{aboPromo.taux != null ? `${aboPromo.taux}%` : "10%"}</Line>
                         <Line label="Interventions récupérées">
                           {(() => {
                             const recup = Object.values(aboDateOverrides).filter(
@@ -2420,16 +2417,10 @@ export default function CompteClient() {
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, avec_produit: e.target.checked })} />
               Produits ménagers inclus
             </label>
-            <label className="flex items-center gap-2 text-xs sm:col-span-2">
-              <input type="checkbox" checked={aboParamsForm.promo_applique}
-                onChange={(e) => setAboParamsForm({ ...aboParamsForm, promo_applique: e.target.checked })} />
-              Promo appliquée
-            </label>
             <div className="space-y-1 sm:col-span-2">
-              <Label className="text-xs">Code promo</Label>
-              <Input value={aboParamsForm.code_promo} className="h-9 text-xs" placeholder="Ex : PROMO10"
-                disabled={!aboParamsForm.promo_applique}
-                onChange={(e) => setAboParamsForm({ ...aboParamsForm, code_promo: e.target.value.toUpperCase() })} />
+              <Label className="text-xs">Taux de réduction (%)</Label>
+              <Input type="number" min={0} max={100} step={0.5} value={aboParamsForm.taux_reduction} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, taux_reduction: e.target.value })} />
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
@@ -2439,8 +2430,7 @@ export default function CompteClient() {
               onClick={() => {
                 setAboDateDebut(aboParamsForm.date_debut);
                 setAboPromo({
-                  applique: aboParamsForm.promo_applique,
-                  code: aboParamsForm.promo_applique ? aboParamsForm.code_promo : "",
+                  taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
                 });
                 updateMutation.mutate({
                   nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
