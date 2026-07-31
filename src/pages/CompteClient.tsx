@@ -259,7 +259,6 @@ export default function CompteClient() {
   const [factureFormOpen, setFactureFormOpen] = useState(false);
   const [factureFormData, setFactureFormData] = useState<FactureFormData | null>(null);
   const [aboFactureEnvoyee, setAboFactureEnvoyee] = useState(false);
-  const [aboStatut, setAboStatut] = useState<"actif" | "suspendu" | "pause">("actif");
   const [aboStatutMoisEnCours, setAboStatutMoisEnCours] = useState<"actif" | "termine">("actif");
   const [aboStatutMoisProchain, setAboStatutMoisProchain] = useState<"actif" | "standby" | "suspendu" | "resilie" | "facture_envoyee">("actif");
   const [aboStatutFacturation, setAboStatutFacturation] = useState<"facture_generee" | "en_attente" | "paye" | "non_paye">("facture_generee");
@@ -341,8 +340,6 @@ export default function CompteClient() {
     }
     setAboNotes(p.notes || "");
     if (p.date_overrides && typeof p.date_overrides === "object") setAboDateOverrides(p.date_overrides);
-    const validStatut = ["actif", "suspendu", "pause"].includes(p.abo_statut) ? p.abo_statut : "actif";
-    setAboStatut(validStatut as "actif" | "suspendu" | "pause");
     if (p.abo_statut_mois_en_cours) setAboStatutMoisEnCours(p.abo_statut_mois_en_cours);
     if (p.abo_statut_mois_prochain) setAboStatutMoisProchain(p.abo_statut_mois_prochain);
     if (p.abo_statut_facturation) setAboStatutFacturation(p.abo_statut_facturation);
@@ -993,7 +990,6 @@ export default function CompteClient() {
               const newPlanning = {
                 abo_frequence: aboFrequence,
                 abo_jours: aboJours,
-                abo_statut: aboStatut,
                 abo_statut_mois_en_cours: aboStatutMoisEnCours,
                 abo_statut_mois_prochain: aboStatutMoisProchain,
                 abo_statut_facturation: aboStatutFacturation,
@@ -1025,7 +1021,6 @@ export default function CompteClient() {
               }
               const newDuree = aboDureeMois + 1;
               setAboDureeMois(newDuree);
-              setAboStatut("actif");
               // Nouveau mois ajouté = début + (newDuree - 1) mois
               const start = parseISO(aboDateDebut);
               const newMonth = new Date(start);
@@ -1173,21 +1168,7 @@ export default function CompteClient() {
                 {/* Ligne d'actions : statut + facture + enregistrer */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 p-3 rounded-xl border bg-background">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Statut abonnement</span>
-                    <Select
-                      value={aboStatut}
-                      onValueChange={(v) => setAboStatut(v as "actif" | "suspendu" | "pause")}
-                    >
-                      <SelectTrigger className="h-8 w-40 text-xs bg-background">
-                        <SelectValue placeholder="Statut" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="actif" className="text-xs">Actif</SelectItem>
-                        <SelectItem value="suspendu" className="text-xs">Suspendus</SelectItem>
-                        <SelectItem value="pause" className="text-xs">En pause</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground ml-2">Mois en cours</span>
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Mois en cours</span>
                     <Select value={aboStatutMoisEnCours} onValueChange={(v) => setAboStatutMoisEnCours(v as any)}>
                       <SelectTrigger className="h-8 w-32 text-xs bg-background"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -2047,10 +2028,8 @@ export default function CompteClient() {
                       date: format(new Date(h.created_at), "dd MMM", { locale: fr }),
                       texte: h.details || h.action,
                     }))}
-                    onSuspendre={() => setAboStatut("suspendu")}
                     onModifierJours={() => document.getElementById("abo-params-edit")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                     onContacter={() => tel && window.open(`https://wa.me/${tel.replace(/\D/g, "")}`, "_blank")}
-                    onResilier={() => setAboStatut("pause")}
                   />
                 );
               })()}
