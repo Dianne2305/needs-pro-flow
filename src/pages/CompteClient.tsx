@@ -2632,12 +2632,6 @@ export default function CompteClient() {
         onDocumentGenerated={() => setAboFactureGeneree(true)}
         billingContext={devisBillingContext}
       />
-      <AbonnementFactureFormModal
-        open={factureFormOpen}
-        onOpenChange={(o) => { setFactureFormOpen(o); if (!o) setFactureFormData(null); }}
-        data={factureFormData}
-        onValidate={() => setAboFactureGeneree(true)}
-      />
     </div>
   );
 }
