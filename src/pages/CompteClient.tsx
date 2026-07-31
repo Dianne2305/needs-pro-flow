@@ -1241,7 +1241,7 @@ export default function CompteClient() {
                         clientNom: (demande as any).nom_entreprise || demande.nom || "Client",
                         numAbonnement: (demande as any).num_demande ?? "—",
                         monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
-                        typePrestation: service || (demande as any).type_prestation || "",
+                        typePrestation: [demande.type_prestation, demande.type_service === "SPP" ? "particulier" : "entreprise"].filter(Boolean).join(" — ") || (demande as any).type_prestation || "",
                         frequenceLabel: currentFreq?.label || aboFrequence || "",
                         interventionsPrevues: monthlyInterventions,
                         reportesPayees: reportesMois,
