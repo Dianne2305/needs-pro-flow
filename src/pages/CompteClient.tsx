@@ -2376,11 +2376,19 @@ export default function CompteClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Service</Label>
-              <Input value={demande?.type_prestation || ""} disabled className="h-9 text-xs" />
+              <Input value={aboParamsForm.type_prestation} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, type_prestation: e.target.value })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Type de fréquence</Label>
-              <Input value={FREQUENCES.find((f) => f.value === aboFrequence)?.label || aboFrequence || ""} disabled className="h-9 text-xs" />
+              <Select value={aboParamsForm.frequence} onValueChange={(v) => setAboParamsForm({ ...aboParamsForm, frequence: v })}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                <SelectContent>
+                  {FREQUENCES.filter((f) => f.value !== "ponctuel").map((f) => (
+                    <SelectItem key={f.value} value={f.value} className="text-xs">{f.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Date de démarrage</Label>
