@@ -242,6 +242,10 @@ export default function CompteClient() {
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
   const [aboParamsEdit, setAboParamsEdit] = useState(false);
+  const [aboParamsForm, setAboParamsForm] = useState<{
+    date_debut: string; nombre_intervenants: string; duree_heures: string;
+    montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
+  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false });
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
