@@ -33,6 +33,8 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   data: FactureFormData | null;
+  /** Champs éditables des paramètres de l'abonnement (optionnel). */
+  paramsSection?: React.ReactNode;
   onValidate?: (result: {
     nouvellesInterventions: number;
     prixUnitaire: number;
