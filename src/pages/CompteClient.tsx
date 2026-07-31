@@ -241,6 +241,7 @@ export default function CompteClient() {
   // Gestion de l'abonnement (nouveau formulaire simplifié)
   const [aboFrequence, setAboFrequence] = useState<string>("");
   const [aboDateDebut, setAboDateDebut] = useState<string>("");
+  const [aboParamsEdit, setAboParamsEdit] = useState(false);
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
   const [aboNotes, setAboNotes] = useState<string>("");
