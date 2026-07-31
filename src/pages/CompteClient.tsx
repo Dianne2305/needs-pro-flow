@@ -1342,12 +1342,23 @@ export default function CompteClient() {
                           <Settings className="h-4 w-4 text-primary" />
                           <span className="text-sm font-semibold">Paramètres de l'abonnement</span>
                         </div>
-                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => document.getElementById("abo-params-edit")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-                          Modifier
-                        </Button>
                       </div>
                       <div className="px-4 py-2 divide-y divide-border/60">
                         <Line label="Service">{service || "—"}</Line>
+                        <Line label="Type de fréquence">{currentFreq?.label || aboFrequence || "—"}</Line>
+                        <Line label="Date de démarrage">
+                          <div className="flex flex-wrap items-center gap-2" id="abo-params-edit">
+                            <Input
+                              type="date"
+                              value={aboDateDebut}
+                              onChange={(e) => setAboDateDebut(e.target.value)}
+                              className="h-8 w-40 text-xs bg-background"
+                            />
+                            <span className="text-xs font-normal text-muted-foreground">
+                              Fin (auto — 1 mois) : {dateFinAuto ? format(new Date(dateFinAuto), "dd/MM/yyyy") : "—"}
+                            </span>
+                          </div>
+                        </Line>
                         <Line label="Jours de passage">{joursLabel}</Line>
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
