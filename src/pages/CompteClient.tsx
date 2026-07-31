@@ -1396,7 +1396,10 @@ export default function CompteClient() {
                           {demande.nombre_intervenants ? `${demande.nombre_intervenants} personne(s)` : "—"}
                         </Line>
                         <Line label="Nombre total de passages">
-                          {monthlyInterventions > 0 ? `${monthlyInterventions} passage(s) / mois` : "—"}
+                          {(() => {
+                            const nb = aboParamsExtra.nombre_passages ?? monthlyInterventions;
+                            return nb > 0 ? `${nb} passage(s) / mois` : "—";
+                          })()}
                           {cancelledInterventions > 0 && (
                             <span className="ml-1 text-[11px] font-normal text-muted-foreground">
                               ({cancelledInterventions} annulée(s))
@@ -1406,24 +1409,33 @@ export default function CompteClient() {
 
                         <Line label="Durée / passage">{dureeH > 0 ? `${dureeH} heures${plage}` : plage || "—"}</Line>
                         <Line label="Tarif horaire">
-                          {tarifHoraire > 0 ? `${Math.round(tarifHoraire)} DH / heure` : "—"}
+                          {(() => {
+                            const th = aboParamsExtra.tarif_horaire ?? tarifHoraire;
+                            return th > 0 ? `${Math.round(th)} DH / heure` : "—";
+                          })()}
                         </Line>
                         <Line label="Options">
                           {(demande as any).avec_produit ? "Produits ménagers inclus" : "Aucune option"}
                         </Line>
                         <Line label="Mensuel de base">
-                          {monthlyInterventions > 0 && unit > 0 ? (
-                            <>
-                              {monthlyInterventions} passages × {Math.round(unit)} DH ={" "}
-                              {mensuel.toLocaleString("fr-FR")} DH
-                              {cancelledInterventions > 0 && (
-                                <span className="ml-1 text-[11px] font-normal text-muted-foreground">
-                                  ({cancelledInterventions} annulée(s))
-                                </span>
-                              )}
-                            </>
-                          ) : "—"}
+                          {(() => {
+                            const m = aboParamsExtra.mensuel_base ?? mensuel;
+                            const nb = aboParamsExtra.nombre_passages ?? monthlyInterventions;
+                            if (!(m > 0)) return "—";
+                            return (
+                              <>
+                                {nb > 0 && unit > 0 ? `${nb} passages × ${Math.round(unit)} DH = ` : ""}
+                                {m.toLocaleString("fr-FR")} DH
+                                {cancelledInterventions > 0 && (
+                                  <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                                    ({cancelledInterventions} annulée(s))
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                         </Line>
+
                         <Line label="Mode de paiement">{(demande as any).mode_paiement || "—"}</Line>
                         <Line label="Com">{(demande as any).commercial || "—"}</Line>
                         <Line label="Taux de réduction">{aboPromo.taux != null ? `${aboPromo.taux}%` : "10%"}</Line>
