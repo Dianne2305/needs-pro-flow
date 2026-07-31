@@ -2420,6 +2420,17 @@ export default function CompteClient() {
                 onChange={(e) => setAboParamsForm({ ...aboParamsForm, avec_produit: e.target.checked })} />
               Produits ménagers inclus
             </label>
+            <label className="flex items-center gap-2 text-xs sm:col-span-2">
+              <input type="checkbox" checked={aboParamsForm.promo_applique}
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, promo_applique: e.target.checked })} />
+              Promo appliquée
+            </label>
+            <div className="space-y-1 sm:col-span-2">
+              <Label className="text-xs">Code promo</Label>
+              <Input value={aboParamsForm.code_promo} className="h-9 text-xs" placeholder="Ex : PROMO10"
+                disabled={!aboParamsForm.promo_applique}
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, code_promo: e.target.value.toUpperCase() })} />
+            </div>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setAboParamsEdit(false)}>Annuler</Button>
@@ -2427,6 +2438,10 @@ export default function CompteClient() {
               size="sm"
               onClick={() => {
                 setAboDateDebut(aboParamsForm.date_debut);
+                setAboPromo({
+                  applique: aboParamsForm.promo_applique,
+                  code: aboParamsForm.promo_applique ? aboParamsForm.code_promo : "",
+                });
                 updateMutation.mutate({
                   nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
                   duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
@@ -2438,6 +2453,7 @@ export default function CompteClient() {
                 setAboParamsEdit(false);
               }}
             >
+
               Enregistrer
             </Button>
           </div>
