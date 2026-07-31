@@ -2499,6 +2499,11 @@ export default function CompteClient() {
                 setAboPromo({
                   taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
                 });
+                setAboParamsExtra({
+                  nombre_passages: aboParamsForm.nombre_passages !== "" ? Number(aboParamsForm.nombre_passages) : null,
+                  tarif_horaire: aboParamsForm.tarif_horaire !== "" ? Number(aboParamsForm.tarif_horaire) : null,
+                  mensuel_base: aboParamsForm.mensuel_base !== "" ? Number(aboParamsForm.mensuel_base) : null,
+                });
                 updateMutation.mutate({
                   type_prestation: aboParamsForm.type_prestation || null,
                   nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
