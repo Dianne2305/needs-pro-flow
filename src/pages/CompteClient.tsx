@@ -646,6 +646,27 @@ export default function CompteClient() {
     ...(demande.statut === "annulee" ? [{ user: "Commercial", date: demande.created_at, action: "Demande annulée", note: demande.motif_annulation || "" }] : []),
   ];
 
+  /** Applique les paramètres saisis dans le formulaire facture. */
+  const saveAboParams = () => {
+    setAboDateDebut(aboParamsForm.date_debut);
+    setAboFrequence(aboParamsForm.frequence);
+    setAboPromo({ taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10 });
+    setAboParamsExtra({
+      nombre_passages: aboParamsForm.nombre_passages !== "" ? Number(aboParamsForm.nombre_passages) : null,
+      tarif_horaire: aboParamsForm.tarif_horaire !== "" ? Number(aboParamsForm.tarif_horaire) : null,
+      mensuel_base: aboParamsForm.mensuel_base !== "" ? Number(aboParamsForm.mensuel_base) : null,
+    });
+    updateMutation.mutate({
+      type_prestation: aboParamsForm.type_prestation || null,
+      nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
+      duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
+      montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
+      mode_paiement: aboParamsForm.mode_paiement || null,
+      commercial: aboParamsForm.commercial || null,
+      avec_produit: aboParamsForm.avec_produit,
+    } as any);
+  };
+
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
       {/* Header */}
