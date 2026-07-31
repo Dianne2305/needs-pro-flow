@@ -244,10 +244,11 @@ export default function CompteClient() {
   const [aboParamsEdit, setAboParamsEdit] = useState(false);
   const [aboPromo, setAboPromo] = useState<{ taux: number }>({ taux: 10 });
   const [aboParamsForm, setAboParamsForm] = useState<{
+    type_prestation: string; frequence: string;
     date_debut: string; nombre_intervenants: string; duree_heures: string;
     montant_total: string; mode_paiement: string; commercial: string; avec_produit: boolean;
     taux_reduction: string;
-  }>({ date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10" });
+  }>({ type_prestation: "", frequence: "", date_debut: "", nombre_intervenants: "", duree_heures: "", montant_total: "", mode_paiement: "", commercial: "", avec_produit: false, taux_reduction: "10" });
 
   const [aboDureeMois, setAboDureeMois] = useState<number>(1);
   const [aboJours, setAboJours] = useState<{ jour: string; heure_debut: string; heure_fin: string }[]>([]);
@@ -1233,22 +1234,19 @@ export default function CompteClient() {
                       {aboFactureGeneree ? "Facture générée" : "Générer facture"}
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => {
-                      const billable = Math.max(0, monthlyInterventions - reportesMois);
-                      const totalEst = totalInterventions || monthlyInterventions || 0;
-                      const montantTotal = Number((demande as any).montant_total) || 0;
-                      const unit = totalEst > 0 ? montantTotal / totalEst : 0;
-                      setFactureFormData({
-                        clientNom: (demande as any).nom_entreprise || demande.nom,
-                        numAbonnement: demande.num_demande,
-                        monthLabel: format(aboCalMonth, "MMMM yyyy", { locale: fr }),
-                        typePrestation: demande.type_prestation || demande.type_service || "",
-                        frequenceLabel: currentFreq?.label || aboFrequence || "",
-                        interventionsPrevues: monthlyInterventions,
-                        reportesPayees: reportesMois,
-                        creditsRestants: pendingCreditsGlobal,
-                        prixUnitaire: unit,
+                      setAboParamsForm({
+                        type_prestation: (demande as any).type_prestation || "",
+                        frequence: aboFrequence || "",
+                        date_debut: aboDateDebut || "",
+                        nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
+                        duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
+                        montant_total: (demande as any).montant_total != null ? String((demande as any).montant_total) : "",
+                        mode_paiement: (demande as any).mode_paiement || "",
+                        commercial: (demande as any).commercial || "",
+                        avec_produit: !!(demande as any).avec_produit,
+                        taux_reduction: aboPromo.taux != null ? String(aboPromo.taux) : "10",
                       });
-                      setFactureFormOpen(true);
+                      setAboParamsEdit(true);
                     }} className="h-8 text-xs gap-1.5">
                       <Receipt className="h-3.5 w-3.5" /> Formulaire facture
                     </Button>
@@ -1356,6 +1354,8 @@ export default function CompteClient() {
                           className="h-7 text-xs"
                           onClick={() => {
                             setAboParamsForm({
+                              type_prestation: (demande as any).type_prestation || "",
+                              frequence: aboFrequence || "",
                               date_debut: aboDateDebut || "",
                               nombre_intervenants: demande.nombre_intervenants != null ? String(demande.nombre_intervenants) : "",
                               duree_heures: demande.duree_heures != null ? String(demande.duree_heures) : "",
@@ -2376,11 +2376,19 @@ export default function CompteClient() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Service</Label>
-              <Input value={demande?.type_prestation || ""} disabled className="h-9 text-xs" />
+              <Input value={aboParamsForm.type_prestation} className="h-9 text-xs"
+                onChange={(e) => setAboParamsForm({ ...aboParamsForm, type_prestation: e.target.value })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Type de fréquence</Label>
-              <Input value={FREQUENCES.find((f) => f.value === aboFrequence)?.label || aboFrequence || ""} disabled className="h-9 text-xs" />
+              <Select value={aboParamsForm.frequence} onValueChange={(v) => setAboParamsForm({ ...aboParamsForm, frequence: v })}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Sélectionner" /></SelectTrigger>
+                <SelectContent>
+                  {FREQUENCES.filter((f) => f.value !== "ponctuel").map((f) => (
+                    <SelectItem key={f.value} value={f.value} className="text-xs">{f.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Date de démarrage</Label>
@@ -2429,10 +2437,12 @@ export default function CompteClient() {
               size="sm"
               onClick={() => {
                 setAboDateDebut(aboParamsForm.date_debut);
+                setAboFrequence(aboParamsForm.frequence);
                 setAboPromo({
                   taux: aboParamsForm.taux_reduction ? Number(aboParamsForm.taux_reduction) : 10,
                 });
                 updateMutation.mutate({
+                  type_prestation: aboParamsForm.type_prestation || null,
                   nombre_intervenants: aboParamsForm.nombre_intervenants ? Number(aboParamsForm.nombre_intervenants) : null,
                   duree_heures: aboParamsForm.duree_heures ? Number(aboParamsForm.duree_heures) : null,
                   montant_total: aboParamsForm.montant_total ? Number(aboParamsForm.montant_total) : null,
