@@ -1,54 +1,38 @@
+# Module Airbnb / Conciergerie
 
+La page `/airbnb-conciergerie` devient un module complet à 8 écrans, conforme au brief et aux maquettes HTML fournies.
 
-## Plan : Réorganiser le tableau du Dashboard pour tenir sur une seule page
+## Structure de la page
 
-### Objectif
-Réduire le nombre de colonnes, abréger les titres, et réordonner selon les 13 colonnes demandées — sans défilement horizontal.
+Une page unique avec onglets (même style que Gestion Abonnement : onglets centrés, titres h3, couleur active teal) :
 
-### Colonnes actuelles → Nouvelles colonnes (dans l'ordre)
+1. **Clients & Biens** — répertoire clients (conciergerie / agence / particulier), codification automatique du bien (ex. `GBE004` = 3 lettres du nom + n° d'ordre), fiche bien (typologie, zone, tarif, options, accès/clés, calendrier iCal), badge « seuil 3 biens » = statut conciergerie.
+2. **Nouvelle commande** — saisie d'un turnover : bien, date/heure, options (linge, produits, gestion clés…), calcul automatique du prix, délais de commande.
+3. **La commande** — dossier unique en 6 blocs (commercial, runner ramassage, laverie/comptage, exécution, signalements, clôture & facturation), chaque acteur écrit son bloc, journal d'audit.
+4. **Runner & Linge** — tournée du jour (ramassage / dépôt), espace laverie : comptage pièce par pièce, conversion en sets, montant figé au recomptage.
+5. **Planning & Exécution** — remontée J-1 à 18h vers le tableau de bord, fiche de mission, photos attendues, incidents et objets trouvés.
+6. **Facturation** — modes « au passage » / « mensuel », cycles et échéances, prorata de démarrage, suspension, leviers du responsable facturation.
+7. **Espace conciergerie** — vue portail client (ce que le client voit / peut faire seul) + connexion des calendriers iCal.
+8. **Paramètres** — grille tarifaire, zones, options, composition du set de linge (verrouillée par double confirmation), règles.
 
-| # | Nouvelle colonne | Titre affiché | Notes |
-|---|---|---|---|
-| 1 | Actions | Icône ⚙️ uniquement (pas de texte "Actions") | Garder le dropdown existant |
-| 2 | Commercial | **Com** | Abrégé |
-| 3 | Date intervention | **Date** | Abrégé, format compact dd/MM/yy |
-| 4 | Statut du besoin | **Statut** | Badge existant |
-| 5 | Nom du client | **Client** | Cliquable → redirige vers `/compte-client?id=...` |
-| 6 | Quartier/Ville | **Lieu** | Compact sur une ligne |
-| 7 | Type de service | **Service** | Texte prestation |
-| 8 | Segment | **Seg.** | Badge SPP/SPE |
-| 9 | Nb d'heures | **Hrs** | Abrégé |
-| 10 | Profils envoyés | **Profil** | Cliquable → redirige vers `/compte-profil?id=...` |
-| 11 | Option supplémentaire | **Opt. sup.** | Remplace "Avec produit" |
-| 12 | CAO | **CAO** | Inchangé |
-| 13 | Tarif total | **Tarif** | Montant MAD |
+## Règles métier clés implémentées
 
-### Colonnes supprimées
-- Fréquence
-- Mode paiement
-- Statut paiement
-- Reste à payer
-- Colonne vide du menu 3 points (intégré dans Actions ou conservé en dernière colonne discrète)
+- Linge facturé sur la commande de **ramassage**, jamais de dépôt.
+- Montant du linge **figé** au recomptage laverie.
+- Calcul des sets : `sets = min(housses/1, draps/1, taies/2, gdes serv./2, ptes serv./2)`, puis `montant = sets × 50 + pièces_supp × 5`, minimum 50 DH si comptage > 0.
+- Une commande n'est facturable qu'après photos reçues, comptage validé, signalements arbitrés.
+- Aucune assignation d'intervenante dans ce module (reste au tableau de bord).
 
-### Modifications techniques
+## Technique
 
-**Fichier : `src/pages/Dashboard.tsx`**
+- Migration base : tables `airbnb_clients`, `airbnb_biens`, `airbnb_commandes`, `airbnb_linge_comptages`, `airbnb_options`, `airbnb_signalements`, `airbnb_parametres` (+ GRANT et RLS sur chacune).
+- Composants sous `src/components/airbnb/` (un par onglet), page `src/pages/AirBnbConciergerie.tsx` en conteneur d'onglets.
+- Helpers de calcul (sets linge, prix commande, codification bien) dans `src/lib/airbnb-utils.ts`, testés.
+- Design repris des maquettes mais via les tokens du design system existant (teal agence), pas de couleurs en dur.
 
-1. **TableHeader** (lignes ~402-422) : Remplacer les 18 colonnes par les 13 listées ci-dessus avec titres abrégés. Ajouter `className="text-xs"` sur tous les `TableHead` pour compacité.
+## Découpage proposé (livraison par lots)
 
-2. **TableBody / renderTable** (lignes ~427-525) : Réordonner les `TableCell` selon le nouvel ordre. Supprimer les cellules Fréquence, Mode paiement, Statut paiement, Reste à payer.
-
-3. **Actions** : Remplacer le bouton texte "Actions" par une icône seule (`<Settings className="h-4 w-4" />`).
-
-4. **Nom du client** : Rendre cliquable avec `onClick={() => openCompteClient(d)}` (déjà existant).
-
-5. **Profils envoyés** : Rendre le nom cliquable pour naviguer vers `/compte-profil?id={profil_id}`. Chercher le profil_id depuis la table `profils` par nom si nécessaire.
-
-6. **Option supplémentaire** : Renommer le champ `avec_produit` en affichage "Opt. sup." avec le même badge Oui/Non.
-
-7. **Menu 3 points** : Fusionner dans la colonne Actions ou le garder en dernière colonne sans titre.
-
-8. **colSpan** : Mettre à jour le `colSpan` de la ligne vide (actuellement 18) vers 13.
-
-9. **Styles compacts** : Ajouter `text-xs` et `px-2` sur les cellules pour réduire la largeur globale.
-
+- **Lot 1** : base de données + onglets + écrans 1 (Clients & Biens) et 2 (Nouvelle commande).
+- **Lot 2** : écrans 3 (La commande) et 4 (Runner & Linge) avec toute la logique linge.
+- **Lot 3** : écrans 5 (Planning), 6 (Facturation).
+- **Lot 4** : écrans 7 (Espace conciergerie) et 8 (Paramètres).
