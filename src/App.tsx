@@ -24,6 +24,7 @@ import FeedbackForm from "./pages/FeedbackForm";
 import Marketing from "./pages/Marketing";
 import Messagerie from "./pages/Messagerie";
 import GestionAbonnement from "./pages/GestionAbonnement";
+import AirBnbConciergerie from "./pages/AirBnbConciergerie";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
                 <Route path="/qualite" element={<QualiteFeedback />} />
                 <Route path="/marketing" element={<Marketing />} />
                 <Route path="/messagerie" element={<Messagerie />} />
+                <Route path="/airbnb-conciergerie" element={<AirBnbConciergerie />} />
                 <Route path="/parametres" element={<Parametres />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
