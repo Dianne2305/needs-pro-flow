@@ -152,12 +152,13 @@ export const STATUTS_COMMANDE = {
 } as const;
 
 export const ETAPES_LINGE = [
-  { value: "recu", label: "Reçu et compté" },
-  { value: "lavage", label: "En lavage" },
-  { value: "sechage", label: "Séchage · repassage" },
-  { value: "pret", label: "Prêt au départ" },
-  { value: "livraison", label: "En livraison" },
+  { value: "recu", label: "Reçu et compté", hint: "comptage runner puis contrôle laverie" },
+  { value: "lavage", label: "En lavage", hint: "cycle en cours à la laverie" },
+  { value: "sechage", label: "Séchage · repassage", hint: "préparation des sets" },
+  { value: "pret", label: "Prêt au départ", hint: "sets reconstitués et filmés" },
+  { value: "livraison", label: "En livraison", hint: "retour au bien lors du prochain passage" },
 ] as const;
+
 
 export const MOTIFS_SIGNALEMENT_LINGE = [
   "Lavé, taches persistantes",

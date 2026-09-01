@@ -74,7 +74,7 @@ export function RunnerLingeTab() {
           montant_linge: res.montant,
           montant_linge_abime: abime,
           comptage_valide: true,
-          statut: "a_facturer",
+          statut: "facturable",
         }).eq("id", commande.id);
         if (e2) throw e2;
       }
