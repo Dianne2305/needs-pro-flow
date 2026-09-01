@@ -14,6 +14,410 @@ export type Database = {
   }
   public: {
     Tables: {
+      airbnb_biens: {
+        Row: {
+          acces_details: string | null
+          acces_type: string | null
+          actif: boolean
+          adresse: string | null
+          client_id: string
+          code: string
+          created_at: string
+          ical_url: string | null
+          id: string
+          quartier: string | null
+          services: string
+          sets_rechange: number
+          tarif_base: number
+          typologie: string
+          ville: string
+          zone_eloignee: boolean
+        }
+        Insert: {
+          acces_details?: string | null
+          acces_type?: string | null
+          actif?: boolean
+          adresse?: string | null
+          client_id: string
+          code: string
+          created_at?: string
+          ical_url?: string | null
+          id?: string
+          quartier?: string | null
+          services?: string
+          sets_rechange?: number
+          tarif_base?: number
+          typologie?: string
+          ville?: string
+          zone_eloignee?: boolean
+        }
+        Update: {
+          acces_details?: string | null
+          acces_type?: string | null
+          actif?: boolean
+          adresse?: string | null
+          client_id?: string
+          code?: string
+          created_at?: string
+          ical_url?: string | null
+          id?: string
+          quartier?: string | null
+          services?: string
+          sets_rechange?: number
+          tarif_base?: number
+          typologie?: string
+          ville?: string
+          zone_eloignee?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airbnb_biens_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "airbnb_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      airbnb_clients: {
+        Row: {
+          commercial: string | null
+          contrat_signe: boolean
+          created_at: string
+          date_demarrage: string | null
+          email: string | null
+          id: string
+          mode_paiement: string
+          nom: string
+          notes: string | null
+          probatoire: boolean
+          statut: string
+          telephone: string | null
+          trigramme: string | null
+          type_client: string
+          ville: string
+        }
+        Insert: {
+          commercial?: string | null
+          contrat_signe?: boolean
+          created_at?: string
+          date_demarrage?: string | null
+          email?: string | null
+          id?: string
+          mode_paiement?: string
+          nom: string
+          notes?: string | null
+          probatoire?: boolean
+          statut?: string
+          telephone?: string | null
+          trigramme?: string | null
+          type_client?: string
+          ville?: string
+        }
+        Update: {
+          commercial?: string | null
+          contrat_signe?: boolean
+          created_at?: string
+          date_demarrage?: string | null
+          email?: string | null
+          id?: string
+          mode_paiement?: string
+          nom?: string
+          notes?: string | null
+          probatoire?: boolean
+          statut?: string
+          telephone?: string | null
+          trigramme?: string | null
+          type_client?: string
+          ville?: string
+        }
+        Relationships: []
+      }
+      airbnb_commandes: {
+        Row: {
+          bien_id: string | null
+          client_id: string | null
+          comptage_valide: boolean
+          created_at: string
+          date_intervention: string
+          heure_intervention: string | null
+          id: string
+          intervenante: string | null
+          montant_linge: number
+          montant_linge_abime: number
+          montant_menage: number
+          montant_options: number
+          montant_zone: number
+          nature_linge: string
+          notes: string | null
+          numero: string
+          options: Json
+          photos_recues: boolean
+          statut: string
+        }
+        Insert: {
+          bien_id?: string | null
+          client_id?: string | null
+          comptage_valide?: boolean
+          created_at?: string
+          date_intervention: string
+          heure_intervention?: string | null
+          id?: string
+          intervenante?: string | null
+          montant_linge?: number
+          montant_linge_abime?: number
+          montant_menage?: number
+          montant_options?: number
+          montant_zone?: number
+          nature_linge?: string
+          notes?: string | null
+          numero: string
+          options?: Json
+          photos_recues?: boolean
+          statut?: string
+        }
+        Update: {
+          bien_id?: string | null
+          client_id?: string | null
+          comptage_valide?: boolean
+          created_at?: string
+          date_intervention?: string
+          heure_intervention?: string | null
+          id?: string
+          intervenante?: string | null
+          montant_linge?: number
+          montant_linge_abime?: number
+          montant_menage?: number
+          montant_options?: number
+          montant_zone?: number
+          nature_linge?: string
+          notes?: string | null
+          numero?: string
+          options?: Json
+          photos_recues?: boolean
+          statut?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airbnb_commandes_bien_id_fkey"
+            columns: ["bien_id"]
+            isOneToOne: false
+            referencedRelation: "airbnb_biens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "airbnb_commandes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "airbnb_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      airbnb_comptages: {
+        Row: {
+          bien_code: string | null
+          commande_id: string | null
+          created_at: string
+          ecart: number
+          etape: string
+          id: string
+          montant: number
+          montant_fige: boolean
+          pieces_supp: number
+          quantites: Json
+          quantites_laverie: Json | null
+          sets: number
+          total_pieces: number
+        }
+        Insert: {
+          bien_code?: string | null
+          commande_id?: string | null
+          created_at?: string
+          ecart?: number
+          etape?: string
+          id?: string
+          montant?: number
+          montant_fige?: boolean
+          pieces_supp?: number
+          quantites?: Json
+          quantites_laverie?: Json | null
+          sets?: number
+          total_pieces?: number
+        }
+        Update: {
+          bien_code?: string | null
+          commande_id?: string | null
+          created_at?: string
+          ecart?: number
+          etape?: string
+          id?: string
+          montant?: number
+          montant_fige?: boolean
+          pieces_supp?: number
+          quantites?: Json
+          quantites_laverie?: Json | null
+          sets?: number
+          total_pieces?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airbnb_comptages_commande_id_fkey"
+            columns: ["commande_id"]
+            isOneToOne: false
+            referencedRelation: "airbnb_commandes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      airbnb_factures: {
+        Row: {
+          client_id: string | null
+          client_nom: string | null
+          created_at: string
+          date_echeance: string | null
+          date_emission: string | null
+          date_paiement: string | null
+          id: string
+          mode: string
+          montant: number
+          numero: string
+          periode_debut: string | null
+          periode_fin: string | null
+          statut: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_nom?: string | null
+          created_at?: string
+          date_echeance?: string | null
+          date_emission?: string | null
+          date_paiement?: string | null
+          id?: string
+          mode?: string
+          montant?: number
+          numero: string
+          periode_debut?: string | null
+          periode_fin?: string | null
+          statut?: string
+        }
+        Update: {
+          client_id?: string | null
+          client_nom?: string | null
+          created_at?: string
+          date_echeance?: string | null
+          date_emission?: string | null
+          date_paiement?: string | null
+          id?: string
+          mode?: string
+          montant?: number
+          numero?: string
+          periode_debut?: string | null
+          periode_fin?: string | null
+          statut?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airbnb_factures_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "airbnb_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      airbnb_parametres: {
+        Row: {
+          delai_paiement_jours: number
+          grille: Json
+          id: number
+          minimum_linge: number
+          options: Json
+          set_composition: Json
+          seuil_conciergerie: number
+          tarif_piece: number
+          tarif_set: number
+          updated_at: string
+          zones: Json
+        }
+        Insert: {
+          delai_paiement_jours?: number
+          grille?: Json
+          id?: number
+          minimum_linge?: number
+          options?: Json
+          set_composition?: Json
+          seuil_conciergerie?: number
+          tarif_piece?: number
+          tarif_set?: number
+          updated_at?: string
+          zones?: Json
+        }
+        Update: {
+          delai_paiement_jours?: number
+          grille?: Json
+          id?: number
+          minimum_linge?: number
+          options?: Json
+          set_composition?: Json
+          seuil_conciergerie?: number
+          tarif_piece?: number
+          tarif_set?: number
+          updated_at?: string
+          zones?: Json
+        }
+        Relationships: []
+      }
+      airbnb_signalements: {
+        Row: {
+          categorie: string
+          commande_id: string | null
+          created_at: string
+          description: string | null
+          facture: boolean
+          id: string
+          montant: number
+          motif: string | null
+          nb_pieces: number
+          photo_url: string | null
+          statut: string
+        }
+        Insert: {
+          categorie?: string
+          commande_id?: string | null
+          created_at?: string
+          description?: string | null
+          facture?: boolean
+          id?: string
+          montant?: number
+          motif?: string | null
+          nb_pieces?: number
+          photo_url?: string | null
+          statut?: string
+        }
+        Update: {
+          categorie?: string
+          commande_id?: string | null
+          created_at?: string
+          description?: string | null
+          facture?: boolean
+          id?: string
+          montant?: number
+          motif?: string | null
+          nb_pieces?: number
+          photo_url?: string | null
+          statut?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airbnb_signalements_commande_id_fkey"
+            columns: ["commande_id"]
+            isOneToOne: false
+            referencedRelation: "airbnb_commandes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campagnes_marketing: {
         Row: {
           archivee: boolean
