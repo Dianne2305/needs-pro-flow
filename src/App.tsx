@@ -13,6 +13,7 @@ import PendingRequests from "./pages/PendingRequests";
 import Parametres from "./pages/Parametres";
 import GestionFinanciere from "./pages/GestionFinanciere";
 import SuiviDusProfilsPage from "./pages/SuiviDusProfilsPage";
+import SuiviPaiementsEspeces from "./pages/SuiviPaiementsEspeces";
 import CompteClient from "./pages/CompteClient";
 import Historique from "./pages/Historique";
 import ListingClients from "./pages/ListingClients";
