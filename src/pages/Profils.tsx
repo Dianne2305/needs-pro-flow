@@ -24,6 +24,8 @@ import { PostulerModal } from "@/components/profils/PostulerModal";
 import { STATUT_PROFIL_OPTIONS, computeStatutEffectif, JOURS_SEMAINE, DISPONIBILITE_INTERVENTION_OPTIONS, FUME_OPTIONS } from "@/lib/profil-constants";
 import { TYPES_PRESTATION } from "@/lib/constants";
 import { AddProfilModal } from "@/components/profils/AddProfilModal";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlanInterventionTab } from "@/components/profils/PlanInterventionTab";
 
 const DISPO_OPTIONS = [
   { value: "all", label: "Toutes disponibilités" },
@@ -176,6 +178,17 @@ export default function Profils() {
         </div>
       </div>
 
+      <Tabs defaultValue="liste" className="w-full">
+        <TabsList className="h-auto p-1.5 bg-muted/60 gap-1.5 rounded-xl">
+          <TabsTrigger value="liste" className="px-5 py-2.5 text-sm font-semibold rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0b7f7a] data-[state=active]:to-[#118b7e] data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
+            Liste femme de ménage
+          </TabsTrigger>
+          <TabsTrigger value="plan" className="px-5 py-2.5 text-sm font-semibold rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#0b7f7a] data-[state=active]:to-[#118b7e] data-[state=active]:text-primary-foreground data-[state=active]:shadow-md">
+            Plan intervention
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="liste" className="mt-4 space-y-4">
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[200px]">
@@ -403,6 +416,13 @@ export default function Profils() {
           </TableBody>
         </Table>
       </div>
+      </TabsContent>
+
+        <TabsContent value="plan" className="mt-4">
+          <PlanInterventionTab />
+        </TabsContent>
+      </Tabs>
+
 
       <AddProfilModal open={addOpen} onOpenChange={setAddOpen} onSuccess={() => refetch()} />
 
