@@ -845,7 +845,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   <CollapsibleContent className="space-y-4">
                     {(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") && (
                       <div className="p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-800">
-                        🔒 <strong>Gestion des parts indisponible.</strong> Le partage des parts entre l'agence et le profil intervenant ne peut être effectué que lorsque le statut de paiement est « Agence payée par le client ». Confirmez d'abord le dépôt du commercial à l'agence.
+                        🔒 <strong>Gestion des parts indisponible.</strong> Le partage des parts entre l'agence et le profil intervenant ne peut être effectué que lorsque le statut de paiement est « Agence payée par le client ». Confirmez d'abord le dépôt du {statutPaiement === "profil_paye_client" ? "profil" : "commercial"} à l'agence.
                       </div>
                     )}
                     <div className={(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") ? "opacity-40 pointer-events-none space-y-4" : "space-y-4"}>
