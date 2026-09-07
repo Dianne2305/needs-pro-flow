@@ -92,7 +92,7 @@ export function PlanInterventionTab() {
   const from = format(weekStart, "yyyy-MM-dd");
   const to = format(addDays(weekStart, 6), "yyyy-MM-dd");
 
-  const { data: demandes = [], isLoading } = useQuery({
+  const { data: realDemandes = [], isLoading } = useQuery({
     queryKey: ["demandes", "plan_intervention", from, to],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -105,6 +105,13 @@ export function PlanInterventionTab() {
       return data || [];
     },
   });
+
+  const demandes = useMemo(() => {
+    if (realDemandes.length > 0) return realDemandes;
+    return generateDemoDemandes(weekStart);
+  }, [realDemandes, weekStart]);
+
+  const isDemo = realDemandes.length === 0;
 
   const byDay = useMemo(() => {
     const map: Record<string, any[]> = {};
