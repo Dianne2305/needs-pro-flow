@@ -964,6 +964,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
                         const categorie = demande.frequence === "Ponctuel" ? "externe" : "interne";
+                        const selectedProfil = profilsList.find((p) => p.id === pp.profilId);
                         const montantTotalTaux = pp.tauxType === "horaire"
                           ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
                           : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
@@ -1003,6 +1004,11 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                     ))}
                                   </SelectContent>
                                 </Select>
+                                {pp.delegue && statutPaiement === "profil_paye_client" && Number(partAgence || 0) > 0 && (
+                                  <p className="text-xs text-amber-700 mt-1">
+                                    {selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : "Profil"} à le montant {Number(partAgence).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD comme part de l'agence.
+                                  </p>
+                                )}
                               </div>
                               <div className="w-28">
                                 <Label className="text-xs">Déléguée</Label>
@@ -1010,8 +1016,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                   <Checkbox
                                     checked={pp.delegue}
                                     onCheckedChange={() => {
-                                      const updated = [...profilParts];
-                                      updated[index] = { ...updated[index], delegue: !updated[index].delegue };
+                                      const updated = profilParts.map((p, i) => ({ ...p, delegue: i === index ? !p.delegue : false }));
                                       setProfilParts(updated);
                                     }}
                                   />
