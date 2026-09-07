@@ -9,11 +9,61 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, CalendarDays, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { STATUTS } from "@/lib/constants";
+
+/** Données de démonstration pour remplir le planning par défaut. */
+const DEMO_INTERVENANTS = [
+  { nom: "Nadia B.", client: "Mme Alaoui", service: "Ménage standard", ville: "Casablanca", quartier: "Maarif", duree: 4, heure: "09:00", frequence: "2_fois_semaine", statut: "confirme" },
+  { nom: "Zineb F.", client: "M. Bennani", service: "Grand ménage", ville: "Casablanca", quartier: "Ain Diab", duree: 6, heure: "08:30", frequence: "ponctuel", statut: "prestation_en_cours" },
+  { nom: "Fatima L.", client: "Ste Logistika", service: "Ménage Bureaux", ville: "Casablanca", quartier: "Sidi Maarouf", duree: 3, heure: "18:00", frequence: "1_fois_mois", statut: "confirme" },
+  { nom: "Khadija M.", client: "Mme El Fassi", service: "Ménage standard", ville: "Casablanca", quartier: "Racine", duree: 3, heure: "14:00", frequence: "3_fois_semaine", statut: "prestation_terminee" },
+  { nom: "Samira T.", client: "M. Ouazzani", service: "Nettoyage post-déménagement", ville: "Casablanca", quartier: "Bourgogne", duree: 2, heure: "10:00", frequence: "ponctuel", statut: "en_attente_confirmation" },
+  { nom: "Aicha R.", client: "Ste Alpha", service: "Ménage Bureaux", ville: "Casablanca", quartier: "Centre", duree: 5, heure: "07:00", frequence: "1_fois_mois", statut: "confirme" },
+  { nom: "Hafsa D.", client: "Mme Benmoussa", service: "Ménage fin de chantier", ville: "Casablanca", quartier: "Hay Riad", duree: 8, heure: "08:00", frequence: "ponctuel", statut: "annulee" },
+  { nom: "Laila K.", client: "M. Zerouali", service: "Ménage standard", ville: "Casablanca", quartier: "Anfa", duree: 4, heure: "09:30", frequence: "1_fois_semaine", statut: "confirme" },
+  { nom: "Rachida E.", client: "Mme Fassi", service: "Ménage standard", ville: "Casablanca", quartier: "Gauthier", duree: 2, heure: "13:00", frequence: "2_fois_mois", statut: "paye" },
+  { nom: "Yasmin O.", client: "M. Tahiri", service: "Ménage standard", ville: "Casablanca", quartier: "Ain Sebaa", duree: 3, heure: "16:00", frequence: "quotidien", statut: "nouveau_besoin" },
+];
+
+function generateDemoDemandes(weekStart: Date): any[] {
+  const rows: any[] = [];
+  let idx = 0;
+  for (let i = 0; i < 7; i++) {
+    const day = addDays(weekStart, i);
+    const dateKey = format(day, "yyyy-MM-dd");
+    // 1 à 3 interventions par jour
+    const count = 1 + (i % 3);
+    for (let j = 0; j < count; j++) {
+      const base = DEMO_INTERVENANTS[idx % DEMO_INTERVENANTS.length];
+      const startHour = Number(base.heure.split(":")[0]) + j;
+      const heure = `${String(startHour).padStart(2, "0")}:${base.heure.split(":")[1]}`;
+      const endHour = startHour + base.duree;
+      const heureFin = `${String(endHour).padStart(2, "0")}:${base.heure.split(":")[1]}`;
+      rows.push({
+        id: `demo-${idx}`,
+        date_prestation: dateKey,
+        candidat_nom: base.nom,
+        nombre_intervenants: 1 + (idx % 2),
+        nom: base.client,
+        type_prestation: base.service,
+        ville: base.ville,
+        quartier: base.quartier,
+        heure_prestation: heure,
+        heure_fin: heureFin,
+        duree_heures: base.duree,
+        frequence: base.frequence,
+        statut: base.statut,
+        isDemo: true,
+      });
+      idx++;
+    }
+  }
+  return rows;
+}
 
 /** Catégorie : missions récurrentes (abonnement) = Interne, ponctuelles = Externe. */
 function getCategorie(d: any): "interne" | "externe" {
@@ -42,7 +92,7 @@ export function PlanInterventionTab() {
   const from = format(weekStart, "yyyy-MM-dd");
   const to = format(addDays(weekStart, 6), "yyyy-MM-dd");
 
-  const { data: demandes = [], isLoading } = useQuery({
+  const { data: realDemandes = [], isLoading } = useQuery({
     queryKey: ["demandes", "plan_intervention", from, to],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -55,6 +105,13 @@ export function PlanInterventionTab() {
       return data || [];
     },
   });
+
+  const demandes = useMemo(() => {
+    if (realDemandes.length > 0) return realDemandes;
+    return generateDemoDemandes(weekStart);
+  }, [realDemandes, weekStart]);
+
+  const isDemo = realDemandes.length === 0;
 
   const byDay = useMemo(() => {
     const map: Record<string, any[]> = {};
@@ -112,6 +169,11 @@ export function PlanInterventionTab() {
             <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
             {total} intervention{total > 1 ? "s" : ""}
           </Badge>
+          {isDemo && (
+            <Badge variant="outline" className="text-xs h-8 px-3 border-amber-300 text-amber-700 bg-amber-50">
+              Données de démonstration
+            </Badge>
+          )}
         </div>
       </div>
 
