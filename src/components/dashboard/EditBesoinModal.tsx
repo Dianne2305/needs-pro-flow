@@ -173,6 +173,27 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     enabled: open,
   });
 
+  // Supplément espèces existant pour ce besoin
+  const { data: supplementData } = useQuery({
+    queryKey: ["supplements_especes", demande.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("supplements_especes")
+        .select("*")
+        .eq("demande_id", demande.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    setSupplementHeures(String(supplementData?.montant ?? 0));
+    setSupplementEspecesRecupere(Boolean(supplementData?.recupere));
+  }, [open, supplementData]);
+
   // Initialize gestion des parts from facturation data + candidat
   useEffect(() => {
     if (!open) {
