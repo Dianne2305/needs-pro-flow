@@ -1010,7 +1010,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                   <Checkbox
                                     checked={pp.delegue}
                                     onCheckedChange={() => {
-                                      setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
+                                      const updated = [...profilParts];
+                                      updated[index] = { ...updated[index], delegue: !updated[index].delegue };
+                                      setProfilParts(updated);
                                     }}
                                   />
                                   <span className="text-xs font-medium">Déléguée</span>
