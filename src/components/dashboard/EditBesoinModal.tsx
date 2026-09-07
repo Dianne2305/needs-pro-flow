@@ -127,6 +127,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   // Gestion des parts state
   const [partAgence, setPartAgence] = useState("0");
+  // Supplément d'heures payé en espèces
+  const [supplementHeures, setSupplementHeures] = useState("0");
+  const [supplementEspecesRecupere, setSupplementEspecesRecupere] = useState(false);
   type ProfilPart = {
     profilId: string;
     part: string;
@@ -206,6 +209,13 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
       setPartsInitialized(true);
     }
   }, [open, facturationData, partsInitialized, demande.candidat_nom, profilsList]);
+
+  // Un seul profil → délégué automatiquement
+  useEffect(() => {
+    if (profilParts.length === 1 && !profilParts[0].delegue) {
+      setProfilParts((prev) => [{ ...prev[0], delegue: true }]);
+    }
+  }, [profilParts]);
 
   // Gestion des parts calculations
   const totalReparti = useMemo(() => {
@@ -358,6 +368,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   };
 
   const handleSave = async () => {
+    // Délégué obligatoire quand le client a payé le profil
+    if (statutPaiement === "profil_paye_client" && !profilParts.some((p) => p.delegue && p.profilId)) {
+      toast.error("Délégué obligatoire", {
+        description: "Veuillez sélectionner un profil délégué : c'est lui qui récupère la part de l'agence.",
+      });
+      setGestionPartsOpen(true);
+      return;
+    }
+
     // Build change log
     const changes: string[] = [];
     if (statut !== demande.statut) changes.push(`Statut besoin → ${STATUTS[statut as keyof typeof STATUTS]?.label || statut}`);
@@ -1006,7 +1025,12 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 </Select>
                                 {pp.delegue && statutPaiement === "profil_paye_client" && Number(partAgence || 0) > 0 && (
                                   <p className="text-xs text-amber-700 mt-1">
-                                    {selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : "Profil"} à le montant {Number(partAgence).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD comme part de l'agence.
+                                    {selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : "Profil"} a le montant de {Number(partAgence).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH comme part de l'agence.
+                                  </p>
+                                )}
+                                {pp.delegue && statutPaiement === "profil_paye_client" && Number(supplementHeures || 0) > 0 && (
+                                  <p className="text-xs text-sky-700 mt-1">
+                                    Supplément d'heures : {Number(supplementHeures).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH {supplementEspecesRecupere ? "récupéré en espèces par le profil." : "à récupérer en espèces par le profil."}
                                   </p>
                                 )}
                               </div>
@@ -1181,6 +1205,40 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                           Valider les parts
                         </Button>
                       </div>
+                    </div>
+
+                    {/* Supplément d'heures payé en espèces */}
+                    <div className="p-4 rounded-lg border border-sky-200 bg-sky-50 space-y-3">
+                      <h4 className="text-sm font-bold text-sky-900">Supplément d'heures payé en espèces</h4>
+                      <div className="flex flex-wrap items-end gap-4">
+                        <div className="w-48">
+                          <Label className="text-xs">Montant du supplément (DH)</Label>
+                          <Input
+                            type="number"
+                            value={supplementHeures}
+                            onChange={(e) => setSupplementHeures(e.target.value)}
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 h-10 px-3 rounded-md border bg-background cursor-pointer">
+                          <Checkbox
+                            checked={supplementEspecesRecupere}
+                            onCheckedChange={() => setSupplementEspecesRecupere((v) => !v)}
+                          />
+                          <span className="text-xs font-medium">Montant récupéré en espèces par le profil</span>
+                        </label>
+                        <div className="text-xs text-sky-900">
+                          <p>Montant initial : <strong>{montantTTC.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH</strong></p>
+                          <p>Supplément espèces : <strong>{(Number(supplementHeures) || 0).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH</strong></p>
+                          <p>Total encaissé : <strong>{(montantTTC + (Number(supplementHeures) || 0)).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH</strong></p>
+                        </div>
+                      </div>
+                      {Number(supplementHeures) > 0 && (
+                        <p className={`text-xs font-medium ${supplementEspecesRecupere ? "text-emerald-700" : "text-amber-700"}`}>
+                          {supplementEspecesRecupere
+                            ? "✓ Supplément récupéré en espèces par le profil (suivi comme paiement espèces)."
+                            : "⏳ Supplément en attente de récupération en espèces par le profil."}
+                        </p>
+                      )}
                     </div>
                     </div>
                   </CollapsibleContent>
