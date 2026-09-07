@@ -368,6 +368,15 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
   };
 
   const handleSave = async () => {
+    // Délégué obligatoire quand le client a payé le profil
+    if (statutPaiement === "profil_paye_client" && !profilParts.some((p) => p.delegue && p.profilId)) {
+      toast.error("Délégué obligatoire", {
+        description: "Veuillez sélectionner un profil délégué : c'est lui qui récupère la part de l'agence.",
+      });
+      setGestionPartsOpen(true);
+      return;
+    }
+
     // Build change log
     const changes: string[] = [];
     if (statut !== demande.statut) changes.push(`Statut besoin → ${STATUTS[statut as keyof typeof STATUTS]?.label || statut}`);
