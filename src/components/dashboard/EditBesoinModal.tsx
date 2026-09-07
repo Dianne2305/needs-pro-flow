@@ -1016,7 +1016,12 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 </Select>
                                 {pp.delegue && statutPaiement === "profil_paye_client" && Number(partAgence || 0) > 0 && (
                                   <p className="text-xs text-amber-700 mt-1">
-                                    {selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : "Profil"} à le montant {Number(partAgence).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MAD comme part de l'agence.
+                                    {selectedProfil ? `${selectedProfil.prenom} ${selectedProfil.nom}` : "Profil"} a le montant de {Number(partAgence).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH comme part de l'agence.
+                                  </p>
+                                )}
+                                {pp.delegue && statutPaiement === "profil_paye_client" && Number(supplementHeures || 0) > 0 && (
+                                  <p className="text-xs text-sky-700 mt-1">
+                                    Supplément d'heures : {Number(supplementHeures).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH {supplementEspecesRecupere ? "récupéré en espèces par le profil." : "à récupérer en espèces par le profil."}
                                   </p>
                                 )}
                               </div>
