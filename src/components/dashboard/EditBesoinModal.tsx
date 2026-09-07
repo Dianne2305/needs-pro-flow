@@ -207,6 +207,13 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     }
   }, [open, facturationData, partsInitialized, demande.candidat_nom, profilsList]);
 
+  // Un seul profil → délégué automatiquement
+  useEffect(() => {
+    if (profilParts.length === 1 && !profilParts[0].delegue) {
+      setProfilParts((prev) => [{ ...prev[0], delegue: true }]);
+    }
+  }, [profilParts]);
+
   // Gestion des parts calculations
   const totalReparti = useMemo(() => {
     const agence = Number(partAgence) || 0;
