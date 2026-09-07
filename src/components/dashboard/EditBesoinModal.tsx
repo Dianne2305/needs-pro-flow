@@ -1206,6 +1206,40 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         </Button>
                       </div>
                     </div>
+
+                    {/* Supplément d'heures payé en espèces */}
+                    <div className="p-4 rounded-lg border border-sky-200 bg-sky-50 space-y-3">
+                      <h4 className="text-sm font-bold text-sky-900">Supplément d'heures payé en espèces</h4>
+                      <div className="flex flex-wrap items-end gap-4">
+                        <div className="w-48">
+                          <Label className="text-xs">Montant du supplément (DH)</Label>
+                          <Input
+                            type="number"
+                            value={supplementHeures}
+                            onChange={(e) => setSupplementHeures(e.target.value)}
+                          />
+                        </div>
+                        <label className="flex items-center gap-2 h-10 px-3 rounded-md border bg-background cursor-pointer">
+                          <Checkbox
+                            checked={supplementEspecesRecupere}
+                            onCheckedChange={() => setSupplementEspecesRecupere((v) => !v)}
+                          />
+                          <span className="text-xs font-medium">Montant récupéré en espèces par le profil</span>
+                        </label>
+                        <div className="text-xs text-sky-900">
+                          <p>Montant initial : <strong>{montantTTC.toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH</strong></p>
+                          <p>Supplément espèces : <strong>{(Number(supplementHeures) || 0).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH</strong></p>
+                          <p>Total encaissé : <strong>{(montantTTC + (Number(supplementHeures) || 0)).toLocaleString("fr-MA", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DH</strong></p>
+                        </div>
+                      </div>
+                      {Number(supplementHeures) > 0 && (
+                        <p className={`text-xs font-medium ${supplementEspecesRecupere ? "text-emerald-700" : "text-amber-700"}`}>
+                          {supplementEspecesRecupere
+                            ? "✓ Supplément récupéré en espèces par le profil (suivi comme paiement espèces)."
+                            : "⏳ Supplément en attente de récupération en espèces par le profil."}
+                        </p>
+                      )}
+                    </div>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
