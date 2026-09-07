@@ -712,17 +712,17 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
 
 
-                {/* Dépôt commercial effectué (uniquement si Commercial/Profil payé par client) */}
+                {/* Dépôt effectué (uniquement si Commercial/Profil payé par client) */}
                 {(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") && (
                   <div className="mt-4 p-4 rounded-lg border border-amber-300 bg-amber-50 space-y-3">
                     <h4 className="text-sm font-bold text-amber-800">
-                      Confirmation du versement du commercial à l'agence
+                      Confirmation du versement du {statutPaiement === "profil_paye_client" ? "profil" : "commercial"} à l'agence
                     </h4>
                     <p className="text-xs text-amber-700">
-                      Le commercial a-t-il déposé le montant encaissé auprès de l'agence ?
+                      Le {statutPaiement === "profil_paye_client" ? "profil" : "commercial"} a-t-il déposé le montant encaissé auprès de l'agence ?
                     </p>
                     <div className="flex items-center gap-3">
-                      <Label className="text-amber-800">Dépôt commercial effectué :</Label>
+                      <Label className="text-amber-800">Dépôt {statutPaiement === "profil_paye_client" ? "du profil" : "commercial"} effectué :</Label>
                       <div className="flex gap-2">
                         <Button
                           type="button"
@@ -845,7 +845,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                   <CollapsibleContent className="space-y-4">
                     {(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") && (
                       <div className="p-4 rounded-lg border border-amber-300 bg-amber-50 text-sm text-amber-800">
-                        🔒 <strong>Gestion des parts indisponible.</strong> Le partage des parts entre l'agence et le profil intervenant ne peut être effectué que lorsque le statut de paiement est « Agence payée par le client ». Confirmez d'abord le dépôt du commercial à l'agence.
+                        🔒 <strong>Gestion des parts indisponible.</strong> Le partage des parts entre l'agence et le profil intervenant ne peut être effectué que lorsque le statut de paiement est « Agence payée par le client ». Confirmez d'abord le dépôt du {statutPaiement === "profil_paye_client" ? "profil" : "commercial"} à l'agence.
                       </div>
                     )}
                     <div className={(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") ? "opacity-40 pointer-events-none space-y-4" : "space-y-4"}>
