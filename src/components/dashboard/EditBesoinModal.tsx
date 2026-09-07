@@ -130,6 +130,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     profilId: string;
     part: string;
     delegue: boolean;
+    categorie?: "interne" | "externe";
     tauxType: "horaire" | "horaire_exceptionnel" | "forfait";
     nbHeures: string;
     prixHeure: string;
