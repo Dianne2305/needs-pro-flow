@@ -100,9 +100,12 @@ export function PlanInterventionTab() {
                 <span className="text-sm font-bold capitalize">
                   {format(day, "EEEE dd MMMM yyyy", { locale: fr })}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <Badge
+                  variant={rows.length > 0 ? "default" : "outline"}
+                  className="text-xs font-semibold"
+                >
                   {rows.length} intervention{rows.length > 1 ? "s" : ""}
-                </span>
+                </Badge>
               </div>
               {rows.length === 0 ? (
                 <div className="px-3 py-4 text-xs text-muted-foreground">Aucune intervention</div>
