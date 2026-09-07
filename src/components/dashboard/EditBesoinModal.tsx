@@ -173,6 +173,27 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     enabled: open,
   });
 
+  // Supplément espèces existant pour ce besoin
+  const { data: supplementData } = useQuery({
+    queryKey: ["supplements_especes", demande.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("supplements_especes")
+        .select("*")
+        .eq("demande_id", demande.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: open,
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    setSupplementHeures(String(supplementData?.montant ?? 0));
+    setSupplementEspecesRecupere(Boolean(supplementData?.recupere));
+  }, [open, supplementData]);
+
   // Initialize gestion des parts from facturation data + candidat
   useEffect(() => {
     if (!open) {
@@ -387,6 +408,28 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     if (statutPaiement !== (demande.statut_paiement_commercial || "non_paye")) changes.push(`Statut paiement → ${statutPaiement}`);
     if (noteCommercial !== (demande.note_commercial || "")) changes.push("Note commerciale modifiée");
     if (noteOperationnel !== (demande.note_operationnel || "")) changes.push("Note opérationnelle modifiée");
+
+    // Enregistrement du supplément d'heures payé en espèces
+    {
+      const montantSupp = Number(supplementHeures) || 0;
+      const delegueRow = profilParts.find((p) => p.delegue && p.profilId) || profilParts[0];
+      const delegueProfil = delegueRow?.profilId ? profilsList.find((p) => p.id === delegueRow.profilId) : null;
+      await supabase.from("supplements_especes").delete().eq("demande_id", demande.id);
+      if (montantSupp > 0) {
+        await supabase.from("supplements_especes").insert({
+          demande_id: demande.id,
+          profil_id: delegueProfil?.id || null,
+          profil_nom: delegueProfil ? `${delegueProfil.prenom} ${delegueProfil.nom}` : demande.candidat_nom || null,
+          nom_client: demande.nom,
+          ville: demande.ville || null,
+          type_service: typePrestation || null,
+          date_recuperation: new Date().toISOString().split("T")[0],
+          montant: montantSupp,
+          recupere: supplementEspecesRecupere,
+        });
+        queryClient.invalidateQueries({ queryKey: ["supplements_especes"] });
+      }
+    }
 
     if (changes.length > 0) {
       await logAction("Modification du besoin", changes.join(" | "));

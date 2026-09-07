@@ -13,6 +13,7 @@ import PendingRequests from "./pages/PendingRequests";
 import Parametres from "./pages/Parametres";
 import GestionFinanciere from "./pages/GestionFinanciere";
 import SuiviDusProfilsPage from "./pages/SuiviDusProfilsPage";
+import SuiviPaiementsEspeces from "./pages/SuiviPaiementsEspeces";
 import CompteClient from "./pages/CompteClient";
 import Historique from "./pages/Historique";
 import ListingClients from "./pages/ListingClients";
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/gestion-financiere" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/caisse" element={<GestionFinanciere />} />
                 <Route path="/gestion-financiere/suivi-dus" element={<SuiviDusProfilsPage />} />
+                <Route path="/gestion-financiere/paiements-especes" element={<SuiviPaiementsEspeces />} />
                 <Route path="/qualite" element={<QualiteFeedback />} />
                 <Route path="/marketing" element={<Marketing />} />
                 <Route path="/messagerie" element={<Messagerie />} />

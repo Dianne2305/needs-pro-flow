@@ -1536,6 +1536,66 @@ export type Database = {
           },
         ]
       }
+      supplements_especes: {
+        Row: {
+          commentaire: string | null
+          created_at: string
+          date_recuperation: string
+          demande_id: string | null
+          id: string
+          montant: number
+          nom_client: string | null
+          profil_id: string | null
+          profil_nom: string | null
+          recupere: boolean
+          type_service: string | null
+          ville: string | null
+        }
+        Insert: {
+          commentaire?: string | null
+          created_at?: string
+          date_recuperation?: string
+          demande_id?: string | null
+          id?: string
+          montant?: number
+          nom_client?: string | null
+          profil_id?: string | null
+          profil_nom?: string | null
+          recupere?: boolean
+          type_service?: string | null
+          ville?: string | null
+        }
+        Update: {
+          commentaire?: string | null
+          created_at?: string
+          date_recuperation?: string
+          demande_id?: string | null
+          id?: string
+          montant?: number
+          nom_client?: string | null
+          profil_id?: string | null
+          profil_nom?: string | null
+          recupere?: boolean
+          type_service?: string | null
+          ville?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplements_especes_demande_id_fkey"
+            columns: ["demande_id"]
+            isOneToOne: false
+            referencedRelation: "demandes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplements_especes_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "profils"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tresorerie_config: {
         Row: {
           date_solde_initial: string | null
