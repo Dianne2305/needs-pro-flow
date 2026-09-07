@@ -712,17 +712,17 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
 
 
-                {/* Dépôt commercial effectué (uniquement si Commercial/Profil payé par client) */}
+                {/* Dépôt effectué (uniquement si Commercial/Profil payé par client) */}
                 {(statutPaiement === "profil_paye_client" || statutPaiement === "commercial_paye_client") && (
                   <div className="mt-4 p-4 rounded-lg border border-amber-300 bg-amber-50 space-y-3">
                     <h4 className="text-sm font-bold text-amber-800">
-                      Confirmation du versement du commercial à l'agence
+                      Confirmation du versement du {statutPaiement === "profil_paye_client" ? "profil" : "commercial"} à l'agence
                     </h4>
                     <p className="text-xs text-amber-700">
-                      Le commercial a-t-il déposé le montant encaissé auprès de l'agence ?
+                      Le {statutPaiement === "profil_paye_client" ? "profil" : "commercial"} a-t-il déposé le montant encaissé auprès de l'agence ?
                     </p>
                     <div className="flex items-center gap-3">
-                      <Label className="text-amber-800">Dépôt commercial effectué :</Label>
+                      <Label className="text-amber-800">Dépôt {statutPaiement === "profil_paye_client" ? "du profil" : "commercial"} effectué :</Label>
                       <div className="flex gap-2">
                         <Button
                           type="button"
