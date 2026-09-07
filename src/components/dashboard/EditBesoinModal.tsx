@@ -127,6 +127,9 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
 
   // Gestion des parts state
   const [partAgence, setPartAgence] = useState("0");
+  // Supplément d'heures payé en espèces
+  const [supplementHeures, setSupplementHeures] = useState("0");
+  const [supplementEspecesRecupere, setSupplementEspecesRecupere] = useState(false);
   type ProfilPart = {
     profilId: string;
     part: string;
