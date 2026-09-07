@@ -17,16 +17,16 @@ import { STATUTS } from "@/lib/constants";
 
 /** Données de démonstration pour remplir le planning par défaut. */
 const DEMO_INTERVENANTS = [
-  { nom: "Nadia B.", client: "Mme Alaoui", service: "Ménage régulier", ville: "Casablanca", quartier: "Maarif", duree: 4, heure: "09:00", frequence: "hebdomadaire", statut: "confirme" },
-  { nom: "Zineb F.", client: "M. Bennani", service: "Grand ménage", ville: "Casablanca", quartier: "Ain Diab", duree: 6, heure: "08:30", frequence: "ponctuel", statut: "en_cours" },
-  { nom: "Fatima L.", client: "Ste Logistika", service: "Entretien bureaux", ville: "Casablanca", quartier: "Sidi Maarouf", duree: 3, heure: "18:00", frequence: "mensuel", statut: "confirme" },
-  { nom: "Khadija M.", client: "Mme El Fassi", service: "Ménage régulier", ville: "Casablanca", quartier: "Racine", duree: 3, heure: "14:00", frequence: "hebdomadaire", statut: "termine" },
-  { nom: "Samira T.", client: "M. Ouazzani", service: "Nettoyage canapé", ville: "Casablanca", quartier: "Bourgogne", duree: 2, heure: "10:00", frequence: "ponctuel", statut: "en_cours" },
-  { nom: "Aicha R.", client: "Ste Alpha", service: "Entretien bureaux", ville: "Casablanca", quartier: "Centre", duree: 5, heure: "07:00", frequence: "mensuel", statut: "confirme" },
-  { nom: "Hafsa D.", client: "Mme Benmoussa", service: "Ménage après travaux", ville: "Casablanca", quartier: "Hay Riad", duree: 8, heure: "08:00", frequence: "ponctuel", statut: "reporte" },
-  { nom: "Laila K.", client: "M. Zerouali", service: "Ménage régulier", ville: "Casablanca", quartier: "Anfa", duree: 4, heure: "09:30", frequence: "hebdomadaire", statut: "confirme" },
-  { nom: "Rachida E.", client: "Mme Fassi", service: "Repassage", ville: "Casablanca", quartier: "Gauthier", duree: 2, heure: "13:00", frequence: "bi-mensuel", statut: "termine" },
-  { nom: "Yasmin O.", client: "M. Tahiri", service: "Ménage régulier", ville: "Casablanca", quartier: "Ain Sebaa", duree: 3, heure: "16:00", frequence: "hebdomadaire", statut: "en_cours" },
+  { nom: "Nadia B.", client: "Mme Alaoui", service: "Ménage standard", ville: "Casablanca", quartier: "Maarif", duree: 4, heure: "09:00", frequence: "2_fois_semaine", statut: "confirme" },
+  { nom: "Zineb F.", client: "M. Bennani", service: "Grand ménage", ville: "Casablanca", quartier: "Ain Diab", duree: 6, heure: "08:30", frequence: "ponctuel", statut: "prestation_en_cours" },
+  { nom: "Fatima L.", client: "Ste Logistika", service: "Ménage Bureaux", ville: "Casablanca", quartier: "Sidi Maarouf", duree: 3, heure: "18:00", frequence: "1_fois_mois", statut: "confirme" },
+  { nom: "Khadija M.", client: "Mme El Fassi", service: "Ménage standard", ville: "Casablanca", quartier: "Racine", duree: 3, heure: "14:00", frequence: "3_fois_semaine", statut: "prestation_terminee" },
+  { nom: "Samira T.", client: "M. Ouazzani", service: "Nettoyage post-déménagement", ville: "Casablanca", quartier: "Bourgogne", duree: 2, heure: "10:00", frequence: "ponctuel", statut: "en_attente_confirmation" },
+  { nom: "Aicha R.", client: "Ste Alpha", service: "Ménage Bureaux", ville: "Casablanca", quartier: "Centre", duree: 5, heure: "07:00", frequence: "1_fois_mois", statut: "confirme" },
+  { nom: "Hafsa D.", client: "Mme Benmoussa", service: "Ménage fin de chantier", ville: "Casablanca", quartier: "Hay Riad", duree: 8, heure: "08:00", frequence: "ponctuel", statut: "annulee" },
+  { nom: "Laila K.", client: "M. Zerouali", service: "Ménage standard", ville: "Casablanca", quartier: "Anfa", duree: 4, heure: "09:30", frequence: "1_fois_semaine", statut: "confirme" },
+  { nom: "Rachida E.", client: "Mme Fassi", service: "Ménage standard", ville: "Casablanca", quartier: "Gauthier", duree: 2, heure: "13:00", frequence: "2_fois_mois", statut: "paye" },
+  { nom: "Yasmin O.", client: "M. Tahiri", service: "Ménage standard", ville: "Casablanca", quartier: "Ain Sebaa", duree: 3, heure: "16:00", frequence: "quotidien", statut: "nouveau_besoin" },
 ];
 
 function generateDemoDemandes(weekStart: Date): any[] {
