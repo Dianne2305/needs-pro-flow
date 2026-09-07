@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   STATUTS, SEGMENTS,
   TYPES_PRESTATION_PARTICULIER, TYPES_PRESTATION_ENTREPRISE,
@@ -130,6 +131,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     profilId: string;
     part: string;
     delegue: boolean;
+    categorie?: "interne" | "externe";
     tauxType: "horaire" | "horaire_exceptionnel" | "forfait";
     nbHeures: string;
     prixHeure: string;
@@ -963,6 +965,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
                         const showDelegate = profilParts.length > 1;
+                        const categorie = pp.categorie || "interne";
                         const montantTotalTaux = pp.tauxType === "horaire"
                           ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
                           : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
@@ -972,7 +975,16 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                               <div className="flex-1">
                                 <Label className="text-xs flex items-center gap-2">
                                   Nom du profil
-                                  {pp.delegue && showDelegate && (
+                                  <Badge
+                                    className={`gap-1 px-1.5 py-0 text-[10px] border ${
+                                      categorie === "interne"
+                                        ? "bg-teal-100 text-teal-800 hover:bg-teal-100 border-teal-300"
+                                        : "bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-300"
+                                    }`}
+                                  >
+                                    {categorie === "interne" ? "Interne" : "Externe"}
+                                  </Badge>
+                                  {pp.delegue && (
                                     <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-300 gap-1 px-1.5 py-0 text-[10px]">
                                       <Crown className="h-2.5 w-2.5" />
                                       Délégué
@@ -991,6 +1003,20 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                         {p.prenom} {p.nom} {p.type_profil ? `(${p.type_profil})` : ""}
                                       </SelectItem>
                                     ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="w-36">
+                                <Label className="text-xs">Catégorie</Label>
+                                <Select value={categorie} onValueChange={(val: "interne" | "externe") => {
+                                  const updated = [...profilParts];
+                                  updated[index] = { ...updated[index], categorie: val };
+                                  setProfilParts(updated);
+                                }}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="interne">Interne</SelectItem>
+                                    <SelectItem value="externe">Externe</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -1014,21 +1040,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                   </SelectContent>
                                 </Select>
                               </div>
-                              {showDelegate && (
-                                <Button
-                                  type="button"
-                                  variant={pp.delegue ? "default" : "outline"}
-                                  size="sm"
-                                  className={`h-10 gap-1 ${pp.delegue ? "bg-amber-500 hover:bg-amber-600 text-white" : ""}`}
-                                  onClick={() => {
-                                    setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
-                                  }}
-                                  title="Désigner comme délégué"
-                                >
-                                  <Crown className="h-4 w-4" />
-                                  {pp.delegue ? "Délégué" : "Désigner"}
-                                </Button>
-                              )}
                               {profilParts.length > 1 && (
                                 <Button variant="ghost" size="icon" className="text-destructive h-10 w-10" onClick={() => {
                                   const filtered = profilParts.filter((_, i) => i !== index);
@@ -1041,6 +1052,21 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 </Button>
                               )}
                             </div>
+                            <label className="flex items-start gap-2 rounded-md border bg-background px-3 py-2 cursor-pointer">
+                              <Checkbox
+                                checked={pp.delegue}
+                                onCheckedChange={() => {
+                                  setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
+                                }}
+                              />
+                              <span className="text-xs leading-tight">
+                                <span className="font-semibold">Désigner comme délégué</span>
+                                <span className="block text-muted-foreground">
+                                  Le délégué encaisse et récupère la part de l'agence en cas de paiement sur place.
+                                </span>
+                              </span>
+                            </label>
+
                             <div className="grid grid-cols-3 gap-3">
                               {pp.tauxType === "horaire" || pp.tauxType === "horaire_exceptionnel" ? (
                                 <>
