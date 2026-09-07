@@ -131,7 +131,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
     profilId: string;
     part: string;
     delegue: boolean;
-    categorie?: "interne" | "externe";
     tauxType: "horaire" | "horaire_exceptionnel" | "forfait";
     nbHeures: string;
     prixHeure: string;
@@ -964,8 +963,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                       {profilParts.map((pp, index) => {
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
-                        const showDelegate = profilParts.length > 1;
-                        const categorie = pp.categorie || "interne";
+                        const categorie = demande.frequence === "Ponctuel" ? "externe" : "interne";
                         const montantTotalTaux = pp.tauxType === "horaire"
                           ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
                           : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
@@ -1006,19 +1004,17 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="w-36">
-                                <Label className="text-xs">Catégorie</Label>
-                                <Select value={categorie} onValueChange={(val: "interne" | "externe") => {
-                                  const updated = [...profilParts];
-                                  updated[index] = { ...updated[index], categorie: val };
-                                  setProfilParts(updated);
-                                }}>
-                                  <SelectTrigger><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="interne">Interne</SelectItem>
-                                    <SelectItem value="externe">Externe</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                              <div className="w-28">
+                                <Label className="text-xs">Déléguée</Label>
+                                <label className="flex items-center gap-2 h-10 px-3 rounded-md border bg-background cursor-pointer">
+                                  <Checkbox
+                                    checked={pp.delegue}
+                                    onCheckedChange={() => {
+                                      setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
+                                    }}
+                                  />
+                                  <span className="text-xs font-medium">Déléguée</span>
+                                </label>
                               </div>
                               <div className="w-40">
                                 <Label className="text-xs">Type de taux</Label>
@@ -1052,20 +1048,6 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                                 </Button>
                               )}
                             </div>
-                            <label className="flex items-start gap-2 rounded-md border bg-background px-3 py-2 cursor-pointer">
-                              <Checkbox
-                                checked={pp.delegue}
-                                onCheckedChange={() => {
-                                  setProfilParts(profilParts.map((p, i) => ({ ...p, delegue: i === index })));
-                                }}
-                              />
-                              <span className="text-xs leading-tight">
-                                <span className="font-semibold">Désigner comme délégué</span>
-                                <span className="block text-muted-foreground">
-                                  Le délégué encaisse et récupère la part de l'agence en cas de paiement sur place.
-                                </span>
-                              </span>
-                            </label>
 
                             <div className="grid grid-cols-3 gap-3">
                               {pp.tauxType === "horaire" || pp.tauxType === "horaire_exceptionnel" ? (
