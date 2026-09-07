@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { ChevronLeft, ChevronRight, CalendarDays, Plus } from "lucide-react";
 import { format, startOfWeek, addDays, addWeeks } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -18,6 +18,17 @@ import { STATUTS } from "@/lib/constants";
 /** Catégorie : missions récurrentes (abonnement) = Interne, ponctuelles = Externe. */
 function getCategorie(d: any): "interne" | "externe" {
   return d.frequence && d.frequence !== "ponctuel" ? "interne" : "externe";
+}
+
+/** Initiales à partir d'un nom complet. */
+function getInitials(name?: string | null): string {
+  if (!name) return "—";
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("");
 }
 
 export function PlanInterventionTab() {
@@ -58,125 +69,234 @@ export function PlanInterventionTab() {
   const total = (demandes as any[]).length;
 
   return (
-    <div className="space-y-4">
-      {/* Navigation semaine */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w) => w - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <CalendarDays className="h-4 w-4 text-primary" />
+    <div className="space-y-6">
+      {/* Header & Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Planning des interventions</h2>
+          <p className="text-sm text-muted-foreground mt-1">
             Semaine du {format(weekStart, "dd MMM", { locale: fr })} au{" "}
             {format(addDays(weekStart, 6), "dd MMM yyyy", { locale: fr })}
-          </div>
-          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setWeekOffset((w) => w + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          {weekOffset !== 0 && (
-            <Button variant="ghost" size="sm" className="text-xs" onClick={() => setWeekOffset(0)}>
-              Semaine en cours
-            </Button>
-          )}
+          </p>
         </div>
-        <Badge variant="secondary" className="text-xs">
-          {total} intervention{total > 1 ? "s" : ""}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 p-1 bg-muted rounded-lg border border-border">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-md"
+              onClick={() => setWeekOffset((w) => w - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {weekOffset !== 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs font-medium"
+                onClick={() => setWeekOffset(0)}
+              >
+                Semaine en cours
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-md"
+              onClick={() => setWeekOffset((w) => w + 1)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <Badge variant="secondary" className="text-xs h-8 px-3">
+            <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+            {total} intervention{total > 1 ? "s" : ""}
+          </Badge>
+        </div>
       </div>
 
-      <div className="space-y-4">
+      {/* Weekly View */}
+      <div className="space-y-8">
         {days.map((day) => {
           const key = format(day, "yyyy-MM-dd");
           const rows = byDay[key] || [];
           const isToday = key === format(new Date(), "yyyy-MM-dd");
+          const dayName = format(day, "EEE", { locale: fr });
+          const dayNumber = format(day, "dd");
+          const fullDate = format(day, "EEEE dd MMMM yyyy", { locale: fr });
+
           return (
-            <div key={key} className={cn("border rounded-lg overflow-hidden", isToday && "border-primary")}>
-              <div
-                className={cn(
-                  "px-3 py-2 flex items-center justify-between",
-                  isToday ? "bg-primary/10" : "bg-muted/50",
-                )}
-              >
-                <span className="text-sm font-bold capitalize">
-                  {format(day, "EEEE dd MMMM yyyy", { locale: fr })}
-                </span>
-                <Badge
-                  variant={rows.length > 0 ? "default" : "outline"}
-                  className="text-xs font-semibold"
+            <section key={key}>
+              <div className="flex items-center gap-4 mb-4">
+                <div
+                  className={cn(
+                    "flex flex-col items-center justify-center w-14 h-14 rounded-xl border",
+                    isToday
+                      ? "bg-primary/10 border-primary/30"
+                      : "bg-muted/50 border-border",
+                  )}
                 >
-                  {rows.length} intervention{rows.length > 1 ? "s" : ""}
-                </Badge>
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-wider",
+                      isToday ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    {dayName}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xl font-bold",
+                      isToday ? "text-primary" : "text-foreground",
+                    )}
+                  >
+                    {dayNumber}
+                  </span>
+                </div>
+                <div>
+                  <h3
+                    className={cn(
+                      "text-lg font-semibold capitalize",
+                      isToday ? "text-primary" : "text-foreground",
+                    )}
+                  >
+                    {fullDate}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {rows.length} intervention{rows.length > 1 ? "s" : ""}
+                  </p>
+                </div>
               </div>
+
               {rows.length === 0 ? (
-                <div className="px-3 py-4 text-xs text-muted-foreground">Aucune intervention</div>
+                <div className="rounded-xl border border-dashed border-border bg-muted/30 px-6 py-8 text-center text-sm text-muted-foreground">
+                  Aucune intervention ce jour
+                </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-xs">Profils intervenants</TableHead>
-                      <TableHead className="text-xs">Client / Service</TableHead>
-                      <TableHead className="text-xs">Heure</TableHead>
-                      <TableHead className="text-xs">Nb heures</TableHead>
-                      <TableHead className="text-xs">Statut du besoin</TableHead>
-                      <TableHead className="text-xs">Catégorie</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((d: any) => {
-                      const st = (STATUTS as any)[d.statut];
-                      const cat = getCategorie(d);
-                      return (
-                        <TableRow key={d.id} className="hover:bg-muted/40">
-                          <TableCell className="text-sm font-medium">
-                            {d.candidat_nom || <span className="text-muted-foreground">Non affecté</span>}
-                            {d.nombre_intervenants > 1 && (
-                              <span className="text-xs text-muted-foreground"> ({d.nombre_intervenants} pers.)</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            <div className="font-medium">{d.nom}</div>
-                            <div className="text-muted-foreground">
-                              {d.type_prestation} · {d.quartier || d.ville}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {d.heure_prestation ? String(d.heure_prestation).slice(0, 5) : "—"}
-                          </TableCell>
-                          <TableCell className="text-sm">{d.duree_heures ? `${d.duree_heures} h` : "—"}</TableCell>
-                          <TableCell>
-                            {st ? (
-                              <Badge variant="outline" className={cn("border-0 text-xs", st.color)}>
-                                {st.label}
+                <div className="overflow-hidden rounded-xl border border-border shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 hover:bg-muted/50">
+                        <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Intervenante
+                        </TableHead>
+                        <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Client / Service
+                        </TableHead>
+                        <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Horaires
+                        </TableHead>
+                        <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Catégorie
+                        </TableHead>
+                        <TableHead className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Statut
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody className="divide-y divide-border">
+                      {rows.map((d: any) => {
+                        const st = (STATUTS as any)[d.statut];
+                        const cat = getCategorie(d);
+                        const start = d.heure_prestation
+                          ? String(d.heure_prestation).slice(0, 5)
+                          : "—";
+                        const end = d.heure_fin
+                          ? String(d.heure_fin).slice(0, 5)
+                          : start !== "—" && d.duree_heures
+                            ? `${String(Number(start.split(":")[0]) + Number(d.duree_heures)).padStart(2, "0")}:${start.split(":")[1]}`
+                            : "—";
+
+                        return (
+                          <TableRow
+                            key={d.id}
+                            className="transition-colors hover:bg-muted/30"
+                          >
+                            <TableCell className="py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground border border-border">
+                                  {getInitials(d.candidat_nom) || "—"}
+                                </div>
+                                <span className="font-medium text-foreground">
+                                  {d.candidat_nom || (
+                                    <span className="text-muted-foreground">Non affecté</span>
+                                  )}
+                                  {d.nombre_intervenants > 1 && (
+                                    <span className="text-xs text-muted-foreground ml-1">
+                                      ({d.nombre_intervenants} pers.)
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-foreground">
+                                  {d.nom}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {d.type_prestation} · {d.quartier || d.ville}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-semibold text-foreground">
+                                  {start} - {end}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {d.duree_heures ? `${d.duree_heures} h` : "—"}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "border-0 text-xs font-medium rounded-full",
+                                  cat === "interne"
+                                    ? "bg-teal-100 text-teal-800 hover:bg-teal-100"
+                                    : "bg-amber-100 text-amber-800 hover:bg-amber-100",
+                                )}
+                              >
+                                {cat === "interne" ? "Interne" : "Externe"}
                               </Badge>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "border-0 text-xs",
-                                cat === "interne"
-                                  ? "bg-teal-100 text-teal-800"
-                                  : "bg-amber-100 text-amber-800",
+                            </TableCell>
+                            <TableCell className="py-4">
+                              {st ? (
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold border",
+                                    st.color,
+                                  )}
+                                >
+                                  <span
+                                    className={cn(
+                                      "w-1.5 h-1.5 rounded-full",
+                                      st.dot || "bg-current",
+                                    )}
+                                  />
+                                  {st.label}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
                               )}
-                            >
-                              {cat === "interne" ? "Interne" : "Externe"}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
-            </div>
+            </section>
           );
         })}
       </div>
 
-      {isLoading && <p className="text-sm text-muted-foreground">Chargement...</p>}
+      {isLoading && (
+        <p className="text-sm text-muted-foreground">Chargement...</p>
+      )}
     </div>
   );
 }
