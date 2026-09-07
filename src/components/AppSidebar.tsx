@@ -21,7 +21,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 const items = [
   { title: "Tableau de bord", url: "/", icon: LayoutDashboard },
   { title: "Demandes en attente", url: "/demandes", icon: Clock, showBadge: true },
-  { title: "Listing profils", url: "/profils", icon: Users },
+  { title: "Liste femme de ménage", url: "/profils", icon: Users },
   { title: "Listing clients", url: "/clients", icon: Building2 },
   { title: "Historique", url: "/historique", icon: History },
   { title: "Gestion Abonnement", url: "/gestion-abonnement", icon: CalendarCheck },
