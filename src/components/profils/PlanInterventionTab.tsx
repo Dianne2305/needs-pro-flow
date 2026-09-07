@@ -169,6 +169,11 @@ export function PlanInterventionTab() {
             <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
             {total} intervention{total > 1 ? "s" : ""}
           </Badge>
+          {isDemo && (
+            <Badge variant="outline" className="text-xs h-8 px-3 border-amber-300 text-amber-700 bg-amber-50">
+              Données de démonstration
+            </Badge>
+          )}
         </div>
       </div>
 
