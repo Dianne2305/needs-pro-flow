@@ -964,6 +964,7 @@ export function EditBesoinModal({ demande, open, onOpenChange, onSave }: Props) 
                         const selectedIds = profilParts.filter((_, i) => i !== index).map((p) => p.profilId);
                         const availableProfils = profilsList.filter((p) => !selectedIds.includes(p.id));
                         const categorie = demande.frequence === "Ponctuel" ? "externe" : "interne";
+                        const selectedProfil = profilsList.find((p) => p.id === pp.profilId);
                         const montantTotalTaux = pp.tauxType === "horaire"
                           ? (Number(pp.nbHeures) || 0) * (Number(pp.prixHeure) || 0)
                           : (Number(pp.nbJours) || 0) * (Number(pp.prixForfait) || 0);
