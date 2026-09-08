@@ -67,15 +67,23 @@ export function ClientsBiensTab() {
   );
 
   const lignes = useMemo(() => {
+    const q = recherche.trim().toLowerCase();
     return biens
       .map((b) => ({ bien: b, client: clients.find((c) => c.id === b.client_id) }))
       .filter(({ bien, client }) => {
-        if (fVille !== "all" && bien.ville !== fVille) return false;
+        if (fTypologie !== "all" && bien.typologie !== fTypologie) return false;
+        if (fZone === "eloignee" && !bien.zone_eloignee) return false;
+        if (fZone === "standard" && bien.zone_eloignee) return false;
         if (fType !== "all" && client?.type_client !== fType) return false;
         if (fService !== "all" && bien.services !== fService) return false;
+        if (q) {
+          const hay = [bien.code, client?.nom, bien.quartier, bien.ville, bien.adresse]
+            .filter(Boolean).join(" ").toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
         return true;
       });
-  }, [biens, clients, fVille, fType, fService]);
+  }, [biens, clients, recherche, fTypologie, fZone, fType, fService]);
 
   const [clientForm, setClientForm] = useState({
     nom: "", type_client: "conciergerie", telephone: "", email: "",
