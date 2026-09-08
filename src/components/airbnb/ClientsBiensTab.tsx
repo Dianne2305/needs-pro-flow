@@ -17,7 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { AlertTriangle, Building2, Home, Plus } from "lucide-react";
+import { AlertTriangle, Building2, Eye, Home, MoreHorizontal, Plus, Search } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   ACCES_BIEN, MODES_PAIEMENT_AIRBNB, SERVICES_BIEN, SEUIL_CONCIERGERIE, SUPPLEMENT_ZONE,
