@@ -26,6 +26,7 @@ import Marketing from "./pages/Marketing";
 import Messagerie from "./pages/Messagerie";
 import GestionAbonnement from "./pages/GestionAbonnement";
 import AirBnbConciergerie from "./pages/AirBnbConciergerie";
+import CompteClientAirbnb from "./pages/CompteClientAirbnb";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
                 <Route path="/marketing" element={<Marketing />} />
                 <Route path="/messagerie" element={<Messagerie />} />
                 <Route path="/airbnb-conciergerie" element={<AirBnbConciergerie />} />
+                <Route path="/airbnb-conciergerie/client/:id" element={<CompteClientAirbnb />} />
                 <Route path="/parametres" element={<Parametres />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

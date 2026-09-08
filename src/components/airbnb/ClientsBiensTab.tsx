@@ -4,6 +4,7 @@
  * seuil des 3 biens (tarif conciergerie) et création client / bien.
  */
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { AlertTriangle, Building2, Home, Plus } from "lucide-react";
+import { AlertTriangle, Building2, Eye, Home, MoreHorizontal, Plus, Search } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   ACCES_BIEN, MODES_PAIEMENT_AIRBNB, SERVICES_BIEN, SEUIL_CONCIERGERIE, SUPPLEMENT_ZONE,
@@ -27,8 +29,11 @@ import { QUARTIERS_CASABLANCA } from "@/lib/constants";
 
 export function ClientsBiensTab() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [vue, setVue] = useState<"bien" | "client">("bien");
-  const [fVille, setFVille] = useState("all");
+  const [recherche, setRecherche] = useState("");
+  const [fTypologie, setFTypologie] = useState("all");
+  const [fZone, setFZone] = useState("all");
   const [fType, setFType] = useState("all");
   const [fService, setFService] = useState("all");
   const [openClient, setOpenClient] = useState(false);
@@ -63,15 +68,23 @@ export function ClientsBiensTab() {
   );
 
   const lignes = useMemo(() => {
+    const q = recherche.trim().toLowerCase();
     return biens
       .map((b) => ({ bien: b, client: clients.find((c) => c.id === b.client_id) }))
       .filter(({ bien, client }) => {
-        if (fVille !== "all" && bien.ville !== fVille) return false;
+        if (fTypologie !== "all" && bien.typologie !== fTypologie) return false;
+        if (fZone === "eloignee" && !bien.zone_eloignee) return false;
+        if (fZone === "standard" && bien.zone_eloignee) return false;
         if (fType !== "all" && client?.type_client !== fType) return false;
         if (fService !== "all" && bien.services !== fService) return false;
+        if (q) {
+          const hay = [bien.code, client?.nom, bien.quartier, bien.ville, bien.adresse]
+            .filter(Boolean).join(" ").toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
         return true;
       });
-  }, [biens, clients, fVille, fType, fService]);
+  }, [biens, clients, recherche, fTypologie, fZone, fType, fService]);
 
   const [clientForm, setClientForm] = useState({
     nom: "", type_client: "conciergerie", telephone: "", email: "",
@@ -127,11 +140,11 @@ export function ClientsBiensTab() {
   });
 
   const kpis = [
-    { label: "Biens actifs", value: biens.length, hint: `chez ${new Set(biens.map((b) => b.client_id)).size} clients` },
+    { label: "Biens actifs en gestion", value: biens.filter((b) => b.actif !== false).length, hint: `chez ${new Set(biens.map((b) => b.client_id)).size} clients` },
     { label: "Clients conciergerie", value: clients.filter((c) => (nbBiensParClient[c.id] || 0) >= SEUIL_CONCIERGERIE).length, hint: "3 biens et plus — tarif forfait" },
     { label: "Sous le seuil", value: clientsSousSeuil.length, hint: "1–2 biens — à reclasser" },
     { label: "Biens avec service linge", value: biens.filter((b) => b.services === "menage_linge" || b.services === "tout").length, hint: "Casablanca uniquement" },
-    { label: "En probatoire", value: clients.filter((c) => c.probatoire).length, hint: "facturation quinzaine" },
+    { label: "Période probatoire", value: clients.filter((c) => c.probatoire).length, hint: "facturation quinzaine" },
   ];
 
   return (
@@ -159,6 +172,15 @@ export function ClientsBiensTab() {
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
+        <div className="relative w-72">
+          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            placeholder="Rechercher (code, client, quartier, ville…)"
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+          />
+        </div>
         <Select value={vue} onValueChange={(v) => setVue(v as "bien" | "client")}>
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -166,12 +188,19 @@ export function ClientsBiensTab() {
             <SelectItem value="client">Vue : par client</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={fVille} onValueChange={setFVille}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Ville" /></SelectTrigger>
+        <Select value={fTypologie} onValueChange={setFTypologie}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Typologie" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes les villes</SelectItem>
-            <SelectItem value="Casablanca">Casablanca</SelectItem>
-            <SelectItem value="Rabat">Rabat</SelectItem>
+            <SelectItem value="all">Toutes les typologies</SelectItem>
+            {TYPOLOGIES_BIEN.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={fZone} onValueChange={setFZone}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Zone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les zones</SelectItem>
+            <SelectItem value="standard">Zone standard</SelectItem>
+            <SelectItem value="eloignee">Zone éloignée</SelectItem>
           </SelectContent>
         </Select>
         <Select value={fType} onValueChange={setFType}>
