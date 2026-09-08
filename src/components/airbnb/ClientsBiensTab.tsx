@@ -140,11 +140,11 @@ export function ClientsBiensTab() {
   });
 
   const kpis = [
-    { label: "Biens actifs", value: biens.length, hint: `chez ${new Set(biens.map((b) => b.client_id)).size} clients` },
+    { label: "Biens actifs en gestion", value: biens.filter((b) => b.actif !== false).length, hint: `chez ${new Set(biens.map((b) => b.client_id)).size} clients` },
     { label: "Clients conciergerie", value: clients.filter((c) => (nbBiensParClient[c.id] || 0) >= SEUIL_CONCIERGERIE).length, hint: "3 biens et plus — tarif forfait" },
     { label: "Sous le seuil", value: clientsSousSeuil.length, hint: "1–2 biens — à reclasser" },
     { label: "Biens avec service linge", value: biens.filter((b) => b.services === "menage_linge" || b.services === "tout").length, hint: "Casablanca uniquement" },
-    { label: "En probatoire", value: clients.filter((c) => c.probatoire).length, hint: "facturation quinzaine" },
+    { label: "Période probatoire", value: clients.filter((c) => c.probatoire).length, hint: "facturation quinzaine" },
   ];
 
   return (
