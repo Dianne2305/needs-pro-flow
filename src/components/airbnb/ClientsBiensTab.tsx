@@ -27,8 +27,11 @@ import { QUARTIERS_CASABLANCA } from "@/lib/constants";
 
 export function ClientsBiensTab() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [vue, setVue] = useState<"bien" | "client">("bien");
-  const [fVille, setFVille] = useState("all");
+  const [recherche, setRecherche] = useState("");
+  const [fTypologie, setFTypologie] = useState("all");
+  const [fZone, setFZone] = useState("all");
   const [fType, setFType] = useState("all");
   const [fService, setFService] = useState("all");
   const [openClient, setOpenClient] = useState(false);
