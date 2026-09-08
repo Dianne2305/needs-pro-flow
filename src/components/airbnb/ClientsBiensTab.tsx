@@ -171,6 +171,15 @@ export function ClientsBiensTab() {
       </div>
 
       <div className="flex flex-wrap items-end gap-2">
+        <div className="relative w-72">
+          <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-8"
+            placeholder="Rechercher (code, client, quartier, ville…)"
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+          />
+        </div>
         <Select value={vue} onValueChange={(v) => setVue(v as "bien" | "client")}>
           <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -178,12 +187,19 @@ export function ClientsBiensTab() {
             <SelectItem value="client">Vue : par client</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={fVille} onValueChange={setFVille}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Ville" /></SelectTrigger>
+        <Select value={fTypologie} onValueChange={setFTypologie}>
+          <SelectTrigger className="w-44"><SelectValue placeholder="Typologie" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes les villes</SelectItem>
-            <SelectItem value="Casablanca">Casablanca</SelectItem>
-            <SelectItem value="Rabat">Rabat</SelectItem>
+            <SelectItem value="all">Toutes les typologies</SelectItem>
+            {TYPOLOGIES_BIEN.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={fZone} onValueChange={setFZone}>
+          <SelectTrigger className="w-40"><SelectValue placeholder="Zone" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les zones</SelectItem>
+            <SelectItem value="standard">Zone standard</SelectItem>
+            <SelectItem value="eloignee">Zone éloignée</SelectItem>
           </SelectContent>
         </Select>
         <Select value={fType} onValueChange={setFType}>
