@@ -26,6 +26,7 @@ import Marketing from "./pages/Marketing";
 import Messagerie from "./pages/Messagerie";
 import GestionAbonnement from "./pages/GestionAbonnement";
 import AirBnbConciergerie from "./pages/AirBnbConciergerie";
+import CompteClientAirbnb from "./pages/CompteClientAirbnb";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
