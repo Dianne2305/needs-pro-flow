@@ -357,11 +357,11 @@ export function ClientsBiensTab() {
                 <TableRow>
                   <TableHead>Code</TableHead><TableHead>Client</TableHead><TableHead>Bien</TableHead>
                   <TableHead>Typologie</TableHead><TableHead>Accès</TableHead><TableHead>Services</TableHead>
-                  <TableHead>Tarif</TableHead><TableHead>Éligibilité</TableHead>
+                  <TableHead>Tarif</TableHead><TableHead>Éligibilité</TableHead><TableHead className="w-24 text-center">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lignes.length === 0 && <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">Aucun bien enregistré. Créez d'abord un client, puis ajoutez ses biens.</TableCell></TableRow>}
+                {lignes.length === 0 && <TableRow><TableCell colSpan={9} className="py-8 text-center text-muted-foreground">Aucun bien enregistré. Créez d'abord un client, puis ajoutez ses biens.</TableCell></TableRow>}
                 {lignes.map(({ bien, client }) => {
                   const nb = nbBiensParClient[bien.client_id] || 0;
                   return (
@@ -386,6 +386,18 @@ export function ClientsBiensTab() {
                         {nb >= SEUIL_CONCIERGERIE
                           ? <Badge className="bg-green-100 text-green-800">{nb} biens ✓</Badge>
                           : <Badge variant="outline">{nb} bien(s) — standard</Badge>}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => navigate(`/airbnb-conciergerie/client/${client?.id}`)} disabled={!client}>
+                              <Eye className="mr-2 h-4 w-4" />Voir compte client
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );
