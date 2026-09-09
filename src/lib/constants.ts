@@ -114,12 +114,27 @@ export const CONFIRMATION_OPE_OPTIONS = [
   { value: "annule", label: "Annulé", color: "bg-red-100 text-red-800" },
 ] as const;
 
+/** Libellé unique du paiement fractionné (virement + espèces). */
+export const MODE_PAIEMENT_2X = "Par virement/espèces (en 2 fois)";
+
 export const MODES_PAIEMENT_COMMERCIAL = [
   "Virement",
   "Par chèque",
   "À l'agence",
   "Sur place",
+  MODE_PAIEMENT_2X,
 ] as const;
+
+/** Qui récupère physiquement les espèces / le reste à payer. */
+export const RECUPERATEURS_ESPECES = [
+  { value: "fdm", label: "Par la FDM" },
+  { value: "agence", label: "Par l'agence" },
+] as const;
+
+export const RECUPERATEUR_LABEL: Record<string, string> = {
+  fdm: "FDM",
+  agence: "Agence",
+};
 
 export const STATUTS_PAIEMENT_COMMERCIAL = [
   { value: "non_confirme", label: "Non confirmé" },

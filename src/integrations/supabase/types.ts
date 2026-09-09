@@ -641,6 +641,7 @@ export type Database = {
           description_intervention: string | null
           duree_heures: number | null
           email: string | null
+          especes_recupere_par: string | null
           etat_logement: string | null
           flexibilite_horaire: string | null
           frequence: string
@@ -648,8 +649,10 @@ export type Database = {
           id: string
           mode_paiement: string | null
           montant_candidat: number | null
+          montant_especes: number | null
           montant_total: number | null
           montant_verse_client: number | null
+          montant_virement: number | null
           motif_annulation: string | null
           nature_intervention: string | null
           nom: string
@@ -662,6 +665,7 @@ export type Database = {
           planning: Json | null
           preference_horaire: string | null
           quartier: string | null
+          reste_recupere_par: string | null
           services_optionnels: Json | null
           statut: string
           statut_candidature: string | null
@@ -693,6 +697,7 @@ export type Database = {
           description_intervention?: string | null
           duree_heures?: number | null
           email?: string | null
+          especes_recupere_par?: string | null
           etat_logement?: string | null
           flexibilite_horaire?: string | null
           frequence?: string
@@ -700,8 +705,10 @@ export type Database = {
           id?: string
           mode_paiement?: string | null
           montant_candidat?: number | null
+          montant_especes?: number | null
           montant_total?: number | null
           montant_verse_client?: number | null
+          montant_virement?: number | null
           motif_annulation?: string | null
           nature_intervention?: string | null
           nom: string
@@ -714,6 +721,7 @@ export type Database = {
           planning?: Json | null
           preference_horaire?: string | null
           quartier?: string | null
+          reste_recupere_par?: string | null
           services_optionnels?: Json | null
           statut?: string
           statut_candidature?: string | null
@@ -745,6 +753,7 @@ export type Database = {
           description_intervention?: string | null
           duree_heures?: number | null
           email?: string | null
+          especes_recupere_par?: string | null
           etat_logement?: string | null
           flexibilite_horaire?: string | null
           frequence?: string
@@ -752,8 +761,10 @@ export type Database = {
           id?: string
           mode_paiement?: string | null
           montant_candidat?: number | null
+          montant_especes?: number | null
           montant_total?: number | null
           montant_verse_client?: number | null
+          montant_virement?: number | null
           motif_annulation?: string | null
           nature_intervention?: string | null
           nom?: string
@@ -766,6 +777,7 @@ export type Database = {
           planning?: Json | null
           preference_horaire?: string | null
           quartier?: string | null
+          reste_recupere_par?: string | null
           services_optionnels?: Json | null
           statut?: string
           statut_candidature?: string | null
